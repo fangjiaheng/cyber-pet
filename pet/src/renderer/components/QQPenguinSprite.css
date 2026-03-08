@@ -1,0 +1,76 @@
+/* QQ宠物企鹅 Sprite Sheet 组件样式 */
+
+.qq-penguin-sprite {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+  transform-origin: center center;
+}
+
+.qq-penguin-sprite:active {
+  transform: scale(0.95);
+}
+
+/* Canvas */
+.penguin-canvas {
+  display: block;
+  image-rendering: crisp-edges;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+/* 加载状态 */
+.penguin-sprite-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  background: transparent;
+}
+
+.loading-spinner {
+  font-size: 48px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* 调试信息 */
+.debug-info {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #0f0;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.debug-info div {
+  line-height: 1.4;
+}

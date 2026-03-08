@@ -1,0 +1,54 @@
+/* 企鹅对话气泡样式 */
+
+.pet-bubble {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  z-index: 100;
+  -webkit-app-region: no-drag;
+}
+
+.pet-bubble.visible {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.bubble-content {
+  width: 370px;
+  height: 276px;
+  background-image: url('/assets/wors_bg.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px 80px 80px;
+  box-sizing: border-box;
+}
+
+.bubble-content p {
+  margin: 0;
+  color: #333;
+  font-size: 32px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  word-break: break-word;
+}
+
+/* 较小的文字提示 */
+.pet-bubble.small .bubble-content {
+  width: 185px;
+  height: 138px;
+  padding: 30px 40px 40px 40px;
+}
+
+.pet-bubble.small .bubble-content p {
+  font-size: 18px;
+}
