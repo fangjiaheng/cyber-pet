@@ -1,43 +1,52 @@
 /**
  * AI 引擎初始化
- * 在主窗口启动时初始化
+ * 支持从存储读取配置，或使用用户提供的配置
  */
 
 import { aiManager } from '../ai';
-import { claudeConfig } from '../ai/config';
+import type { AIEngineConfig } from '../ai/types';
 
-let initialized = false;
+// 用存储的配置或给定配置初始化（可重复调用）
+export async function initializeAI(config?: { apiKey: string; baseUrl: string; model: string }) {
+  // 优先使用传入的配置，否则从存储读取
+  let apiKey = config?.apiKey
+  let baseUrl = config?.baseUrl
+  let model = config?.model
 
-export function initializeAI() {
-  if (initialized) {
-    console.log('⚠️ AI 引擎已初始化，跳过');
-    return;
+  if (!apiKey || !baseUrl) {
+    try {
+      const stored = await window.electronAPI?.storage?.getAISettings?.()
+      if (stored?.apiKey) apiKey = stored.apiKey
+      if (stored?.baseUrl) baseUrl = stored.baseUrl
+      if (stored?.defaultModel) model = model || stored.defaultModel
+    } catch (e) {
+      // storage 不可用时忽略
+    }
+  }
+
+  if (!apiKey || !baseUrl) {
+    console.log('⚠️ AI 未配置，跳过初始化')
+    return false
   }
 
   try {
-    console.log('🚀 正在初始化 AI 引擎...');
+    const engineConfig: AIEngineConfig = {
+      provider: 'claude',
+      apiKey,
+      baseUrl,
+      model: model || 'claude-opus-4-5-20251101',
+      enabled: true,
+      timeout: 120000,
+      maxRetries: 3,
+    }
 
-    // 注册 Claude 引擎
-    const engine = aiManager.registerEngine(claudeConfig);
-
-    // 设为默认引擎
-    aiManager.setDefaultEngine('claude');
-
-    console.log('✅ AI 引擎初始化成功:', engine.name);
-
-    // 检查可用性（异步）
-    engine.checkAvailability().then((available) => {
-      if (available) {
-        console.log('✅ AI 引擎可用');
-      } else {
-        console.error('❌ AI 引擎不可用，请检查 API Key 和网络连接');
-      }
-    }).catch((err) => {
-      console.error('❌ 可用性检查失败:', err);
-    });
-
-    initialized = true;
+    // 重新注册（覆盖旧实例）
+    aiManager.registerEngine(engineConfig)
+    aiManager.setDefaultEngine('claude')
+    console.log('✅ AI 引擎初始化成功')
+    return true
   } catch (error) {
-    console.error('❌ AI 引擎初始化失败:', error);
+    console.error('❌ AI 引擎初始化失败:', error)
+    return false
   }
 }

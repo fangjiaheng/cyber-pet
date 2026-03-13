@@ -1,16 +1,42 @@
 import { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } from 'electron'
 import path from 'path'
 import StorageManager from './storage'
+import {
+  CHAT_WINDOW_HEIGHT,
+  CHAT_WINDOW_WIDTH,
+  PET_WINDOW_HEIGHT,
+  PET_WINDOW_WIDTH,
+} from '../shared/windowSizes'
 
 let mainWindow: BrowserWindow | null = null
 let chatWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let isWindowHidden = false
+const minVisiblePixels = 50
+
+function clampWindowPosition(x: number, y: number, windowWidth: number, windowHeight: number) {
+  const display = screen.getDisplayNearestPoint({
+    x: Math.round(x + windowWidth / 2),
+    y: Math.round(y + windowHeight / 2),
+  })
+  const workArea = display.workArea
+
+  const maxX = workArea.x + workArea.width - minVisiblePixels
+  const maxY = workArea.y + workArea.height - minVisiblePixels
+  const minX = workArea.x + minVisiblePixels - windowWidth
+  const minY = workArea.y + minVisiblePixels - windowHeight
+
+  return {
+    x: Math.max(minX, Math.min(maxX, x)),
+    y: Math.max(minY, Math.min(maxY, y)),
+    workArea,
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 450,
-    height: 700,
+    width: PET_WINDOW_WIDTH,
+    height: PET_WINDOW_HEIGHT,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -45,28 +71,17 @@ app.whenReady().then(() => {
   // 监听窗口移动请求（带边界检测和自动隐藏）
   ipcMain.on('window:move', (_, { x, y }) => {
     if (mainWindow) {
-      const primaryDisplay = screen.getPrimaryDisplay()
-      const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
       const [windowWidth, windowHeight] = mainWindow.getSize()
-
-      // 边界检测：确保窗口不会完全移出屏幕
-      const minVisiblePixels = 50 // 至少保留 50 像素可见
-      const maxX = screenWidth - minVisiblePixels
-      const maxY = screenHeight - minVisiblePixels
-      const minX = minVisiblePixels - windowWidth
-      const minY = 0
-
-      const boundedX = Math.max(minX, Math.min(maxX, x))
-      const boundedY = Math.max(minY, Math.min(maxY, y))
+      const { x: boundedX, y: boundedY, workArea } = clampWindowPosition(x, y, windowWidth, windowHeight)
 
       mainWindow.setPosition(boundedX, boundedY)
 
       // 检测是否靠近屏幕边缘（30 像素以内）
       const edgeThreshold = 30
-      const isNearLeftEdge = x < edgeThreshold
-      const isNearRightEdge = x > screenWidth - windowWidth - edgeThreshold
-      const isNearTopEdge = y < edgeThreshold
-      const isNearBottomEdge = y > screenHeight - windowHeight - edgeThreshold
+      const isNearLeftEdge = boundedX - workArea.x < edgeThreshold
+      const isNearRightEdge = workArea.x + workArea.width - (boundedX + windowWidth) < edgeThreshold
+      const isNearTopEdge = boundedY - workArea.y < edgeThreshold
+      const isNearBottomEdge = workArea.y + workArea.height - (boundedY + windowHeight) < edgeThreshold
 
       if (isNearLeftEdge || isNearRightEdge || isNearTopEdge || isNearBottomEdge) {
         // 靠近边缘，通知渲染进程
@@ -114,6 +129,30 @@ app.whenReady().then(() => {
       mainWindow.show()
       isWindowHidden = false
       console.log('👀 窗口已从托盘恢复')
+    }
+  })
+
+  // 监听设置鼠标穿透
+  ipcMain.on('window:set-ignore-mouse-events', (_, ignore: boolean) => {
+    if (mainWindow) {
+      if (ignore) {
+        // 忽略鼠标事件，让点击穿透
+        mainWindow.setIgnoreMouseEvents(true, { forward: true })
+      } else {
+        // 正常接收鼠标事件
+        mainWindow.setIgnoreMouseEvents(false)
+      }
+    }
+  })
+
+  // 监听调整窗口大小
+  ipcMain.on('window:resize', (_, { width, height }) => {
+    if (mainWindow) {
+      const [currentX, currentY] = mainWindow.getPosition()
+      mainWindow.setSize(width, height)
+
+      const { x: boundedX, y: boundedY } = clampWindowPosition(currentX, currentY, width, height)
+      mainWindow.setPosition(boundedX, boundedY)
     }
   })
 
@@ -278,7 +317,7 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: '设置',
+      label: 'AI 助手配置',
       click: () => {
         // TODO: 打开设置面板
         if (mainWindow) {
@@ -328,8 +367,8 @@ function createChatWindow() {
 
   console.log('📦 创建新窗口...')
   chatWindow = new BrowserWindow({
-    width: 600,
-    height: 700,
+    width: CHAT_WINDOW_WIDTH,
+    height: CHAT_WINDOW_HEIGHT,
     minWidth: 400,
     minHeight: 500,
     x: 100,  // 固定位置，确保在屏幕内
@@ -378,4 +417,3 @@ function createChatWindow() {
     console.error('❌ 页面加载失败:', errorCode, errorDescription)
   })
 }
-

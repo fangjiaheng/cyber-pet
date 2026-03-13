@@ -10,11 +10,15 @@ interface ElectronAPI {
   moveWindow: (x: number, y: number) => void;
   getWindowPosition: () => Promise<[number, number]>;
   getScreenSize: () => Promise<{ width: number; height: number }>;
+  setIgnoreMouseEvents: (ignore: boolean) => void;
+  resizeWindow: (width: number, height: number) => void;
 
   // 托盘相关
   hideToTray: () => void;
   showFromTray: () => void;
-  onNearEdge: (callback: (edge: string) => void) => void;
+  onNearEdge: (callback: (edge: string) => void) => () => void;
+  onOpenChat: (callback: () => void) => () => void;
+  onOpenSettings: (callback: () => void) => () => void;
 
   // AI 对话窗口
   openChatWindow: () => void;

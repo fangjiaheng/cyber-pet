@@ -1,9 +1,11 @@
 /**
- * QQ宠物企鹅 - Sprite Sheet版本
- * 使用从 GitHub 仓库获取的原版素材
- * 支持 GG（哥哥）和 MM（妹妹）两个版本
+ * ⚠️ 已废弃 - PNG Sprite Sheet 方案
+ *
+ * 项目已切换到 SWF + Ruffle 方案，此文件保留仅供参考
+ * 原因：SWF 文件包含完整的原版动画和音效，效果更好
  */
 
+/*
 import React, { useState, useEffect, useRef } from 'react'
 import './QQPenguinSprite.css'
 
@@ -211,3 +213,8 @@ export const QQPenguinSprite: React.FC<QQPenguinSpriteProps> = ({
 }
 
 export default QQPenguinSprite
+*/
+
+// 临时导出类型定义以保持兼容性
+export type PenguinType = 'GG' | 'MM'
+export type PenguinSpriteAction = 'xiuxian' | 'chifan' | 'xizao' | 'zhaoshou' | 'huaban' | 'zayan'

@@ -11,20 +11,7 @@
 }
 
 .gallery-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.gallery-header h2 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 28px;
-}
-
-.gallery-header p {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
+  display: none;
 }
 
 /* 分类标签 */
@@ -135,11 +122,33 @@
 
 .player-info {
   width: 100%;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 16px;
   color: white;
   font-size: 14px;
   font-weight: 500;
+}
+
+.play-on-pet-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.play-on-pet-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+  transform: scale(1.05);
 }
 
 .player-wrapper {

@@ -20,7 +20,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         onClose()
       }
@@ -32,12 +32,18 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    const handleWindowBlur = () => {
+      onClose()
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown, true)
     document.addEventListener('keydown', handleEscape)
+    window.addEventListener('blur', handleWindowBlur)
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('pointerdown', handlePointerDown, true)
       document.removeEventListener('keydown', handleEscape)
+      window.removeEventListener('blur', handleWindowBlur)
     }
   }, [onClose])
 
@@ -52,11 +58,19 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       let adjustedY = y
 
       if (x + rect.width > viewportWidth) {
-        adjustedX = viewportWidth - rect.width - 10
+        adjustedX = Math.max(12, x - rect.width - 14)
       }
 
       if (y + rect.height > viewportHeight) {
-        adjustedY = viewportHeight - rect.height - 10
+        adjustedY = viewportHeight - rect.height - 12
+      }
+
+      if (adjustedX < 12) {
+        adjustedX = 12
+      }
+
+      if (adjustedY < 12) {
+        adjustedY = 12
       }
 
       menuRef.current.style.left = `${adjustedX}px`
@@ -72,11 +86,16 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }
 
   return (
-    <div className="context-menu-overlay">
+    <div
+      className="context-menu-overlay"
+      onContextMenu={(e) => e.preventDefault()}
+      onPointerDown={() => onClose()}
+    >
       <div
         ref={menuRef}
         className="context-menu"
         style={{ left: x, top: y }}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {items.map((item, index) => (
           item.divider ? (
@@ -84,7 +103,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
           ) : (
             <div
               key={index}
-              className={`context-menu-item ${item.disabled ? 'disabled' : ''}`}
+              className={`context-menu-item ${item.disabled ? 'disabled' : ''} ${item.icon ? 'has-icon' : 'text-only'}`}
               onClick={() => handleItemClick(item)}
             >
               {item.icon && <span className="context-menu-icon">{item.icon}</span>}

@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { aiManager, tokenManager } from '../ai';
 import { taskTypes, availableModels } from '../ai/config';
 import type { TokenUsage } from '../ai/types';
+import { AIConfigForm } from '../renderer/components/AIConfigForm';
 import './ChatWindow.css';
 
 interface Message {
@@ -24,8 +25,48 @@ export function ChatWindow() {
   const [selectedTaskType, setSelectedTaskType] = useState('chat');
   const [selectedModel, setSelectedModel] = useState(availableModels[0].id);
   const [showSettings, setShowSettings] = useState(false);
+  // null = 检查中, false = 未配置, true = 已配置
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // 读取已保存的 AI 配置
+  useEffect(() => {
+    const loadAISettings = async () => {
+      try {
+        const stored = await window.electronAPI?.storage?.getAISettings?.()
+        if (stored?.defaultModel) {
+          setSelectedModel(stored.defaultModel)
+        }
+        setIsConfigured(!!(stored?.apiKey && stored?.baseUrl))
+      } catch {
+        setIsConfigured(false)
+      }
+    }
+    loadAISettings()
+  }, []);
+
+  // 加载历史对话
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        if (window.electronAPI?.storage?.getChatHistory) {
+          const history = await window.electronAPI.storage.getChatHistory();
+          if (history && history.length > 0) {
+            setMessages(history);
+            console.log('✅ 已加载对话历史，共', history.length, '条消息');
+            // 可选：显示一个临时提示
+            // setTimeout(() => {
+            //   alert(`已加载 ${history.length} 条历史对话`);
+            // }, 500);
+          }
+        }
+      } catch (error) {
+        console.error('加载对话历史失败:', error);
+      }
+    };
+    loadHistory();
+  }, []);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -39,16 +80,23 @@ export function ChatWindow() {
     }
   }, [loading]);
 
-  // 添加消息
-  const addMessage = (message: Omit<Message, 'id' | 'timestamp'>) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        ...message,
-        id: `${Date.now()}-${Math.random()}`,
-        timestamp: Date.now(),
-      },
-    ]);
+  // 添加消息（可选择是否立即保存到存储）
+  const addMessage = (message: Omit<Message, 'id' | 'timestamp'>, saveToStorage = true) => {
+    const newMessage: Message = {
+      ...message,
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: Date.now(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+
+    // 保存到存储（传递不包含id和timestamp的对象，让storage自己生成）
+    if (saveToStorage && window.electronAPI?.storage?.addChatMessage) {
+      const { id, timestamp, ...messageWithoutId } = newMessage;
+      window.electronAPI.storage.addChatMessage(messageWithoutId);
+    }
+
+    return newMessage;
   };
 
   // 获取当前任务类型配置
@@ -82,11 +130,11 @@ export function ChatWindow() {
         prompt,
         {
           onStart: () => {
-            // 添加空的助手消息
+            // 添加空的助手消息（不保存到存储，等完成后再保存）
             addMessage({
               role: 'assistant',
               content: '',
-            });
+            }, false);
           },
           onContent: (delta) => {
             fullResponse += delta;
@@ -109,12 +157,27 @@ export function ChatWindow() {
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage && lastMessage.role === 'assistant') {
                 lastMessage.usage = responseUsage;
+                lastMessage.content = fullResponse;
+
+                // 保存完整的助手消息到存储
+                if (window.electronAPI?.storage?.addChatMessage) {
+                  window.electronAPI.storage.addChatMessage({
+                    role: 'assistant',
+                    content: fullResponse,
+                    model: selectedModel,
+                    usage: responseUsage ? {
+                      inputTokens: responseUsage.inputTokens,
+                      outputTokens: responseUsage.outputTokens,
+                      totalTokens: responseUsage.totalTokens,
+                    } : undefined,
+                  });
+                }
               }
               return newMessages;
             });
 
             // 记录 Token 使用
-            tokenManager.addRecord('openclaw', selectedTaskType, response.usage, {
+            tokenManager.addRecord('claude', selectedTaskType, response.usage, {
               prompt: userInput,
               response: fullResponse,
             });
@@ -148,8 +211,8 @@ export function ChatWindow() {
 
   // 处理快捷键
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Cmd/Ctrl + Enter 发送
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    // Enter 发送，Shift + Enter 换行
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -159,6 +222,11 @@ export function ChatWindow() {
   const handleClear = () => {
     if (window.confirm('确定要清空所有对话记录吗？')) {
       setMessages([]);
+      // 同时清空存储
+      if (window.electronAPI?.storage?.clearChatHistory) {
+        window.electronAPI.storage.clearChatHistory();
+        console.log('✅ 已清空对话历史');
+      }
     }
   };
 
@@ -171,8 +239,29 @@ export function ChatWindow() {
     });
   };
 
+  const handleConfigSaved = (cfg: { model: string }) => {
+    setSelectedModel(cfg.model)
+    setIsConfigured(true)
+  }
+
   return (
     <div className="chat-window">
+      {/* 未配置时显示配置引导 */}
+      {isConfigured === false && (
+        <AIConfigForm
+          onSaved={handleConfigSaved}
+        />
+      )}
+
+      {/* 配置检查中 */}
+      {isConfigured === null && (
+        <div className="chat-loading">
+          <div className="typing-indicator"><span/><span/><span/></div>
+        </div>
+      )}
+
+      {/* 已配置，正常显示聊天界面 */}
+      {isConfigured === true && (<>
       {/* 标题栏 */}
       <div className="chat-header">
         <div className="chat-title">
@@ -183,7 +272,7 @@ export function ChatWindow() {
           <button
             className="icon-btn"
             onClick={() => setShowSettings(!showSettings)}
-            title="设置"
+            title="AI 助手配置"
           >
             ⚙️
           </button>
@@ -229,6 +318,11 @@ export function ChatWindow() {
               ))}
             </select>
           </div>
+
+          <div className="setting-group">
+            <label>API 配置</label>
+            <AIConfigForm embedded onSaved={handleConfigSaved} />
+          </div>
         </div>
       )}
 
@@ -250,7 +344,15 @@ export function ChatWindow() {
               {message.role === 'user' ? '👤' : message.role === 'assistant' ? '🦞' : 'ℹ️'}
             </div>
             <div className="message-content">
-              <div className="message-text">{message.content}</div>
+              {message.role === 'assistant' && loading && message.content === '' ? (
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              ) : (
+                <div className="message-text">{message.content}</div>
+              )}
               <div className="message-footer">
                 <span className="message-time">{formatTime(message.timestamp)}</span>
                 {message.usage && (
@@ -263,7 +365,7 @@ export function ChatWindow() {
           </div>
         ))}
 
-        {loading && (
+        {loading && messages[messages.length - 1]?.role !== 'assistant' && (
           <div className="message message-assistant">
             <div className="message-avatar">🦞</div>
             <div className="message-content">
@@ -296,8 +398,8 @@ export function ChatWindow() {
             onKeyDown={handleKeyDown}
             placeholder={
               currentTaskType?.id === 'chat'
-                ? '输入消息... (Cmd/Ctrl + Enter 发送)'
-                : `${currentTaskType?.name}...`
+                ? '输入消息... (Enter 发送, Shift + Enter 换行)'
+                : `${currentTaskType?.name}... (Enter 发送)`
             }
             rows={3}
             disabled={loading}
@@ -312,6 +414,7 @@ export function ChatWindow() {
           </button>
         </div>
       </div>
+      </>)}
     </div>
   );
 }

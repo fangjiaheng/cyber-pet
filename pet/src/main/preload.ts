@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   moveWindow: (x: number, y: number) => ipcRenderer.send('window:move', { x, y }),
   getWindowPosition: () => ipcRenderer.invoke('window:getPosition'),
   getScreenSize: () => ipcRenderer.invoke('screen:getSize'),
+  setIgnoreMouseEvents: (ignore: boolean) => ipcRenderer.send('window:set-ignore-mouse-events', ignore),
+  resizeWindow: (width: number, height: number) => ipcRenderer.send('window:resize', { width, height }),
 
   // 托盘相关
   hideToTray: () => ipcRenderer.send('window:hide-to-tray'),
@@ -14,7 +16,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // 监听边缘事件
   onNearEdge: (callback: (edge: string) => void) => {
-    ipcRenderer.on('window:near-edge', (_, data) => callback(data.edge))
+    const listener = (_: Electron.IpcRendererEvent, data: { edge: string }) => callback(data.edge)
+    ipcRenderer.on('window:near-edge', listener)
+    return () => ipcRenderer.removeListener('window:near-edge', listener)
+  },
+
+  onOpenChat: (callback: () => void) => {
+    const listener = () => callback()
+    ipcRenderer.on('open-chat', listener)
+    return () => ipcRenderer.removeListener('open-chat', listener)
+  },
+
+  onOpenSettings: (callback: () => void) => {
+    const listener = () => callback()
+    ipcRenderer.on('open-settings', listener)
+    return () => ipcRenderer.removeListener('open-settings', listener)
   },
 
   // AI 对话窗口

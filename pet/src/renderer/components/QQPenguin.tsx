@@ -1,3 +1,6 @@
+/* ⚠️ 已废弃 - 项目已切换到 SWF + Ruffle 方案 */
+
+/*
 /**
  * QQ宠物企鹅组件
  * 使用序列帧动画实现经典企鹅形象
@@ -165,3 +168,4 @@ export const QQPenguin: React.FC<QQPenguinProps> = ({
 }
 
 export default QQPenguin
+*/

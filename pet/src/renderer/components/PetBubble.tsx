@@ -45,10 +45,18 @@ export const PetBubble: React.FC<PetBubbleProps> = ({
     }
   }, [duration, onClose])
 
+  const handleClose = () => {
+    setIsVisible(false)
+    setTimeout(() => {
+      onClose?.()
+    }, 300)
+  }
+
   return (
     <div className={`pet-bubble ${isVisible ? 'visible' : ''}`}>
       <div className="bubble-content">
         <p>{text}</p>
+        <button className="bubble-close-btn" onClick={handleClose}>知道了</button>
       </div>
     </div>
   )

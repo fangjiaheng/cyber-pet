@@ -1,3 +1,6 @@
+/* ⚠️ 已废弃 - 项目已切换到 SWF + Ruffle 方案 */
+
+/*
 /**
  * QQ企鹅占位符组件
  * 在提取真实素材前使用，用CSS绘制简化版企鹅
@@ -104,3 +107,4 @@ export const QQPenguinPlaceholder: React.FC<QQPenguinPlaceholderProps> = ({
 }
 
 export default QQPenguinPlaceholder
+*/
