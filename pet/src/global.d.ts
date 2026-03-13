@@ -2,6 +2,10 @@
  * 全局类型定义
  */
 
+interface ResizeWindowOptions {
+  fitToScreen?: boolean;
+}
+
 // Electron API 类型定义
 interface ElectronAPI {
   // 窗口控制
@@ -11,7 +15,7 @@ interface ElectronAPI {
   getWindowPosition: () => Promise<[number, number]>;
   getScreenSize: () => Promise<{ width: number; height: number }>;
   setIgnoreMouseEvents: (ignore: boolean) => void;
-  resizeWindow: (width: number, height: number) => void;
+  resizeWindow: (width: number, height: number, options?: ResizeWindowOptions) => void;
 
   // 托盘相关
   hideToTray: () => void;

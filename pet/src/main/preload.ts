@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { ResizeWindowOptions } from '../shared/types'
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // 窗口控制
@@ -8,7 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getWindowPosition: () => ipcRenderer.invoke('window:getPosition'),
   getScreenSize: () => ipcRenderer.invoke('screen:getSize'),
   setIgnoreMouseEvents: (ignore: boolean) => ipcRenderer.send('window:set-ignore-mouse-events', ignore),
-  resizeWindow: (width: number, height: number) => ipcRenderer.send('window:resize', { width, height }),
+  resizeWindow: (width: number, height: number, options?: ResizeWindowOptions) => ipcRenderer.send('window:resize', { width, height, options }),
 
   // 托盘相关
   hideToTray: () => ipcRenderer.send('window:hide-to-tray'),

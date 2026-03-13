@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useLayoutEffect, useRef } from 'react'
 import './ContextMenu.css'
 
 export interface MenuItem {
@@ -12,11 +12,12 @@ export interface MenuItem {
 interface ContextMenuProps {
   x: number
   y: number
+  ready?: boolean
   items: MenuItem[]
   onClose: () => void
 }
 
-export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
+export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }, [onClose])
 
   // 确保菜单不会超出屏幕
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect()
       const viewportWidth = window.innerWidth
@@ -93,7 +94,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
     >
       <div
         ref={menuRef}
-        className="context-menu"
+        className={`context-menu ${ready ? '' : 'context-menu--hidden'}`}
         style={{ left: x, top: y }}
         onPointerDown={(e) => e.stopPropagation()}
       >

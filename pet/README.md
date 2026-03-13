@@ -1,89 +1,123 @@
-# 🐾 QQ 宠物桌面版 Desktop Pet
+# Desktop Pet 桌面萌宠原型
 
-> 致敬经典 QQ 宠物，用现代技术重现童年回忆
+> 基于 Electron + React + Ruffle 的桌面萌宠研究原型。
+> 当前版本仍使用原版 QQ 宠物 SWF 资源做交互验证，仅适合本地学习、原型测试和动画研究；如果未来要公开发布或商业化，必须先完成角色、命名、素材、音效和视觉风格的原创化替换。
 
-基于 Electron + React + Ruffle 打造的桌面宠物应用，使用**原版 Flash (SWF) 动画**，完美还原 QQ 宠物的经典体验。宠物不仅能陪伴你，还能通过 AI 助手帮你完成各种任务。
+## 项目简介
 
-## ✨ 特性
+这个项目的目标，是把经典桌面宠物体验和现代 AI 助手结合起来，做成一个可以常驻桌面的互动角色。
 
-### 🎮 原版动画体验
-- 🎮 **原汁原味** - 使用原版 SWF 动画，完美还原 QQ 宠物动作和音效
-- 🎨 **精美动画** - 基于 Ruffle 引擎播放 Flash 动画，流畅自然
-- 🎬 **动画画廊** - 浏览和测试所有原版动画
-- 🍖 **喂养下拉菜单** - 6种吃喝动作（吃饭1/2/3、喝水1/2/3）
+当前版本已经完成了下面这条主链路：
 
-### 🤖 智能AI助手
-- 🤖 **Claude AI 集成** - 基于 Claude Opus 4.5 的智能对话
-- 💬 **微信风格聊天** - 用户消息右侧绿色，AI回复左侧白色
-- 💾 **对话记忆** - 自动保存/加载历史对话，最多500条
-- ⚡ **快捷操作** - Enter 发送，Shift+Enter 换行
-- 📊 **多任务类型** - 对话、邮件整理、代码审查、翻译等
+- 宠物常驻桌面显示，可拖拽、可右键、可展开功能区
+- 原版 SWF 动画通过 Ruffle 播放
+- 播放器改为常驻 `player.swf`，通过 `loadlists` 切动作，切换时不再整屏闪烁
+- 喂食菜单、动画菜单、AI 聊天、AI 配置面板已经打通
+- 宠物状态、聊天记录、AI 配置会持久化到本地 `electron-store`
 
-### 🎯 桌面交互
-- 🎯 **桌面漫游** - 宠物可以在桌面上自由拖拽移动
-- 👆 **点击穿透** - 边框外区域可点击到后面的应用
-- 🖱️ **悬浮/点击触发** - 悬浮或点击企鹅显示功能区
-- 📐 **窗口动态调整** - 打开聊天时窗口自动放大
+## 当前能力
 
-### 💝 养成系统
-- 💝 **情感系统** - 饥饿、清洁、心情、精力四维状态系统
-- 🍖 **互动养成** - 喂食、洗澡、玩耍、休息等多种互动
-- 💭 **对话气泡** - 企鹅表达情感和反馈
-- 🖥️ **跨平台** - Windows / macOS / Linux
+### 动画系统
 
-## 🛠️ 技术栈
+- 使用原版 SWF 资源作为当前验证素材
+- 常驻 `/player.swf`，通过 `setid()` + `loadlists()` 切换动作
+- 已接入原版 102 号企鹅的多段动作 playlist 映射，常见长动作可完整播放
+- 启动时会播放进场动画，再自动回到待机
+- 内置动画菜单，当前主界面可浏览 9 个分类、139 个动作入口
+- 支持开发态 `player.swf` 验证面板，用来检查控制桥是否可用
 
-- **Electron** - 跨平台桌面应用框架
-- **React** - 用户界面构建
-- **Ruffle** - WebAssembly Flash 播放器
-- **TypeScript** - 类型安全开发
-- **Zustand** - 轻量级状态管理
-- **Claude API** - AI 对话助手
+### 桌面交互
 
-## 🎯 当前状态
+- 支持拖拽窗口移动
+- 支持透明区域点击穿透
+- 悬浮或点击企鹅会显示功能区
+- 右键菜单会贴近宠物右下方展开，点击外部区域可关闭
+- 喂食菜单和动画菜单使用统一的可复用下拉组件
+- 下拉菜单已去掉横向滚动条，避免视觉干扰
+- 对话气泡和下拉菜单会根据窗口模式动态调整展示区域
 
-✅ **已完成核心功能**
+### AI 助手
 
-**窗口交互**
-- [x] 基础窗口和透明背景
-- [x] 宠物拖拽移动
-- [x] 窗口点击穿透（边框外可点击后面应用）
-- [x] 悬浮/点击企鹅显示功能区
-- [x] 窗口动态调整大小（聊天时自动放大）
+- 内置聊天窗口，支持流式回复
+- 支持本地保存聊天历史
+- 已完成真正可用的 `AI 助手配置` 面板
+- 支持配置 Base URL、API Key、默认模型
+- 支持测试连接和保存后即时生效
+- 设置面板和聊天窗口都支持拖动
 
-**动画系统**
-- [x] SWF 动画播放系统（Ruffle）
-- [x] 动画画廊（分类浏览）
-- [x] 喂养下拉菜单（6种吃喝动作）
+### 养成与状态
 
-**AI 助手**
-- [x] AI 聊天助手（Claude Opus 4.5）
-- [x] 对话历史记忆存储（自动保存/加载）
-- [x] 微信风格聊天布局
-- [x] Enter 发送快捷键
+- 饥饿、清洁、心情、精力四维状态
+- 喂食、清洁、玩耍、休息等基础互动
+- 自动衰减和情绪反馈基础逻辑
+- 宠物状态会自动持久化
 
-**养成系统**
-- [x] 四维状态系统（饥饿、清洁、心情、精力）
-- [x] 基础交互（喂食、清洁、玩耍、休息）
-- [x] 对话气泡
-- [x] 右键菜单
-- [x] 数据持久化
+## 当前技术方案
 
-📝 **详细文档**
-- 📊 [项目状态](./PROJECT_STATUS.md) - 最新状态和技术方案
-- 📚 [文档索引](./docs/README.md) - 完整文档导航
-- ✅ [待办事项](./TODO.md) - 开发计划
+### 动画播放
 
-## 📦 快速开始
+当前播放器不再走“每个动作单独 `player.load()` 一个 SWF”的旧方案，而是：
+
+1. 在 `RufflePlayer` 中常驻加载 `/player.swf`
+2. 通过 `setid(petId)` 指定角色
+3. 通过 `loadlists(playlist)` 切换动作播放列表
+4. 在 `swfPlaylist.ts` 中把业务入口传入的路径转换成最终 playlist
+5. 对多段动作优先按动画 id 命中原版 playlist，避免只播首段
+
+这样做的核心收益是：
+
+- 动画切换不会再因为整实例重建而闪屏
+- 多段动作能够更接近原版完整表现
+- 后续可以继续扩展动作状态机，而不用再回到“切单个 SWF”的方案
+
+### 窗口与交互
+
+- 主窗口是透明无边框 Electron 窗口
+- 主进程通过 `setIgnoreMouseEvents` 控制穿透
+- 渲染层通过 `resizeWindow` 在宠物、气泡、右键菜单、下拉菜单、聊天、设置之间切换窗口尺寸
+- `main.tsx` 已移除 `StrictMode`，避免开发环境下 Ruffle 因双挂载出现异常
+
+## 目录结构
+
+```text
+pet/
+├── README.md
+├── CHANGELOG.md
+├── PROJECT_STATUS.md
+├── TODO.md
+├── docs/
+│   ├── README.md
+│   └── dev/PROGRESS.md
+├── public/
+│   ├── assets/swf_original/      # 当前验证素材
+│   ├── player.swf                # 常驻控制器
+│   └── ruffle/                   # Ruffle 运行时
+└── src/
+    ├── main/                     # Electron 主进程
+    ├── components/               # 共享聊天等组件
+    └── renderer/
+        ├── App.tsx
+        ├── main.tsx
+        ├── swfData.ts
+        ├── hooks/
+        ├── stores/
+        ├── components/
+        │   ├── RufflePlayer.tsx
+        │   ├── ContextMenu.tsx
+        │   ├── ActionDropdownMenu.tsx
+        │   ├── SettingsPanel.tsx
+        │   ├── AIConfigForm.tsx
+        │   └── PlayerSwfProbePanel.tsx
+        └── utils/
+            ├── swfPlaylist.ts
+            └── penguin102OriginalPlaylists.ts
+```
+
+## 快速开始
 
 ### 安装依赖
 
 ```bash
-# 克隆项目
-git clone https://github.com/yourusername/desktop-pet.git
-cd pet
-
-# 安装依赖
 npm install
 ```
 
@@ -93,108 +127,59 @@ npm install
 npm run dev
 ```
 
-### 构建应用
+默认情况下：
+
+- Vite 使用 `5173`
+- Electron 会等待 `http://localhost:5173`
+
+如果 `5173` 被其他项目占用，可以把渲染层改到别的端口，并同步给 Electron 设置 `VITE_DEV_SERVER_URL`。
+
+### 构建
 
 ```bash
-# 构建主进程
+npm run build
+```
+
+只构建渲染层：
+
+```bash
+npm run build:renderer
+```
+
+只构建主进程：
+
+```bash
 npm run build:main
-
-# 打包应用
-npm run package
 ```
 
-## 📁 项目结构
+## 当前已知问题
 
-```
-pet/
-├── README.md                    # 本文件
-├── PROJECT_STATUS.md            # 📊 项目当前状态
-├── TODO.md                      # ✅ 待办事项
-├── CHANGELOG.md                 # 📝 版本记录
-├── docs/                        # 📚 完整文档
-│   ├── README.md               # 文档索引
-│   ├── guides/                 # 开发指南
-│   ├── implementation/         # 技术实现
-│   ├── fixes/                  # 问题修复
-│   ├── tutorials/              # 使用教程
-│   └── dev/                    # 开发调试
-├── src/
-│   ├── main/                   # Electron 主进程
-│   ├── renderer/               # React 渲染进程
-│   │   ├── components/        # React 组件
-│   │   │   ├── RufflePlayer.tsx      # Ruffle 播放器
-│   │   │   ├── SwfGallery.tsx        # 动画画廊
-│   │   │   ├── PetBubble.tsx         # 对话气泡
-│   │   │   └── ...
-│   │   ├── stores/            # Zustand 状态管理
-│   │   ├── hooks/             # React Hooks
-│   │   └── App.tsx            # 主应用
-│   └── components/            # 共享组件
-│       └── ChatWindow.tsx     # AI 聊天窗口
-└── public/
-    └── assets/
-        └── swf_original/      # 原版 SWF 动画素材
-```
+- 宠物窗口拖到屏幕最顶端时，仍然会留下大约一段顶部留白，说明窗口可视区域、布局和系统工作区之间还有边界问题需要继续排查
+- 当前版本仍直接使用原版角色和动画资源，不适合公开收费、公开分发或商业化
+- 少量动作虽然已经能完整播放，但业务层的“动作开始/结束/回待机”管理仍有进一步收敛空间
 
-## 🎬 动画系统
+## 商业化与版权边界
 
-项目使用**原版 QQ 宠物 SWF 文件**通过 Ruffle 播放：
+这部分是当前文档里必须明确写清楚的边界：
 
-- **常规动作** (chang/) - 12 个基础动作 + 拖拽、掉落等
-- **饮食活动** (e/) - 吃饭、喝水、洗澡、学习、工作
-- **生病状态** (bing/) - 3 种生病动画
-- **特殊动作** (other/) - 入场、离开、升级、死亡
-- **状态** (zt/) - 饥饿、养育状态
+- 当前版本仍属于“原版素材验证原型”
+- 只把收费改成“打赏”并不能解决版权、商标和混淆风险
+- 如果后续要走长期产品路线，建议先完成“去 Q 宠化 / 原创化”
+- 在原创角色和原创资产完成前，不建议把当前版本作为正式商业产品运营
 
-## 🎨 设计理念
+## 文档导航
 
-- **原汁原味** - 使用原版素材，还原经典体验
-- **现代技术** - Electron + React + WebAssembly，跨平台运行
-- **轻量化** - 低资源占用，不影响日常工作
-- **可扩展** - 模块化设计，易于添加新功能
+- [PROJECT_STATUS.md](./PROJECT_STATUS.md)：当前实现、关键文件、已知问题
+- [TODO.md](./TODO.md)：下一阶段任务清单
+- [CHANGELOG.md](./CHANGELOG.md)：版本更新记录
+- [docs/README.md](./docs/README.md)：文档索引和历史文档说明
+- [docs/dev/PROGRESS.md](./docs/dev/PROGRESS.md)：开发阶段进度记录
 
-## 🚧 开发路线
+## 备注
 
-查看 [TODO.md](./TODO.md) 了解详细开发计划。
-
-**近期计划**：
-- [ ] AI 配置界面（API Key 设置）
-- [ ] 动画时长优化（修复播放不完整问题）
-- [ ] 入场动画（开场效果）
-- [ ] 更多交互动作（清洁、玩耍、休息动画）
-- [ ] 状态反馈动画（饥饿时自动播放饿的动画）
-- [ ] 音效控制（音量、静音）
-
-**最近完成**：
-- ✅ AI 助手对话历史记忆存储
-- ✅ 微信风格聊天布局
-- ✅ 窗口点击穿透功能
-- ✅ 喂养下拉菜单（6种动作）
-- ✅ 窗口动态调整大小
-
-## 📚 文档
-
-- 🚀 [快速开始](./docs/guides/START_HERE.md)
-- 🛠️ [开发环境配置](./docs/guides/SETUP.md)
-- 📖 [动画方案对比](./docs/implementation/ANIMATION_SOLUTION_COMPARISON.md)
-- 🔧 [问题修复记录](./docs/fixes/)
-- 📋 [完整文档索引](./docs/README.md)
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-MIT License
-
-## 💖 致谢
-
-- 感谢腾讯 QQ 宠物带给我们的美好回忆
-- 感谢 Ruffle 项目让 Flash 动画重获新生
+- 当前主文档以根目录四个文件为准：`README.md`、`PROJECT_STATUS.md`、`TODO.md`、`CHANGELOG.md`
+- `docs/` 下的大量历史文档仍然保留，但部分内容反映的是旧阶段方案，阅读时请结合根目录最新文档判断
 
 ---
 
-**注意**: 本项目仅供学习交流使用，不用于商业用途。
-
-**重启后从这里开始**: 👉 [PROJECT_STATUS.md](./PROJECT_STATUS.md)
+最后更新：2026-03-13

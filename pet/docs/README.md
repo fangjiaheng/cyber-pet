@@ -1,81 +1,89 @@
-# 📚 项目文档索引
+# 项目文档索引
 
-本目录包含 QQ 宠物桌面应用的所有技术文档和开发指南。
+这个目录保留了项目开发过程中的技术文档、调试记录和历史方案。
 
-## 📁 文档结构
+请先注意一件事：
 
-### 🚀 [guides/](./guides/) - 开发指南
-核心开发文档，了解项目架构和开发流程
-- `START_HERE.md` - 新手入门指南 ⭐
-- `SETUP.md` - 开发环境配置
-- `REQUIREMENTS.md` - 项目需求文档
-- `ROADMAP.md` - 功能路线图
+- 根目录文档是当前阶段的主参考
+- `docs/` 目录里的部分文件属于历史快照，可能反映的是旧方案
 
-### 🛠️ [implementation/](./implementation/) - 技术实现
-详细的技术实现方案和架构决策
-- `IMPLEMENTATION_SUMMARY.md` - 实现总结
-- `FLASH_INTEGRATION_SUMMARY.md` - Flash 集成方案
-- `ANIMATION_SOLUTION_COMPARISON.md` - 动画方案对比（SWF vs PNG）⭐
-- `STORAGE_INFO.md` - 数据存储方案
+因此，阅读顺序建议如下：
 
-### 🔧 [fixes/](./fixes/) - 问题修复
-已解决的技术问题和修复方案
-- `RUFFLE_FINAL_FIX.md` - Ruffle 最终修复方案
-- `RUFFLE_FIX_GUIDE.md` - Ruffle 问题排查指南
-- `ANIMATION_SWITCH_FIX.md` - 动画切换修复
-- `CLEAR_CACHE_AND_TEST.md` - 缓存清理和测试
-- `UI_FIXES.md` - UI 修复记录
-- `QUICK_FIX.md` - 快速修复记录
+## 当前阶段请优先看
 
-### 📖 [tutorials/](./tutorials/) - 使用教程
-功能使用和开发教程
-- `HOW_TO_USE_SWF_GALLERY.md` - SWF 画廊使用指南
-- `PENGUIN_QUICK_START.md` - 企鹅快速上手
-- `PENGUIN_SETUP.md` - 企鹅配置详解
-- `PENGUIN_SWITCH_GUIDE.md` - 企鹅切换指南
-- `PLAY_SWF_ON_PET.md` - 在宠物上播放 SWF
-- `SWF_EXTRACTION_GUIDE.md` - SWF 素材提取教程
+1. `README.md`
+2. `PROJECT_STATUS.md`
+3. `TODO.md`
+4. `CHANGELOG.md`
 
-### 🐛 [dev/](./dev/) - 开发调试
-开发过程中的调试和开发记录
-- `DEBUG_CHAT.md` - 聊天功能调试
-- `DIRECT_CLAUDE.md` - Claude API 直接调用
-- `PROGRESS.md` - 开发进度记录
+它们代表当前项目的最新状态、边界和下一步计划。
 
-### 🎨 [assets/](./assets/) - 资源相关
-素材和资源相关文档
-- `QQPET_GITHUB_ASSETS.md` - GitHub 素材资源
-- `INTEGRATION_COMPLETED.md` - 集成完成记录
+## `docs/` 目录的作用
 
-## 🎯 快速导航
+### `guides/`
 
-### 我是新手，从哪里开始？
-1. 先读 [guides/START_HERE.md](./guides/START_HERE.md)
-2. 然后看 [guides/SETUP.md](./guides/SETUP.md) 配置环境
-3. 参考 [implementation/ANIMATION_SOLUTION_COMPARISON.md](./implementation/ANIMATION_SOLUTION_COMPARISON.md) 了解当前技术方案
+开发指南和阶段性说明，适合第一次接手项目时快速建立上下文。
 
-### 我遇到了问题
-- 查看 [fixes/](./fixes/) 目录下的相关修复文档
-- Ruffle 相关问题：[fixes/RUFFLE_FINAL_FIX.md](./fixes/RUFFLE_FINAL_FIX.md)
-- 动画切换问题：[fixes/ANIMATION_SWITCH_FIX.md](./fixes/ANIMATION_SWITCH_FIX.md)
+### `implementation/`
 
-### 我想添加新功能
-1. 查看 [guides/ROADMAP.md](./guides/ROADMAP.md) 了解规划
-2. 参考 [implementation/](./implementation/) 目录了解现有实现
-3. 查看根目录的 `TODO.md` 了解待办事项
+用于保存架构方案、实现对比和数据存储等技术说明。
+其中有些文档记录的是旧阶段决策，阅读时请结合根目录文档判断是否仍然适用。
 
-## 📝 根目录文档
+### `fixes/`
 
-根目录保留的核心文档：
-- `README.md` - 项目主文档
-- `CHANGELOG.md` - 版本变更记录
-- `TODO.md` - 待办事项清单
+保留问题排查过程和修复记录。
+这些文档更像“问题档案”，适合遇到类似异常时回查。
 
-## 🔄 最新更新
+### `tutorials/`
 
-**2024-03-09**
-- ✅ 项目完全切换到 SWF + Ruffle 方案
-- ✅ 废弃 PNG Sprite Sheet 方案
-- ✅ 修复 Ruffle 实例管理问题
-- ✅ 优化动画播放和结束逻辑
-- ✅ 整理文档结构
+用于记录素材、动画和测试工具相关的操作方法。
+
+### `dev/`
+
+开发调试文档和阶段性进度记录。
+
+### `assets/`
+
+素材来源、集成说明和历史记录。
+
+## 当前建议重点查看的文档
+
+- [../PROJECT_STATUS.md](../PROJECT_STATUS.md)
+- [../TODO.md](../TODO.md)
+- [../CHANGELOG.md](../CHANGELOG.md)
+- [./dev/PROGRESS.md](./dev/PROGRESS.md)
+
+## 当前文档状态说明
+
+### 已同步到最新状态
+
+- 根目录 `README.md`
+- 根目录 `PROJECT_STATUS.md`
+- 根目录 `TODO.md`
+- 根目录 `CHANGELOG.md`
+- 本文件
+- `dev/PROGRESS.md`
+
+### 可能仍包含历史信息的目录
+
+- `implementation/`
+- `fixes/`
+- `tutorials/`
+- `assets/`
+
+这些目录暂时保留，方便后续回溯。
+如果其中内容与根目录文档冲突，请以根目录文档为准。
+
+## 最近更新
+
+### 2026-03-13
+
+- 文档基线切换到“当前实现 + 当前风险边界”
+- 明确当前项目仍属于原版素材验证原型
+- 同步 `player.swf + loadlists` 无闪切动作方案
+- 同步 `AI 助手配置` 面板已可用
+- 同步顶部留白问题仍待修复
+
+---
+
+最后更新：2026-03-13

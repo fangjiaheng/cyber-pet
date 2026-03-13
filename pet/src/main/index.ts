@@ -33,6 +33,27 @@ function clampWindowPosition(x: number, y: number, windowWidth: number, windowHe
   }
 }
 
+function fitWindowToWorkArea(x: number, y: number, windowWidth: number, windowHeight: number) {
+  const display = screen.getDisplayNearestPoint({
+    x: Math.round(x + windowWidth / 2),
+    y: Math.round(y + windowHeight / 2),
+  })
+  const workArea = display.workArea
+  const fittedWidth = Math.min(windowWidth, workArea.width)
+  const fittedHeight = Math.min(windowHeight, workArea.height)
+
+  const maxX = workArea.x + Math.max(0, workArea.width - fittedWidth)
+  const maxY = workArea.y + Math.max(0, workArea.height - fittedHeight)
+
+  return {
+    x: Math.max(workArea.x, Math.min(maxX, x)),
+    y: Math.max(workArea.y, Math.min(maxY, y)),
+    width: fittedWidth,
+    height: fittedHeight,
+    workArea,
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: PET_WINDOW_WIDTH,
@@ -52,7 +73,8 @@ function createWindow() {
 
   // 开发环境加载 Vite 服务器
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173')
+    const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173'
+    mainWindow.loadURL(devServerUrl)
     mainWindow.webContents.openDevTools()
   } else {
     // 生产环境加载打包后的文件
@@ -146,12 +168,32 @@ app.whenReady().then(() => {
   })
 
   // 监听调整窗口大小
-  ipcMain.on('window:resize', (_, { width, height }) => {
+  ipcMain.on('window:resize', (_, { width, height, options }: { width: number; height: number; options?: { fitToScreen?: boolean } }) => {
     if (mainWindow) {
       const [currentX, currentY] = mainWindow.getPosition()
+      const [currentWidth, currentHeight] = mainWindow.getSize()
+
+      let nextX = currentX
+      let nextY = currentY
+
+      if (options?.fitToScreen) {
+        nextX = Math.round(currentX - (width - currentWidth) / 2)
+        nextY = Math.round(currentY - (height - currentHeight) / 2)
+        const fittedBounds = fitWindowToWorkArea(nextX, nextY, width, height)
+
+        mainWindow.setBounds({
+          x: fittedBounds.x,
+          y: fittedBounds.y,
+          width: fittedBounds.width,
+          height: fittedBounds.height,
+        })
+        return
+      }
+
       mainWindow.setSize(width, height)
 
-      const { x: boundedX, y: boundedY } = clampWindowPosition(currentX, currentY, width, height)
+      const nextPosition = clampWindowPosition(nextX, nextY, width, height)
+      const { x: boundedX, y: boundedY } = nextPosition
       mainWindow.setPosition(boundedX, boundedY)
     }
   })

@@ -1,234 +1,265 @@
-/**
- * Ruffle Flash 播放器组件
- * 单例模式：全局只创建一次 Ruffle 实例，直接 load SWF 切换动画
- * - 截帧覆盖：切换前截当前帧，load 期间显示截图防止闪烁
- * - 自动回待机：通过 onEnd 回调通知外层，外层设置回 idle SWF
- * - 热重载安全：单例存储在 window 上，模块重新加载后仍能找回
- */
-
 import React, { useEffect, useRef } from 'react'
 import './RufflePlayer.css'
 
 declare global {
   interface Window {
     RufflePlayer: any
-    __rufflePlayer: any
-    __ruffleReady: boolean
-    __ruffleLoadedOnce: boolean
   }
+}
+
+type ControllerState = {
+  hasLoadLists: boolean
+  hasSetId: boolean
+  hasBridgeApi: boolean
+}
+
+type ControllerReadyResult = {
+  player: any
+  controllerState: ControllerState
 }
 
 interface RufflePlayerProps {
-  src: string
+  playlist: string
+  playToken?: number
+  petId?: number
   width?: number
   height?: number
+  stageWidth?: number
+  stageHeight?: number
   scale?: number
-  loop?: boolean
   onLoad?: () => void
   onError?: (error: Error) => void
-  onEnd?: () => void
 }
 
-// 使用 window 存储单例，热重载后仍能找回已有实例
-if (typeof window.__rufflePlayer === 'undefined') {
-  window.__rufflePlayer = null
-  window.__ruffleReady = false
-  window.__ruffleLoadedOnce = false
-}
+const CONTROLLER_SWF_URL = '/player.swf'
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function ensureRuffleLoaded(): Promise<void> {
   if (window.RufflePlayer && typeof window.RufflePlayer.newest === 'function') return
+
   if (!window.RufflePlayer) {
     window.RufflePlayer = { config: { publicPath: '/ruffle/' } }
   }
+
   if (!document.querySelector('script[src="/ruffle/ruffle.js"]')) {
-    console.log('RufflePlayer: loading ruffle.js...')
     await new Promise<void>((resolve, reject) => {
       const script = document.createElement('script')
       script.src = '/ruffle/ruffle.js'
-      script.onload = () => { console.log('RufflePlayer: ruffle.js loaded'); resolve() }
-      script.onerror = (e) => { console.error('RufflePlayer: ruffle.js load failed', e); reject(new Error('Failed to load Ruffle')) }
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Ruffle 脚本加载失败'))
       document.head.appendChild(script)
     })
   }
-  for (let i = 0; i < 50; i++) {
+
+  for (let index = 0; index < 50; index += 1) {
     if (typeof window.RufflePlayer?.newest === 'function') return
-    await new Promise(r => setTimeout(r, 100))
+    await wait(100)
   }
+
   throw new Error('Ruffle 初始化超时')
 }
 
-// 截取 Ruffle 播放器当前帧为 dataURL
-function captureFrame(player: any): string | null {
-  try {
-    const canvas = player.querySelector('canvas')
-    if (!canvas) return null
-    return canvas.toDataURL('image/png')
-  } catch (e) {
-    return null
+function getControllerState(player: any): ControllerState {
+  return {
+    hasLoadLists: typeof player?.loadlists === 'function',
+    hasSetId: typeof player?.setid === 'function',
+    hasBridgeApi: typeof player?.ruffle === 'function',
   }
 }
 
+function callSwfCallback(
+  player: any,
+  callbackName: string,
+  ...args: Array<string | number>
+) {
+  if (typeof player?.[callbackName] === 'function') {
+    player[callbackName](...args)
+    return 'legacy'
+  }
+
+  const bridge = typeof player?.ruffle === 'function'
+    ? player.ruffle(1)
+    : null
+
+  if (typeof bridge?.callExternalInterface === 'function') {
+    bridge.callExternalInterface(callbackName, ...args)
+    return 'bridge'
+  }
+
+  throw new Error(`未找到可用的 ${callbackName} 调用桥`)
+}
+
 export const RufflePlayer: React.FC<RufflePlayerProps> = ({
-  src,
+  playlist,
+  playToken = 0,
+  petId = 0,
   width = 140,
   height = 140,
+  stageWidth = 250,
+  stageHeight = 200,
   scale = 1,
-  loop = true,
   onLoad,
   onError,
-  onEnd,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const frozenFrameRef = useRef<HTMLImageElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const playerRef = useRef<any>(null)
+  const mountedRef = useRef(false)
+  const controllerPromiseRef = useRef<Promise<ControllerReadyResult> | null>(null)
   const onLoadRef = useRef(onLoad)
   const onErrorRef = useRef(onError)
-  const onEndRef = useRef(onEnd)
-  const loopRef = useRef(loop)
-  const endTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const isFirstLoad = useRef(true)
 
   useEffect(() => {
     onLoadRef.current = onLoad
     onErrorRef.current = onError
-    onEndRef.current = onEnd
-    loopRef.current = loop
-  })
+  }, [onError, onLoad])
 
-  // 显示截帧覆盖图（防止 load 期间闪烁）
-  const showFrozenFrame = () => {
-    if (!containerRef.current || !window.__rufflePlayer) return
-    const dataUrl = captureFrame(window.__rufflePlayer)
-    if (!dataUrl) return
+  const createPlayer = async () => {
+    await ensureRuffleLoaded()
 
-    const img = document.createElement('img')
-    img.src = dataUrl
-    img.style.cssText = `
-      position: absolute;
-      top: 0; left: 0;
-      width: ${width}px;
-      height: ${height}px;
-      pointer-events: none;
-      z-index: 10;
-    `
-    containerRef.current.appendChild(img)
-    frozenFrameRef.current = img
+    if (!stageRef.current) {
+      throw new Error('播放器挂载容器不存在')
+    }
+
+    if (playerRef.current && stageRef.current.contains(playerRef.current)) {
+      return playerRef.current
+    }
+
+    const ruffle = window.RufflePlayer.newest()
+    const player = ruffle.createPlayer()
+
+    player.config = {
+      autoplay: 'on',
+      allowScriptAccess: true,
+      unmuteOverlay: 'hidden',
+      backgroundColor: null,
+      letterbox: 'off',
+      warnOnUnsupportedContent: false,
+      contextMenu: false,
+      wmode: 'transparent',
+      splashScreen: false,
+      preloader: false,
+      quality: 'best',
+    }
+
+    player.style.width = `${stageWidth}px`
+    player.style.height = `${stageHeight}px`
+    player.style.background = 'transparent'
+    player.style.backgroundColor = 'transparent'
+    player.style.display = 'block'
+    player.style.pointerEvents = 'none'
+
+    stageRef.current.replaceChildren()
+    stageRef.current.appendChild(player)
+    playerRef.current = player
+
+    return player
   }
 
-  // 移除截帧覆盖图
-  const hideFrozenFrame = () => {
-    if (frozenFrameRef.current && containerRef.current?.contains(frozenFrameRef.current)) {
-      containerRef.current.removeChild(frozenFrameRef.current)
+  const waitForControllerMethods = async () => {
+    for (let index = 0; index < 60; index += 1) {
+      const controllerState = getControllerState(playerRef.current)
+
+      if (controllerState.hasLoadLists || controllerState.hasBridgeApi) {
+        return controllerState
+      }
+
+      await wait(100)
     }
-    frozenFrameRef.current = null
+
+    return getControllerState(playerRef.current)
   }
 
-  const doLoad = async (src: string) => {
-    if (!window.__rufflePlayer) return
-    if (endTimerRef.current) clearTimeout(endTimerRef.current)
+  const ensureControllerReady = async (): Promise<ControllerReadyResult> => {
+    const currentPlayer = playerRef.current
+    const currentState = getControllerState(currentPlayer)
 
-    // 只有已成功加载过一次才截帧（首次加载时 canvas 是空白，截了反而盖住）
-    if (window.__ruffleLoadedOnce) {
-      showFrozenFrame()
+    if (currentPlayer && (currentState.hasLoadLists || currentState.hasBridgeApi)) {
+      return {
+        player: currentPlayer,
+        controllerState: currentState,
+      }
     }
+
+    if (controllerPromiseRef.current) {
+      return controllerPromiseRef.current
+    }
+
+    const controllerPromise = (async () => {
+      const player = await createPlayer()
+      await player.load({ url: CONTROLLER_SWF_URL })
+
+      const controllerState = await waitForControllerMethods()
+
+      if (!controllerState.hasLoadLists && !controllerState.hasBridgeApi) {
+        throw new Error('player.swf 未暴露 loadlists 控制桥')
+      }
+
+      return {
+        player,
+        controllerState,
+      }
+    })()
+
+    controllerPromiseRef.current = controllerPromise
 
     try {
-      console.log('RufflePlayer: loading SWF:', src)
-      await window.__rufflePlayer.load({ url: src })
-
-      // 等新动画第一帧渲染出来后再移除截帧
-      await new Promise(r => setTimeout(r, 150))
-      hideFrozenFrame()
-      window.__ruffleLoadedOnce = true
-
-      onLoadRef.current?.()
-
-      // 用 metadata 估算时长，只有非 loop 模式且有 onEnd 时才触发
-      if (!loopRef.current && onEndRef.current) {
-        await new Promise(r => setTimeout(r, 300))
-        const meta = window.__rufflePlayer.metadata
-        let duration = 4000
-        if (meta?.frameCount && meta?.frameRate) {
-          duration = (meta.frameCount / meta.frameRate) * 1000
-        }
-        endTimerRef.current = setTimeout(() => {
-          onEndRef.current?.()
-        }, duration)
+      return await controllerPromise
+    } finally {
+      if (controllerPromiseRef.current === controllerPromise) {
+        controllerPromiseRef.current = null
       }
-    } catch (e) {
-      hideFrozenFrame()
-      onErrorRef.current?.(e as Error)
     }
   }
 
-  // 初始化单例
   useEffect(() => {
-    const init = async () => {
-      try {
-        await ensureRuffleLoaded()
-        if (!containerRef.current) return
-
-        if (!window.__rufflePlayer) {
-          // 首次创建
-          const ruffle = window.RufflePlayer.newest()
-          const player = ruffle.createPlayer()
-          player.config = {
-            autoplay: 'on',
-            loop,
-            unmuteOverlay: 'hidden',
-            backgroundColor: null,
-            letterbox: 'off',
-            warnOnUnsupportedContent: false,
-            logLevel: 'error',
-            showSwfDownload: false,
-            contextMenu: false,
-            wmode: 'transparent',
-            splashScreen: false,
-            preloader: false,
-            quality: 'best',
-          }
-          player.style.background = 'transparent'
-          player.style.backgroundColor = 'transparent'
-          player.style.width = `${width}px`
-          player.style.height = `${height}px`
-
-          containerRef.current.appendChild(player)
-          window.__rufflePlayer = player
-          window.__ruffleReady = true
-          await doLoad(src)
-        } else {
-          // 热重载后找回已有实例，移入当前 container
-          if (!containerRef.current.contains(window.__rufflePlayer)) {
-            containerRef.current.appendChild(window.__rufflePlayer)
-          }
-          // 热重载后如果已加载过，直接标记好，不重新 load（避免闪烁）
-          window.__ruffleReady = true
-          if (!window.__ruffleLoadedOnce) {
-            await doLoad(src)
-          }
-        }
-      } catch (e) {
-        console.error('RufflePlayer init error:', e)
-        onErrorRef.current?.(e as Error)
-      }
-    }
-
-    init()
+    mountedRef.current = true
 
     return () => {
-      if (endTimerRef.current) clearTimeout(endTimerRef.current)
-      hideFrozenFrame()
+      mountedRef.current = false
+      controllerPromiseRef.current = null
+
+      const player = playerRef.current
+      playerRef.current = null
+
+      if (!player) return
+
+      try {
+        player.destroy?.()
+      } catch {
+        // destroy 在旧版 Ruffle 上不稳定，这里只做兜底释放
+      }
+
+      if (player.parentNode) {
+        player.parentNode.removeChild(player)
+      }
     }
   }, [])
 
-  // src 变化时切换
   useEffect(() => {
-    if (isFirstLoad.current) {
-      isFirstLoad.current = false
-      return
+    if (!playlist) return
+
+    const play = async () => {
+      const { player, controllerState } = await ensureControllerReady()
+
+      if (!mountedRef.current) return
+
+      if (controllerState.hasSetId || controllerState.hasBridgeApi) {
+        callSwfCallback(player, 'setid', petId)
+      }
+
+      callSwfCallback(player, 'loadlists', playlist)
+      onLoadRef.current?.()
     }
-    if (window.__ruffleReady) doLoad(src)
-  }, [src])
+
+    void play().catch((error) => {
+      const nextError = error instanceof Error ? error : new Error(String(error))
+      console.error('RufflePlayer 播放失败:', nextError)
+      onErrorRef.current?.(nextError)
+    })
+  }, [petId, playToken, playlist])
+
+  const visualScale = Math.min(width / stageWidth, height / stageHeight) * scale
 
   return (
     <div
@@ -236,12 +267,19 @@ export const RufflePlayer: React.FC<RufflePlayerProps> = ({
       style={{
         width: `${width}px`,
         height: `${height}px`,
-        transform: `scale(${scale})`,
-        transformOrigin: 'center center',
-        position: 'relative',
       }}
     >
-      <div ref={containerRef} className="ruffle-container" style={{ position: 'relative' }} />
+      <div className="ruffle-player-viewport">
+        <div
+          ref={stageRef}
+          className="ruffle-container"
+          style={{
+            width: `${stageWidth}px`,
+            height: `${stageHeight}px`,
+            transform: `translate(-50%, -50%) scale(${visualScale})`,
+          }}
+        />
+      </div>
     </div>
   )
 }

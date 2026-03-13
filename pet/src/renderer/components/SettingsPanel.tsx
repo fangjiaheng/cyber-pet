@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { availableModels } from '../../ai/config'
 import { AIConfig, AIConfigForm } from './AIConfigForm'
+import { useWindowDrag } from '../hooks/useWindowDrag'
 import './SettingsPanel.css'
 
 interface StoredAISettings {
@@ -23,8 +24,11 @@ function maskApiKey(apiKey?: string) {
 }
 
 export function SettingsPanel({ onClose, onSaved, onOpenChat }: SettingsPanelProps) {
+  const headerRef = useRef<HTMLDivElement | null>(null)
   const [settings, setSettings] = useState<StoredAISettings | null>(null)
   const [loading, setLoading] = useState(true)
+
+  useWindowDrag(headerRef)
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -61,13 +65,18 @@ export function SettingsPanel({ onClose, onSaved, onOpenChat }: SettingsPanelPro
 
   return (
     <div className="settings-panel">
-      <div className="settings-panel-header">
+      <div ref={headerRef} className="settings-panel-header">
         <div>
           <p className="settings-eyebrow">AI 助手配置</p>
           <h2>AI 助手配置</h2>
           <p className="settings-subtitle">在这里管理模型、Base URL 和 API Key。保存后会立即用于后续对话。</p>
         </div>
-        <button className="settings-close-btn" onClick={onClose} title="关闭 AI 助手配置">
+        <button
+          className="settings-close-btn"
+          data-window-drag-ignore="true"
+          onClick={onClose}
+          title="关闭 AI 助手配置"
+        >
           ✕
         </button>
       </div>

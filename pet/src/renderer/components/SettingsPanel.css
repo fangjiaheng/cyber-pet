@@ -23,6 +23,8 @@
   padding: 24px 28px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+  cursor: move;
+  user-select: none;
 }
 
 .settings-eyebrow {

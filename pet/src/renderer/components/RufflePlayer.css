@@ -2,19 +2,32 @@
 
 .ruffle-player {
   position: relative;
-  display: inline-block;
-  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
   user-select: none;
   background: transparent !important;
   z-index: 1;
   pointer-events: none !important;
 }
 
-.ruffle-container {
+.ruffle-player-viewport {
+  position: relative;
   width: 100%;
   height: 100%;
-  position: relative;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ruffle-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   background: transparent !important;
+  transform-origin: center center;
+  pointer-events: none !important;
+  will-change: transform;
 }
 
 /* Ruffle 播放器本身的样式覆盖 */

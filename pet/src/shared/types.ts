@@ -1,3 +1,7 @@
+export interface ResizeWindowOptions {
+  fitToScreen?: boolean
+}
+
 export interface ElectronAPI {
   minimizeWindow: () => void
   closeWindow: () => void
@@ -5,7 +9,7 @@ export interface ElectronAPI {
   getWindowPosition: () => Promise<[number, number]>
   getScreenSize: () => Promise<{ width: number; height: number }>
   setIgnoreMouseEvents: (ignore: boolean) => void
-  resizeWindow: (width: number, height: number) => void
+  resizeWindow: (width: number, height: number, options?: ResizeWindowOptions) => void
   hideToTray: () => void
   showFromTray: () => void
   onNearEdge: (callback: (edge: string) => void) => () => void
