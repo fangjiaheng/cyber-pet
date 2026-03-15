@@ -23,6 +23,20 @@
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
+.context-menu__rail {
+  display: flex;
+  align-items: flex-start;
+}
+
+.context-menu__column {
+  min-width: 142px;
+}
+
+.context-menu__column--submenu {
+  border-left: 1px solid rgba(164, 203, 220, 0.75);
+  background: rgba(255, 255, 255, 0.52);
+}
+
 .context-menu--hidden {
   opacity: 0;
   visibility: hidden;
@@ -56,6 +70,10 @@
   color: #174d67;
 }
 
+.context-menu-item.active:not(.disabled) {
+  background: linear-gradient(180deg, rgba(214, 242, 252, 0.95), rgba(191, 229, 244, 0.95));
+}
+
 .context-menu-item.disabled {
   opacity: 0.42;
   cursor: not-allowed;
@@ -78,6 +96,12 @@
   color: #263946;
   font-weight: 500;
   letter-spacing: 0.01em;
+}
+
+.context-menu-chevron {
+  margin-left: 12px;
+  color: rgba(38, 57, 70, 0.72);
+  font-size: 15px;
 }
 
 .context-menu-divider {

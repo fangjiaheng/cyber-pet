@@ -75,6 +75,53 @@
   gap: 18px;
 }
 
+.settings-shell {
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+}
+
+.settings-sidebar {
+  display: grid;
+  gap: 12px;
+  align-self: start;
+  position: sticky;
+  top: 0;
+}
+
+.settings-nav-btn {
+  text-align: left;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f5f7ff;
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.settings-nav-btn strong {
+  font-size: 15px;
+}
+
+.settings-nav-btn span {
+  font-size: 12px;
+  color: rgba(245, 247, 255, 0.68);
+}
+
+.settings-nav-btn:hover,
+.settings-nav-btn.active {
+  transform: translateY(-1px);
+  background: rgba(123, 141, 255, 0.14);
+  border-color: rgba(142, 160, 255, 0.4);
+}
+
+.settings-content {
+  display: grid;
+  gap: 18px;
+}
+
 .settings-card {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -159,6 +206,108 @@
   font-size: 15px;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.settings-field {
+  display: grid;
+  gap: 8px;
+  color: rgba(245, 247, 255, 0.82);
+  font-size: 13px;
+}
+
+.settings-field--full {
+  grid-column: 1 / -1;
+}
+
+.settings-field input,
+.settings-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 11, 16, 0.72);
+  color: #f5f7ff;
+}
+
+.settings-field small {
+  color: rgba(245, 247, 255, 0.64);
+}
+
+.settings-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.settings-stat-card {
+  min-height: 96px;
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(14, 16, 23, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.settings-stat-card span {
+  font-size: 12px;
+  color: rgba(245, 247, 255, 0.62);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.settings-stat-card strong {
+  font-size: 24px;
+}
+
+.settings-progress-card {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(14, 16, 23, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.settings-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.settings-progress-track {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.settings-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7b8dff, #8b5cf6);
+}
+
+.settings-progress-card p {
+  margin: 12px 0 0;
+  color: rgba(245, 247, 255, 0.74);
+}
+
+.settings-toggle {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(14, 16, 23, 0.34);
 }
 
 .settings-card .ai-config-form.embedded {
@@ -268,7 +417,20 @@
     padding-right: 18px;
   }
 
+  .settings-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-sidebar {
+    position: static;
+  }
+
   .settings-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-form-grid,
+  .settings-stat-grid {
     grid-template-columns: 1fr;
   }
 

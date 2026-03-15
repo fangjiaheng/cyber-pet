@@ -13,6 +13,17 @@ export interface PetStateData {
   energy: number;
   level: number;
   experience: number;
+  coins: number;
+  lastCheckIn: number | null;
+  checkInStreak: number;
+  profile: {
+    petName: string;
+    ownerName: string;
+    intelligence: number;
+    strength: number;
+    charm: number;
+    education: string;
+  };
   lastUpdateTime: number;
 }
 
@@ -32,6 +43,7 @@ export interface SettingsData {
     skin: string;
     roamingEnabled: boolean;
     roamingSpeed: number;
+    animationIntervalMs: number;
   };
 
   // 通知设置
@@ -93,6 +105,17 @@ const defaultPetState: PetStateData = {
   energy: 100,
   level: 1,
   experience: 0,
+  coins: 0,
+  lastCheckIn: null,
+  checkInStreak: 0,
+  profile: {
+    petName: 'Cyber Mate',
+    ownerName: '主人',
+    intelligence: 18,
+    strength: 12,
+    charm: 16,
+    education: '启蒙班',
+  },
   lastUpdateTime: Date.now(),
 };
 
@@ -106,6 +129,7 @@ const defaultSettings: SettingsData = {
     skin: 'default',
     roamingEnabled: false,
     roamingSpeed: 1,
+    animationIntervalMs: 2400,
   },
   notifications: {
     enabled: true,

@@ -1,6 +1,6 @@
 # 项目当前状态
 
-更新时间：2026-03-13
+更新时间：2026-03-15
 
 ## 当前定位
 
@@ -64,8 +64,12 @@
 
 - 右键菜单固定在宠物右下附近展开
 - 点击外部、按 `Escape` 或窗口失焦都会关闭右键菜单
-- 喂食菜单和动画菜单使用统一的 `ActionDropdownMenu` 组件
+- 喂食和清洁使用 `HorizontalScrollStrip` 横向滚动选择组件（圆形图标 + 左右箭头 + tooltip）
+- 喂食和清洁横向滚动条会跟随功能栏位置，固定显示在功能区正下方
+- 治疗、学习、打工、旅行等仍使用 `ActionDropdownMenu` 下拉菜单
+- 动画菜单使用统一的 `ActionDropdownMenu` 组件
 - 下拉菜单是透明、无边框的旧式风格，并已去掉横向滚动条
+- 功能栏下方已去掉等级、经验、元宝、心情等状态摘要，避免浮层信息过密
 - 主窗口会在宠物、右键菜单、下拉菜单、聊天、设置、气泡之间动态调整尺寸
 
 ### 4. AI 助手配置
@@ -85,6 +89,7 @@
 
 - `src/renderer/main.tsx` 不再包裹 `React.StrictMode`
 - 播放器逻辑保持常驻，不随聊天/设置切换而销毁
+- 初始化阶段不再渲染临时企鹅占位图，避免真实 SWF 加载前出现额外视觉噪音
 
 ## 已完成能力
 
@@ -107,7 +112,8 @@
 - [x] 原版多段 playlist 映射
 - [x] 启动进场动画
 - [x] 动画下拉菜单
-- [x] 喂食动作下拉菜单
+- [x] 喂食横向滚动选择组件（HorizontalScrollStrip）
+- [x] 清洁横向滚动选择组件
 - [x] 开发态 `player.swf` 验证面板
 
 ### AI 助手
@@ -177,6 +183,7 @@ src/
     │   ├── AIConfigForm.tsx             # AI 配置表单
     │   ├── ContextMenu.tsx              # 右键菜单
     │   ├── ActionDropdownMenu.tsx       # 可复用下拉菜单
+    │   ├── HorizontalScrollStrip.tsx   # 横向滚动选择组件（喂食/清洁）
     │   └── PetBubble.tsx                # 对话气泡
     └── utils/
         ├── swfPlaylist.ts               # playlist 构造规则

@@ -1,0 +1,211 @@
+.scroll-strip {
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  background: linear-gradient(135deg, rgba(72, 49, 58, 0.92), rgba(48, 31, 37, 0.88));
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 207, 138, 0.35);
+  border-radius: 12px;
+  padding: 6px 0 4px;
+}
+
+/* ── Header ── */
+.scroll-strip__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 4px;
+}
+
+.scroll-strip__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffcf8a;
+}
+
+.scroll-strip__close {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 244, 229, 0.7);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.scroll-strip__close:hover {
+  background: rgba(255, 82, 82, 0.5);
+  color: #fff;
+}
+
+/* ── Arrow + track row ── */
+.scroll-strip__row {
+  display: flex;
+  align-items: center;
+}
+
+.scroll-strip__arrow {
+  flex-shrink: 0;
+  width: 20px;
+  height: 48px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 244, 229, 0.55);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.scroll-strip__arrow:hover {
+  color: #ffcf8a;
+}
+
+/* ── Horizontal track ── */
+.scroll-strip__track {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  min-width: 0;
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-strip__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Each item ── */
+.scroll-strip__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.scroll-strip__item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Circle icon ── */
+.scroll-strip__circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--strip-accent, #ffcf8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: linear-gradient(135deg, rgba(72, 49, 58, 0.84), rgba(48, 31, 37, 0.8));
+  backdrop-filter: blur(10px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 4px 8px rgba(17, 8, 10, 0.22);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-width 0.16s ease;
+}
+
+.scroll-strip__item:not(.disabled):hover .scroll-strip__circle {
+  transform: scale(1.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 12px var(--strip-accent, #ffcf8a),
+    0 6px 14px rgba(17, 8, 10, 0.28);
+}
+
+.scroll-strip__item.active .scroll-strip__circle {
+  border-width: 4px;
+  box-shadow:
+    inset 0 0 8px rgba(255, 207, 138, 0.25),
+    0 0 10px var(--strip-accent, #ffcf8a),
+    0 4px 8px rgba(17, 8, 10, 0.22);
+}
+
+/* ── Label ── */
+.scroll-strip__label {
+  font-size: 10px;
+  color: #fff4e5;
+  white-space: nowrap;
+  text-align: center;
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Tooltip ── */
+.scroll-strip__tooltip {
+  min-height: 40px;
+  padding: 6px 12px;
+  margin: 4px 6px 0;
+  background: rgba(30, 18, 22, 0.5);
+  border-radius: 6px;
+  color: #fff4e5;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.scroll-strip__tooltip.visible {
+  opacity: 1;
+}
+
+.scroll-strip__tooltip-line {
+  white-space: pre;
+}
+
+.scroll-strip__meter {
+  margin: 4px 8px 2px;
+  padding: 8px 10px 10px;
+  border-radius: 10px;
+  background: rgba(30, 18, 22, 0.56);
+  color: #fff4e5;
+}
+
+.scroll-strip__meter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.scroll-strip__meter-track {
+  margin-top: 8px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.scroll-strip__meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffcf8a, #ff9c6f);
+}
+
+.scroll-strip__meter-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: rgba(255, 244, 229, 0.74);
+}

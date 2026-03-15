@@ -171,6 +171,7 @@ export function ActionDropdownMenu({
       className={`action-dropdown-menu ${position ? 'action-dropdown-menu--anchored' : 'action-dropdown-menu--centered'} ${ready ? '' : 'action-dropdown-menu--hidden'} ${className}`}
       style={position ? { left: position.left, top: position.top } : undefined}
       onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="action-dropdown-menu__rail">

@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: flex-start;
   background: transparent;
-  padding-top: 8px;
+  padding-top: 0;
   pointer-events: none;
 }
   
@@ -20,13 +20,13 @@
 .app.context-menu-open {
   justify-content: flex-start;
   align-items: flex-start;
-  padding-top: 8px;
+  padding-top: 0;
 }
 
 .app.action-dropdown-open {
   justify-content: flex-start;
   align-items: flex-start;
-  padding-top: 8px;
+  padding-top: 0;
 }
 
 .app.bubble-open {
@@ -39,7 +39,7 @@
   position: relative;
   text-align: center;
   cursor: move;
-  padding: 12px 20px 16px;
+  padding: 4px 20px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,12 +47,18 @@
   pointer-events: none;
 }
 
+.pet-home-stage {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
 .pet-container.context-menu-open {
   width: 260px;
   height: auto;
   align-items: center;
   justify-content: flex-start;
-  padding: 12px 20px 16px;
+  padding: 4px 20px 16px;
 }
 
 .pet-container.action-dropdown-open {
@@ -60,7 +66,7 @@
   height: auto;
   align-items: center;
   justify-content: flex-start;
-  padding: 12px 20px 16px;
+  padding: 4px 20px 16px;
 }
 
 .pet-container.bubble-open {
@@ -77,26 +83,34 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  position: relative;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 180px;
+  height: 156px;
+  transform: translateX(-50%);
   pointer-events: auto !important;
   -webkit-app-region: no-drag;
   z-index: 10;
-  padding: 8px 20px 0;
+  padding: 0;
 }
 
 .pet-container.context-menu-open .penguin-wrapper {
   justify-content: center;
-  padding: 8px 20px 0;
+  top: 6px;
+  padding: 0;
 }
 
 .pet-container.action-dropdown-open .penguin-wrapper {
   justify-content: center;
-  padding: 8px 20px 0;
+  top: 6px;
+  padding: 0;
 }
 
 .pet-container.bubble-open .penguin-wrapper {
   justify-content: center;
-  padding: 8px 20px 0;
+  top: 6px;
+  padding: 0;
 }
 
 .pet-container.context-menu-open .swf-player-container {
@@ -164,18 +178,56 @@
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin-top: 8px;
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  width: max-content;
+  margin-top: 0;
   -webkit-app-region: no-drag;
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translate(-50%, 8px);
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
+  z-index: 20;
 }
 
 .pet-actions.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
   pointer-events: auto;
+}
+
+.pet-status-summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 216px;
+  margin-top: 0;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.pet-status-summary.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.pet-status-summary span {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #3a3947;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 .action-btn {
@@ -215,10 +267,12 @@
   min-width: 140px;
   min-height: 140px;
   pointer-events: none !important;
+  z-index: 2;
 }
 
 /* 企鹅可拖拽区域 - 只有这里可以拖动 */
 .pet-draggable-area {
+  position: relative;
   cursor: pointer;
   pointer-events: auto !important;
   display: flex;
@@ -247,4 +301,13 @@
 
 .stop-swf-btn:active {
   transform: scale(0.95);
+}
+
+/* 喂食横向滚动条定位 */
+.feed-strip-positioned {
+  position: fixed;
+  transform: translateX(-50%);
+  width: 280px;
+  pointer-events: auto;
+  z-index: 1200;
 }

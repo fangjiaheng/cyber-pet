@@ -60,6 +60,7 @@ function createWindow() {
     height: PET_WINDOW_HEIGHT,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: false,
     x: 100,  // 固定位置，方便找到
@@ -75,7 +76,7 @@ function createWindow() {
   if (process.env.NODE_ENV === 'development') {
     const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173'
     mainWindow.loadURL(devServerUrl)
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     // 生产环境加载打包后的文件
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
@@ -190,11 +191,12 @@ app.whenReady().then(() => {
         return
       }
 
-      mainWindow.setSize(width, height)
-
-      const nextPosition = clampWindowPosition(nextX, nextY, width, height)
-      const { x: boundedX, y: boundedY } = nextPosition
-      mainWindow.setPosition(boundedX, boundedY)
+      mainWindow.setBounds({
+        x: currentX,
+        y: currentY,
+        width,
+        height,
+      })
     }
   })
 
