@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>测试页面</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>测试页面 ✅</h1>
+    <p>如果你能看到这个页面，说明窗口和 Vite 服务器都正常工作。</p>
+    <div id="root"></div>
+    <script>
+      console.log('测试页面已加载');
+      console.log('Root element:', document.getElementById('root'));
+    </script>
+    <script type="module" src="/src/windows/chat.tsx"></script>
+  </body>
+</html>

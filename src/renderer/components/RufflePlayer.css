@@ -1,0 +1,80 @@
+/* Ruffle Flash 播放器样式 */
+
+.ruffle-player {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  user-select: none;
+  background: transparent !important;
+  z-index: 1;
+  pointer-events: none !important;
+}
+
+.ruffle-player-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ruffle-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: transparent !important;
+  transform-origin: center center;
+  pointer-events: none !important;
+  will-change: transform;
+}
+
+/* Ruffle 播放器本身的样式覆盖 */
+.ruffle-player ruffle-player,
+.ruffle-player ruffle-embed,
+.ruffle-player ruffle-object {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  background: transparent !important;
+  pointer-events: none !important;
+}
+
+.ruffle-player ruffle-player canvas,
+.ruffle-player ruffle-embed canvas,
+.ruffle-player ruffle-object canvas {
+  background: transparent !important;
+}
+
+/* 移除 Ruffle 默认的右键菜单 */
+.ruffle-player ruffle-player::part(context-menu),
+.ruffle-player ruffle-embed::part(context-menu),
+.ruffle-player ruffle-object::part(context-menu) {
+  display: none !important;
+}
+
+/* 隐藏 Ruffle 启动画面和 logo */
+.ruffle-player #ruffle-splash-screen,
+.ruffle-player .ruffle-splash-screen,
+ruffle-player #ruffle-splash-screen,
+ruffle-player .ruffle-splash-screen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 加载状态 */
+.ruffle-player.loading {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ruffle-player.loading::before {
+  content: '加载中...';
+  color: #666;
+  font-size: 12px;
+}
