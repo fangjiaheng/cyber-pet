@@ -20,7 +20,9 @@
     "package:mac": "npm run build && electron-builder --mac",
     "package:linux": "npm run build && electron-builder --linux",
     "lint": "eslint src --ext .ts,.tsx",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@ruffle-rs/ruffle": "^0.2.0-nightly.2026.3.6",
@@ -30,12 +32,17 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/ui": "^4.1.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^28.0.0",
@@ -43,9 +50,11 @@
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "happy-dom": "^20.8.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
+    "vitest": "^4.1.0",
     "wait-on": "^7.2.0"
   },
   "build": {

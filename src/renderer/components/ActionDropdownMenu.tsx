@@ -74,10 +74,12 @@ export function ActionDropdownMenu({
   className = '',
 }: ActionDropdownMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
+  const initialPositionSet = useRef(false)
   const [activeItemId, setActiveItemId] = useState<string | null>(null)
 
   useEffect(() => {
     setActiveItemId(null)
+    initialPositionSet.current = false
   }, [items])
 
   useEffect(() => {
@@ -113,15 +115,23 @@ export function ActionDropdownMenu({
   useLayoutEffect(() => {
     if (!menuRef.current) return
 
+    // Only adjust position on initial render, not when submenu expands
+    if (initialPositionSet.current) return
+
     if (!position) {
       menuRef.current.style.left = '50%'
       menuRef.current.style.top = '50%'
+      initialPositionSet.current = true
       return
     }
 
     const rect = menuRef.current.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
+
+    // Calculate fixed pixel offset (42% of initial width) to prevent shift when submenu opens
+    const offsetX = Math.round(rect.width * 0.42)
+    menuRef.current.style.setProperty('--menu-offset-x', `-${offsetX}px`)
 
     let adjustedLeft = position.left
     let adjustedTop = position.top
@@ -145,6 +155,7 @@ export function ActionDropdownMenu({
 
     menuRef.current.style.left = `${Math.round(adjustedLeft)}px`
     menuRef.current.style.top = `${Math.round(adjustedTop)}px`
+    initialPositionSet.current = true
   }, [activeItem, items, position])
 
   const handleItemHover = (item: ActionDropdownMenuItem) => {
