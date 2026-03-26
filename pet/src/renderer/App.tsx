@@ -19,8 +19,6 @@ import { useMouseGaze } from './hooks/useMouseGaze'
 import {
   ACTION_DROPDOWN_WINDOW_HEIGHT,
   ACTION_DROPDOWN_WINDOW_WIDTH,
-  BUBBLE_WINDOW_HEIGHT,
-  BUBBLE_WINDOW_WIDTH,
   CHAT_WINDOW_HEIGHT,
   CHAT_WINDOW_WIDTH,
   CONTEXT_MENU_WINDOW_HEIGHT,
@@ -69,11 +67,13 @@ const dropdownAccentColors = [
   '#ffc082',
 ]
 
+const ACTION_STRIP_WIDTH = 280
+const FLOATING_UI_VIEWPORT_PADDING = 16
+
 function App() {
   const {
     hunger,
     cleanliness,
-    mood,
     energy,
     currentEmotion,
     feed,
@@ -89,7 +89,6 @@ function App() {
   } = usePetStore(useShallow((state) => ({
     hunger: state.hunger,
     cleanliness: state.cleanliness,
-    mood: state.mood,
     energy: state.energy,
     currentEmotion: state.currentEmotion,
     feed: state.feed,
@@ -116,6 +115,7 @@ function App() {
   const actionBarRef = useRef<HTMLDivElement | null>(null)
   const animButtonRef = useRef<HTMLButtonElement | null>(null)
   const lifeButtonRef = useRef<HTMLButtonElement | null>(null)
+  const windowLayoutModeRef = useRef<WindowMode>('pet')
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showActions, setShowActions] = useState(false)
@@ -240,13 +240,8 @@ function App() {
       playPlaylist(ENTER_PLAYLIST)
     }, 1500)
 
-    const bubbleTimer = window.setTimeout(() => {
-      setBubbleText('我只是倔强说不想主人，假装说不想主人，但心里面很想陪在你身边的。。。')
-    }, 5000)
-
     return () => {
       window.clearTimeout(enterTimer)
-      window.clearTimeout(bubbleTimer)
     }
   }, [playPlaylist])
 
@@ -341,35 +336,43 @@ function App() {
 
     if (mode === 'chat') {
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'action-dropdown') {
       window.electronAPI.resizeWindow(ACTION_DROPDOWN_WINDOW_WIDTH, ACTION_DROPDOWN_WINDOW_HEIGHT)
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'probe') {
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'bubble') {
-      window.electronAPI.resizeWindow(BUBBLE_WINDOW_WIDTH, BUBBLE_WINDOW_HEIGHT)
+      // Pet and bubble use the same window size now — no resize needed
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'settings') {
       window.electronAPI.resizeWindow(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'context-menu') {
       window.electronAPI.resizeWindow(CONTEXT_MENU_WINDOW_WIDTH, CONTEXT_MENU_WINDOW_HEIGHT)
+      windowLayoutModeRef.current = mode
       return
     }
 
+    // pet mode — restore to default size
     window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT)
+    windowLayoutModeRef.current = mode
   }, [])
 
   const getActionDropdownPosition = useCallback((button: HTMLElement) => {
@@ -382,8 +385,14 @@ function App() {
 
   const getActionStripPosition = useCallback((container: HTMLElement) => {
     const rect = container.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const minLeft = ACTION_STRIP_WIDTH / 2 + FLOATING_UI_VIEWPORT_PADDING
+    const maxLeft = viewportWidth - ACTION_STRIP_WIDTH / 2 - FLOATING_UI_VIEWPORT_PADDING
+    const preferredLeft = rect.left + rect.width / 2
+    const clampedLeft = Math.min(Math.max(preferredLeft, minLeft), maxLeft)
+
     return {
-      left: Math.round(rect.left + rect.width / 2),
+      left: Math.round(clampedLeft),
       top: Math.round(rect.bottom + 10),
     }
   }, [])
@@ -519,11 +528,12 @@ function App() {
   const handlePlaySwf = useCallback((swfUrl: string, animationId?: string) => {
     clearActionResetTimer()
     playSwfPath(swfUrl, animationId ? { animationId } : undefined)
-  }, [clearActionResetTimer, playSwfPath])
+    setPenguinAction('play')
+    scheduleReturnToIdle(3000)
+  }, [clearActionResetTimer, playSwfPath, scheduleReturnToIdle])
 
   const handleStopSwf = useCallback(() => {
     resetToIdle(true)
-    setBubbleText('先停下来，回到待机状态。')
   }, [resetToIdle])
 
   const handleSwfLoad = useCallback(() => {
@@ -541,7 +551,6 @@ function App() {
 
     if (!result.success) {
       setBubbleText('今天已经签过到了，明天再来。')
-      setToastMessage('今日已签到')
       return
     }
 
@@ -567,7 +576,6 @@ function App() {
       swfPath: '/assets/swf_original/102/1022070141.swf',
       animationId: '316',
       penguinAction: 'play',
-      bubbleText: '好开心～',
       baseDuration: 1400,
     })
   }, [play, runTimedInteraction])
@@ -578,7 +586,6 @@ function App() {
       swfPath: '/assets/swf_original/102/1020030141.swf',
       animationId: '10',
       penguinAction: 'sleep',
-      bubbleText: '先睡一会，补充体力。',
       baseDuration: 2800,
     })
   }, [rest, runTimedInteraction])
@@ -610,7 +617,6 @@ function App() {
 
   const handleDizzy = useCallback((swfPath: string) => {
     playSwfPath(swfPath)
-    setBubbleText('好晕～头好晕...')
   }, [playSwfPath])
 
   useMouseGaze({
@@ -662,7 +668,6 @@ function App() {
           swfPath: animation.path,
           animationId: animation.id,
           penguinAction: 'eat',
-          bubbleText: '吃饱啦，继续陪你。',
           baseDuration: 1400,
         })
       },
@@ -683,7 +688,6 @@ function App() {
           swfPath: animation.path,
           animationId: animation.id,
           penguinAction: 'bathe',
-          bubbleText: '洗香香了，状态恢复。',
           baseDuration: 1600,
         })
       },
@@ -743,7 +747,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1022050141.swf',
             animationId: '95',
             penguinAction: 'happy',
-            bubbleText: '药效生效中，状态好多了。',
             baseDuration: 1400,
           }),
         },
@@ -757,7 +760,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1022050241.swf',
             animationId: '96',
             penguinAction: 'happy',
-            bubbleText: '打针结束，恢复精神。',
             baseDuration: 1600,
           }),
         },
@@ -779,7 +781,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1020060241.swf',
             animationId: '61',
             penguinAction: 'happy',
-            bubbleText: '认真学习，赚到 12 元宝。',
             baseDuration: 1800,
           }),
         },
@@ -793,7 +794,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1020060541.swf',
             animationId: '69',
             penguinAction: 'happy',
-            bubbleText: '知识和元宝都进账了。',
             baseDuration: 1800,
           }),
         },
@@ -815,7 +815,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1020060341.swf',
             animationId: '71',
             penguinAction: 'work',
-            bubbleText: '今天也有认真打工，赚到 28 元宝。',
             baseDuration: 2000,
           }),
         },
@@ -829,7 +828,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1022070441.swf',
             animationId: '126',
             penguinAction: 'work',
-            bubbleText: '手工订单完成，元宝到手。',
             baseDuration: 2000,
           }),
         },
@@ -851,7 +849,6 @@ function App() {
             swfPath: '/assets/swf_original/102/1020040141.swf',
             animationId: '23',
             penguinAction: 'happy',
-            bubbleText: '出去散心，心情回来了。',
             baseDuration: 1800,
           }),
         },

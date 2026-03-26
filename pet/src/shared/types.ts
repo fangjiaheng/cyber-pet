@@ -1,5 +1,7 @@
 export interface ResizeWindowOptions {
   fitToScreen?: boolean
+  offsetX?: number
+  offsetY?: number
 }
 
 export interface ElectronAPI {

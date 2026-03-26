@@ -30,6 +30,7 @@ Thumbs.db
 
 # Temporary files
 *.tmp
+_tmp_*
 .cache/
 
 # Package manager

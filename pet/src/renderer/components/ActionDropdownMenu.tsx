@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './ActionDropdownMenu.css'
 
 export interface ActionDropdownMenuItem {

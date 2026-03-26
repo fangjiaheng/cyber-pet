@@ -31,7 +31,7 @@ export interface PetStateData {
 export interface SettingsData {
   // AI 配置
   ai: {
-    provider: 'claude' | 'openclaw';
+    provider: 'claude' | 'openclaw' | 'openai' | 'bailian' | 'glm';
     apiKey?: string;
     baseUrl?: string;
     defaultModel?: string;

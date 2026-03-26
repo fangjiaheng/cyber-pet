@@ -1,5 +1,5 @@
-export const PET_WINDOW_WIDTH = 260
-export const PET_WINDOW_HEIGHT = 260
+export const PET_WINDOW_WIDTH = 360
+export const PET_WINDOW_HEIGHT = 420
 
 export const BUBBLE_WINDOW_WIDTH = 360
 export const BUBBLE_WINDOW_HEIGHT = 420

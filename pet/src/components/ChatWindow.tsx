@@ -5,8 +5,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { aiManager, tokenManager } from '../ai';
-import { taskTypes, availableModels } from '../ai/config';
-import type { TokenUsage } from '../ai/types';
+import { taskTypes } from '../ai/config';
+import { getDefaultModelForProvider, getModelsForProvider } from '../ai/providerCatalog';
+import type { AIProvider, TokenUsage } from '../ai/types';
 import { AIConfigForm } from '../renderer/components/AIConfigForm';
 import './ChatWindow.css';
 
@@ -23,7 +24,8 @@ export function ChatWindow() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedTaskType, setSelectedTaskType] = useState('chat');
-  const [selectedModel, setSelectedModel] = useState(availableModels[0].id);
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>('claude');
+  const [selectedModel, setSelectedModel] = useState(getDefaultModelForProvider('claude'));
   const [showSettings, setShowSettings] = useState(false);
   // null = 检查中, false = 未配置, true = 已配置
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
@@ -35,6 +37,9 @@ export function ChatWindow() {
     const loadAISettings = async () => {
       try {
         const stored = await window.electronAPI?.storage?.getAISettings?.()
+        if (stored?.provider) {
+          setSelectedProvider(stored.provider)
+        }
         if (stored?.defaultModel) {
           setSelectedModel(stored.defaultModel)
         }
@@ -101,6 +106,7 @@ export function ChatWindow() {
 
   // 获取当前任务类型配置
   const currentTaskType = taskTypes.find((t) => t.id === selectedTaskType);
+  const modelOptions = getModelsForProvider(selectedProvider);
 
   // 发送消息
   const handleSend = async () => {
@@ -177,7 +183,7 @@ export function ChatWindow() {
             });
 
             // 记录 Token 使用
-            tokenManager.addRecord('claude', selectedTaskType, response.usage, {
+            tokenManager.addRecord(selectedProvider, selectedTaskType, response.usage, {
               prompt: userInput,
               response: fullResponse,
             });
@@ -239,7 +245,8 @@ export function ChatWindow() {
     });
   };
 
-  const handleConfigSaved = (cfg: { model: string }) => {
+  const handleConfigSaved = (cfg: { provider: AIProvider; model: string }) => {
+    setSelectedProvider(cfg.provider)
     setSelectedModel(cfg.model)
     setIsConfigured(true)
   }
@@ -311,7 +318,7 @@ export function ChatWindow() {
               onChange={(e) => setSelectedModel(e.target.value)}
               className="model-select"
             >
-              {availableModels.map((model) => (
+              {modelOptions.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.name} - {model.description}
                 </option>
