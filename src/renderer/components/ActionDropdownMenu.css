@@ -11,7 +11,8 @@
 }
 
 .action-dropdown-menu--anchored {
-  transform: translateX(-42%);
+  /* Use CSS variable for fixed pixel offset, set by JS on initial render */
+  transform: translateX(var(--menu-offset-x, -60px));
 }
 
 .action-dropdown-menu--centered {

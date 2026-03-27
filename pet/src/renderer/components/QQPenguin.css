@@ -1,0 +1,102 @@
+/* ⚠️ 已废弃 - 项目已切换到 SWF + Ruffle 方案 */
+
+/*
+/* QQ宠物企鹅样式 */
+
+.qq-penguin-container {
+  position: relative;
+  width: 150px;
+  height: 200px;
+  cursor: pointer;
+  user-select: none;
+  transform-origin: center bottom;
+}
+
+.qq-penguin-container:hover {
+  filter: brightness(1.1);
+}
+
+.qq-penguin-container:active {
+  transform: scale(0.95);
+}
+
+.penguin-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: crisp-edges; /* 保持像素风格 */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* 入场动画 */
+.qq-penguin-container.entering {
+  animation: entrance-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes entrance-bounce {
+  0% {
+    transform: translateY(-200px) rotate(-360deg) scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(10px) rotate(0deg) scale(1.1);
+  }
+  80% {
+    transform: translateY(-5px) rotate(0deg) scale(0.95);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 点击反馈动画 */
+.qq-penguin-container.clicked {
+  animation: click-bounce 0.5s ease-out;
+}
+
+@keyframes click-bounce {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.15) rotate(5deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(3deg);
+  }
+}
+
+/* 调试信息 */
+.debug-info {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #0f0;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.debug-info div {
+  line-height: 1.4;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .qq-penguin-container {
+    width: 100px;
+    height: 130px;
+  }
+}
+*/
