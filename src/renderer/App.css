@@ -3,7 +3,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   background: transparent;
   padding-top: 0;
@@ -31,7 +31,7 @@
 
 .app.bubble-open {
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   padding-top: 0;
 }
 
@@ -39,10 +39,11 @@
   position: relative;
   text-align: center;
   cursor: move;
+  width: 260px;
   padding: 4px 20px 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   pointer-events: none;
 }
@@ -56,7 +57,6 @@
 .pet-container.context-menu-open {
   width: 260px;
   height: auto;
-  align-items: center;
   justify-content: flex-start;
   padding: 4px 20px 16px;
 }
@@ -64,17 +64,16 @@
 .pet-container.action-dropdown-open {
   width: 260px;
   height: auto;
-  align-items: center;
   justify-content: flex-start;
   padding: 4px 20px 16px;
 }
 
 .pet-container.bubble-open {
-  width: 100%;
-  height: 100%;
-  align-items: center;
+  width: 260px;
+  height: auto;
   justify-content: flex-start;
-  padding: 148px 20px 16px;
+  margin-left: 20px;
+  padding: 164px 20px 16px;
 }
 
 /* QQ企鹅容器 */
@@ -107,21 +106,11 @@
   padding: 0;
 }
 
-.pet-container.bubble-open .penguin-wrapper {
-  justify-content: center;
-  top: 6px;
-  padding: 0;
-}
-
 .pet-container.context-menu-open .swf-player-container {
   align-items: center;
 }
 
 .pet-container.action-dropdown-open .swf-player-container {
-  align-items: center;
-}
-
-.pet-container.bubble-open .swf-player-container {
   align-items: center;
 }
 
@@ -135,10 +124,6 @@
   margin-left: 0;
 }
 
-.pet-container.bubble-open .pet-actions {
-  justify-content: center;
-  margin-left: 0;
-}
 
 /* 保留旧的.pet样式用于兼容 */
 .pet {

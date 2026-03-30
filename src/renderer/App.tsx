@@ -69,6 +69,9 @@ const dropdownAccentColors = [
   '#ffc082',
 ]
 
+const BUBBLE_STAGE_OFFSET_X = 20
+const BUBBLE_STAGE_OFFSET_Y = BUBBLE_WINDOW_HEIGHT - PET_WINDOW_HEIGHT
+
 function App() {
   const {
     hunger,
@@ -111,6 +114,7 @@ function App() {
   const hideActionsTimer = useRef<number | null>(null)
   const actionResetTimer = useRef<number | null>(null)
   const actionSequence = useRef(0)
+  const windowLayoutModeRef = useRef<WindowMode>('pet')
   const chatHeaderRef = useRef<HTMLDivElement | null>(null)
   const penguinWrapperRef = useRef<HTMLDivElement | null>(null)
   const actionBarRef = useRef<HTMLDivElement | null>(null)
@@ -338,38 +342,54 @@ function App() {
 
   const resizeWindowForMode = useCallback((mode: WindowMode) => {
     if (!window.electronAPI?.resizeWindow) return
+    const previousMode = windowLayoutModeRef.current
 
     if (mode === 'chat') {
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'action-dropdown') {
       window.electronAPI.resizeWindow(ACTION_DROPDOWN_WINDOW_WIDTH, ACTION_DROPDOWN_WINDOW_HEIGHT)
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'probe') {
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'bubble') {
-      window.electronAPI.resizeWindow(BUBBLE_WINDOW_WIDTH, BUBBLE_WINDOW_HEIGHT)
+      window.electronAPI.resizeWindow(BUBBLE_WINDOW_WIDTH, BUBBLE_WINDOW_HEIGHT, {
+        offsetX: -BUBBLE_STAGE_OFFSET_X,
+        offsetY: -BUBBLE_STAGE_OFFSET_Y,
+      })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'settings') {
       window.electronAPI.resizeWindow(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'context-menu') {
       window.electronAPI.resizeWindow(CONTEXT_MENU_WINDOW_WIDTH, CONTEXT_MENU_WINDOW_HEIGHT)
+      windowLayoutModeRef.current = mode
       return
     }
 
-    window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT)
+    window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT, previousMode === 'bubble'
+      ? {
+          offsetX: BUBBLE_STAGE_OFFSET_X,
+          offsetY: BUBBLE_STAGE_OFFSET_Y,
+        }
+      : undefined)
+    windowLayoutModeRef.current = mode
   }, [])
 
   const getActionDropdownPosition = useCallback((button: HTMLElement) => {
@@ -541,7 +561,6 @@ function App() {
 
     if (!result.success) {
       setBubbleText('今天已经签过到了，明天再来。')
-      setToastMessage('今日已签到')
       return
     }
 

@@ -37,7 +37,9 @@
 - 喂食和清洁横向滚动条会跟随功能栏居中对齐，显示在功能区正下方
 - 下拉菜单已去掉横向滚动条，避免视觉干扰
 - 功能栏下方不再额外显示等级、经验、元宝、心情摘要，主界面更干净
-- 对话气泡和下拉菜单会根据窗口模式动态调整展示区域
+- 宠物在所有模式下始终保持同一位置，气泡和菜单的出现/消失不会导致宠物位移
+- 动画播放时自动阻止鼠标凝视打断，保证动作完整播放
+- 初始窗口位置在屏幕右下角
 
 ### AI 助手
 
@@ -76,9 +78,11 @@
 
 ### 窗口与交互
 
-- 主窗口是透明无边框 Electron 窗口
+- 主窗口是透明无边框 Electron 窗口，默认尺寸 360×420
+- 宠物始终保持在同一 CSS 位置，所有模式（气泡、下拉菜单、右键菜单）统一布局
+- 气泡出现/消失不触发窗口大小或位置变化，消除模式切换跳动
 - 主进程通过 `setIgnoreMouseEvents` 控制穿透
-- 渲染层通过 `resizeWindow` 在宠物、气泡、右键菜单、下拉菜单、聊天、设置之间切换窗口尺寸
+- 渲染层通过 `resizeWindow` 在宠物、右键菜单、下拉菜单、聊天、设置之间切换窗口尺寸
 - `main.tsx` 已移除 `StrictMode`，避免开发环境下 Ruffle 因双挂载出现异常
 
 ## 目录结构
@@ -98,12 +102,17 @@ pet/
 │   └── ruffle/                   # Ruffle 运行时
 └── src/
     ├── main/                     # Electron 主进程
+    ├── shared/
+    │   ├── windowSizes.ts        # 窗口尺寸常量
+    │   └── petWindowLayout.ts    # 宠物锚点计算
     ├── components/               # 共享聊天等组件
     └── renderer/
         ├── App.tsx
+        ├── App.css
         ├── main.tsx
         ├── swfData.ts
         ├── hooks/
+        │   └── useMouseGaze.ts
         ├── stores/
         ├── components/
         │   ├── RufflePlayer.tsx
@@ -112,6 +121,7 @@ pet/
         │   ├── HorizontalScrollStrip.tsx
         │   ├── SettingsPanel.tsx
         │   ├── AIConfigForm.tsx
+        │   ├── PetBubble.tsx
         │   └── PlayerSwfProbePanel.tsx
         └── utils/
             ├── swfPlaylist.ts
@@ -159,9 +169,8 @@ npm run build:main
 
 ## 当前已知问题
 
-- 宠物窗口拖到屏幕最顶端时，仍然会留下大约一段顶部留白，说明窗口可视区域、布局和系统工作区之间还有边界问题需要继续排查
 - 当前版本仍直接使用原版角色和动画资源，不适合公开收费、公开分发或商业化
-- 少量动作虽然已经能完整播放，但业务层的“动作开始/结束/回待机”管理仍有进一步收敛空间
+- 少量动作虽然已经能完整播放，但业务层的”动作开始/结束/回待机”管理仍有进一步收敛空间
 
 ## 商业化与版权边界
 
@@ -187,4 +196,4 @@ npm run build:main
 
 ---
 
-最后更新：2026-03-15
+最后更新：2026-03-27
