@@ -169,7 +169,7 @@ app.whenReady().then(() => {
   })
 
   // 监听调整窗口大小
-  ipcMain.on('window:resize', (_, { width, height, options }: { width: number; height: number; options?: { fitToScreen?: boolean } }) => {
+  ipcMain.on('window:resize', (_, { width, height, options }: { width: number; height: number; options?: { fitToScreen?: boolean; offsetX?: number; offsetY?: number } }) => {
     if (mainWindow) {
       const [currentX, currentY] = mainWindow.getPosition()
       const [currentWidth, currentHeight] = mainWindow.getSize()
@@ -191,9 +191,17 @@ app.whenReady().then(() => {
         return
       }
 
+      if (options?.offsetX !== undefined) {
+        nextX = Math.round(currentX + options.offsetX)
+      }
+
+      if (options?.offsetY !== undefined) {
+        nextY = Math.round(currentY + options.offsetY)
+      }
+
       mainWindow.setBounds({
-        x: currentX,
-        y: currentY,
+        x: nextX,
+        y: nextY,
         width,
         height,
       })
