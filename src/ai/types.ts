@@ -7,6 +7,7 @@ export type AIProvider =
   | 'openclaw'      // OpenClaw Gateway
   | 'claude'        // Anthropic Claude
   | 'openai'        // OpenAI
+  | 'bailian'       // Alibaba Bailian / DashScope
   | 'gemini'        // Google Gemini
   | 'deepseek'      // DeepSeek
   | 'glm'           // 智谱 GLM

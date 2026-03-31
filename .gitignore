@@ -30,7 +30,9 @@ Thumbs.db
 
 # Temporary files
 *.tmp
+_tmp_*
 .cache/
+tmp/
 
 # Package manager
 package-lock.json

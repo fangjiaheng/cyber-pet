@@ -11,6 +11,7 @@ import type {
   StreamCallbacks,
   TokenUsage,
 } from '../types';
+import { getDefaultModelForProvider, getProviderDefinition } from '../providerCatalog';
 
 interface OpenClawMessage {
   role: 'system' | 'user' | 'assistant';
@@ -67,17 +68,36 @@ export class OpenClawEngine extends BaseAIEngine {
   private defaultModel: string;
 
   constructor(config: AIEngineConfig) {
+    const definition = getProviderDefinition(config.provider);
+
     super({
-      provider: 'openclaw',
-      baseUrl: config.baseUrl || 'http://localhost:8181',
       ...config,
+      baseUrl: config.baseUrl || definition.defaultBaseUrl,
     });
 
-    this.defaultModel = config.model || 'gpt-4';
+    this.defaultModel = config.model || getDefaultModelForProvider(config.provider);
   }
 
   get name(): string {
-    return 'OpenClaw Gateway';
+    return getProviderDefinition(this.config.provider).label;
+  }
+
+  private getChatCompletionsUrl(): string {
+    const rawBaseUrl = (this.config.baseUrl || '').trim().replace(/\/+$/, '');
+
+    if (!rawBaseUrl) {
+      throw new Error(`${this.name}: Base URL is required`);
+    }
+
+    if (rawBaseUrl.endsWith('/chat/completions')) {
+      return rawBaseUrl;
+    }
+
+    if (this.config.provider === 'openclaw' && !rawBaseUrl.endsWith('/v1')) {
+      return `${rawBaseUrl}/v1/chat/completions`;
+    }
+
+    return `${rawBaseUrl}/chat/completions`;
   }
 
   /**
@@ -111,15 +131,12 @@ export class OpenClawEngine extends BaseAIEngine {
       );
 
       try {
-        const response = await fetch(
-          `${this.config.baseUrl}/v1/chat/completions`,
-          {
-            method: 'POST',
-            headers: this.buildHeaders(),
-            body: JSON.stringify(requestBody),
-            signal: controller.signal,
-          }
-        );
+        const response = await fetch(this.getChatCompletionsUrl(), {
+          method: 'POST',
+          headers: this.buildHeaders(),
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
 
         clearTimeout(timeoutId);
 
@@ -130,7 +147,7 @@ export class OpenClawEngine extends BaseAIEngine {
           );
         }
 
-        const data: OpenClawResponse = await response.json();
+        const data = await response.json() as OpenClawResponse;
         return this.parseResponse(data);
       } catch (error: any) {
         clearTimeout(timeoutId);
@@ -170,14 +187,11 @@ export class OpenClawEngine extends BaseAIEngine {
     try {
       callbacks.onStart?.();
 
-      const response = await fetch(
-        `${this.config.baseUrl}/v1/chat/completions`,
-        {
-          method: 'POST',
-          headers: this.buildHeaders(),
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const response = await fetch(this.getChatCompletionsUrl(), {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify(requestBody),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -314,22 +328,33 @@ export class OpenClawEngine extends BaseAIEngine {
 
     try {
       // 尝试访问健康检查端点
-      const response = await fetch(`${this.config.baseUrl}/health`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(5000),
-      });
+      if (this.config.provider === 'openclaw' && this.config.baseUrl) {
+        const rawBaseUrl = this.config.baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
+        const response = await fetch(`${rawBaseUrl}/health`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(5000),
+        });
 
-      return response.ok;
+        if (response.ok) {
+          return true;
+        }
+      }
     } catch (error) {
-      console.error('OpenClaw availability check failed:', error);
+      console.error(`${this.name} availability check failed:`, error);
 
       // 如果没有健康检查端点，尝试发送一个简单的请求
       try {
-        await this.sendRequest('test', { maxTokens: 5 });
+        await this.sendRequest('Reply with "ok" only.', { maxTokens: 8 });
         return true;
       } catch {
         return false;
       }
+    }
+    try {
+      await this.sendRequest('Reply with "ok" only.', { maxTokens: 8 });
+      return true;
+    } catch {
+      return false;
     }
   }
 }

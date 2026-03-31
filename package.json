@@ -6,6 +6,12 @@
   "author": "Erase",
   "license": "MIT",
   "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  },
   "scripts": {
     "dev": "npm run build:main && concurrently \"npm run dev:renderer\" \"npm run watch:main\" \"npm run start:electron\"",
     "dev:renderer": "vite",
@@ -20,6 +26,7 @@
     "package:mac": "npm run build && electron-builder --mac",
     "package:linux": "npm run build && electron-builder --linux",
     "lint": "eslint src --ext .ts,.tsx",
+    "test": "cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"CommonJS\\\"} ts-node tests/petWindowLayout.test.ts && cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"CommonJS\\\"} ts-node tests/taskGift.test.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

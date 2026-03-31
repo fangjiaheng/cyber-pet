@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import './ChatPanel.css'
+import chongwuIcon from './assets/toolbar/qq-chongwu.png'
+import gonggaoIcon from './assets/toolbar/qq-gonggao.png'
+import richangIcon from './assets/toolbar/qq-richang.png'
 import { usePetStore } from './stores/petStore'
 import { useShallow } from 'zustand/react/shallow'
 import { usePetDecay } from './hooks/usePetDecay'
@@ -19,8 +22,6 @@ import { useMouseGaze } from './hooks/useMouseGaze'
 import {
   ACTION_DROPDOWN_WINDOW_HEIGHT,
   ACTION_DROPDOWN_WINDOW_WIDTH,
-  BUBBLE_WINDOW_HEIGHT,
-  BUBBLE_WINDOW_WIDTH,
   CHAT_WINDOW_HEIGHT,
   CHAT_WINDOW_WIDTH,
   CONTEXT_MENU_WINDOW_HEIGHT,
@@ -32,6 +33,13 @@ import {
 } from '@shared/windowSizes'
 import { swfCategories } from './swfData'
 import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH } from './utils/swfPlaylist'
+import {
+  countClaimedTaskGifts,
+  countReadyTaskGifts,
+  type TaskGiftKind,
+  type TaskGiftReward,
+  type TaskGiftSlot,
+} from '../shared/taskGift'
 
 type PenguinAction =
   | 'idle' | 'walk' | 'run' | 'sit' | 'sleep'
@@ -58,6 +66,8 @@ type TimedInteractionOptions = {
   baseDuration: number
 }
 
+type TaskDropdownMode = 'overview' | TaskGiftKind
+
 const dropdownAccentColors = [
   '#69dcff',
   '#ffca7a',
@@ -69,13 +79,17 @@ const dropdownAccentColors = [
   '#ffc082',
 ]
 
+const ACTION_STRIP_WIDTH = 280
+const FLOATING_UI_VIEWPORT_PADDING = 16
+
 function App() {
   const {
     hunger,
     cleanliness,
-    mood,
     energy,
     currentEmotion,
+    onlineDataTime,
+    taskGifts,
     feed,
     clean,
     play,
@@ -84,14 +98,16 @@ function App() {
     study,
     work: petWork,
     travel,
-    checkIn,
+    claimTaskGift,
+    ensureTaskGiftState,
     cancelCurrentAction,
   } = usePetStore(useShallow((state) => ({
     hunger: state.hunger,
     cleanliness: state.cleanliness,
-    mood: state.mood,
     energy: state.energy,
     currentEmotion: state.currentEmotion,
+    onlineDataTime: state.onlineDataTime,
+    taskGifts: state.taskGifts,
     feed: state.feed,
     clean: state.clean,
     play: state.play,
@@ -100,7 +116,8 @@ function App() {
     study: state.study,
     work: state.work,
     travel: state.travel,
-    checkIn: state.checkIn,
+    claimTaskGift: state.claimTaskGift,
+    ensureTaskGiftState: state.ensureTaskGiftState,
     cancelCurrentAction: state.cancelCurrentAction,
   })))
 
@@ -116,6 +133,8 @@ function App() {
   const actionBarRef = useRef<HTMLDivElement | null>(null)
   const animButtonRef = useRef<HTMLButtonElement | null>(null)
   const lifeButtonRef = useRef<HTMLButtonElement | null>(null)
+  const taskButtonRef = useRef<HTMLButtonElement | null>(null)
+  const windowLayoutModeRef = useRef<WindowMode>('pet')
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showActions, setShowActions] = useState(false)
@@ -128,12 +147,16 @@ function App() {
   const [showCleanStrip, setShowCleanStrip] = useState(false)
   const [showAnimDropdown, setShowAnimDropdown] = useState(false)
   const [showLifeDropdown, setShowLifeDropdown] = useState(false)
+  const [showTaskDropdown, setShowTaskDropdown] = useState(false)
+  const [taskDropdownMode, setTaskDropdownMode] = useState<TaskDropdownMode>('overview')
   const [animDropdownPosition, setAnimDropdownPosition] = useState<{ left: number; top: number } | null>(null)
   const [lifeDropdownPosition, setLifeDropdownPosition] = useState<{ left: number; top: number } | null>(null)
+  const [taskDropdownPosition, setTaskDropdownPosition] = useState<{ left: number; top: number } | null>(null)
   const [stripPosition, setStripPosition] = useState<{ left: number; top: number } | null>(null)
   const [isContextMenuReady, setIsContextMenuReady] = useState(false)
   const [isAnimDropdownReady, setIsAnimDropdownReady] = useState(false)
   const [isLifeDropdownReady, setIsLifeDropdownReady] = useState(false)
+  const [isTaskDropdownReady, setIsTaskDropdownReady] = useState(false)
   const [animationIntervalMs, setAnimationIntervalMs] = useState(2400)
   const [playerCommand, setPlayerCommand] = useState<PlayerCommand>({
     playlist: IDLE_SWF_PATH,
@@ -144,7 +167,7 @@ function App() {
   const showSettingsPanel = activePanel === 'settings'
   const showPlayerSwfProbe = activePanel === 'probe'
   const isContextMenuOpen = contextMenu !== null
-  const isActionDropdownOpen = showAnimDropdown || showLifeDropdown || showFeedStrip || showCleanStrip
+  const isActionDropdownOpen = showAnimDropdown || showLifeDropdown || showTaskDropdown || showFeedStrip || showCleanStrip
   const isBubbleOpen = bubbleText !== null
 
   useEffect(() => {
@@ -156,7 +179,7 @@ function App() {
       try {
         await usePetStore.getState().loadFromStorage()
       } catch (error) {
-        console.error('加载宠物状态失败:', error)
+        console.error('闂傚倸鍊风粈渚€骞夐垾鎰佹綎缂備焦蓱閸欏繘鏌熼锝囦汗鐟滅増甯掗悙濠囨煃鐟欏嫬鍔ゅù婊堢畺閺屾盯鏁傜拠鎻掔闁哥喎鎲＄换婵嬪煕閳ь剟宕橀埡浣锋樊闂備浇顕栭崰鎺楀疾閻樿绠犳繝濠傛噹閺嬪牊淇婇婵囥€冨瑙勬礃缁绘稒娼忛崜褏蓱闂佽鍠涢崺鏍矉瀹ュ棛闄勯柛娑橈工娴?', error)
       }
     }
 
@@ -169,12 +192,16 @@ function App() {
         const settings = await window.electronAPI?.storage?.getSettings?.()
         setAnimationIntervalMs(settings?.pet?.animationIntervalMs ?? 2400)
       } catch (error) {
-        console.error('读取互动设置失败:', error)
+        console.error('闂傚倷娴囧畷鍨叏閺夋嚚娲煛閸滀焦鏅悷婊勫灴婵＄敻骞囬弶璺ㄥ€為梺闈浤涚仦楣冩暅闂傚倷绀佸﹢閬嶅磿閵堝鍨傚ù锝呭枤閺変粙姊绘担钘夊惞濠殿喖纾划鍫熸媴鐟欏嫭鐝锋繛瀵稿Т椤戝棝宕戦鍫熺厱闁斥晛鍘鹃鍡橆偨闁绘劕鎼痪褔鏌涢顐簻濞存粠鍨抽幃?', error)
       }
     }
 
     void loadWindowSettings()
   }, [])
+
+  useEffect(() => {
+    ensureTaskGiftState()
+  }, [ensureTaskGiftState])
 
   const playPlaylist = useCallback((playlist: string) => {
     setPlayerCommand((current) => ({
@@ -193,6 +220,14 @@ function App() {
       hideActionsTimer.current = null
     }
   }, [])
+
+  const scheduleHideActions = useCallback((delay = 3000) => {
+    clearHideActionsTimer()
+    hideActionsTimer.current = window.setTimeout(() => {
+      setShowActions(false)
+      hideActionsTimer.current = null
+    }, delay)
+  }, [clearHideActionsTimer])
 
   const clearActionResetTimer = useCallback(() => {
     if (actionResetTimer.current) {
@@ -240,13 +275,8 @@ function App() {
       playPlaylist(ENTER_PLAYLIST)
     }, 1500)
 
-    const bubbleTimer = window.setTimeout(() => {
-      setBubbleText('我只是倔强说不想主人，假装说不想主人，但心里面很想陪在你身边的。。。')
-    }, 5000)
-
     return () => {
       window.clearTimeout(enterTimer)
-      window.clearTimeout(bubbleTimer)
     }
   }, [playPlaylist])
 
@@ -341,35 +371,43 @@ function App() {
 
     if (mode === 'chat') {
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'action-dropdown') {
       window.electronAPI.resizeWindow(ACTION_DROPDOWN_WINDOW_WIDTH, ACTION_DROPDOWN_WINDOW_HEIGHT)
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'probe') {
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'bubble') {
-      window.electronAPI.resizeWindow(BUBBLE_WINDOW_WIDTH, BUBBLE_WINDOW_HEIGHT)
+      // Pet and bubble use the same window size now 闂?no resize needed
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'settings') {
       window.electronAPI.resizeWindow(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'context-menu') {
       window.electronAPI.resizeWindow(CONTEXT_MENU_WINDOW_WIDTH, CONTEXT_MENU_WINDOW_HEIGHT)
+      windowLayoutModeRef.current = mode
       return
     }
 
+    // pet mode 闂?restore to default size
     window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT)
+    windowLayoutModeRef.current = mode
   }, [])
 
   const getActionDropdownPosition = useCallback((button: HTMLElement) => {
@@ -382,10 +420,29 @@ function App() {
 
   const getActionStripPosition = useCallback((container: HTMLElement) => {
     const rect = container.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const minLeft = ACTION_STRIP_WIDTH / 2 + FLOATING_UI_VIEWPORT_PADDING
+    const maxLeft = viewportWidth - ACTION_STRIP_WIDTH / 2 - FLOATING_UI_VIEWPORT_PADDING
+    const preferredLeft = rect.left + rect.width / 2
+    const clampedLeft = Math.min(Math.max(preferredLeft, minLeft), maxLeft)
+
     return {
-      left: Math.round(rect.left + rect.width / 2),
+      left: Math.round(clampedLeft),
       top: Math.round(rect.bottom + 10),
     }
+  }, [])
+
+  const formatTaskReward = useCallback((reward: TaskGiftReward) => {
+    const parts = [
+      reward.experience > 0 ? '经验 +' + reward.experience : null,
+      reward.coins > 0 ? '元宝 +' + reward.coins : null,
+      reward.hunger > 0 ? '饥饿 +' + reward.hunger : null,
+      reward.cleanliness > 0 ? '清洁 +' + reward.cleanliness : null,
+      reward.mood > 0 ? '心情 +' + reward.mood : null,
+      reward.energy > 0 ? '体力 +' + reward.energy : null,
+    ].filter(Boolean)
+
+    return parts.join('，')
   }, [])
 
   const pinActionButtons = useCallback(() => {
@@ -420,14 +477,50 @@ function App() {
     setIsLifeDropdownReady(false)
   }, [])
 
+  const closeTaskDropdown = useCallback(() => {
+    setShowTaskDropdown(false)
+    setTaskDropdownPosition(null)
+    setIsTaskDropdownReady(false)
+    setTaskDropdownMode('overview')
+  }, [])
+
   const closeFloatingUi = useCallback(() => {
     closeContextMenu()
     closeFeedStrip()
     closeCleanStrip()
     closeAnimDropdown()
     closeLifeDropdown()
+    closeTaskDropdown()
     setShowActions(false)
-  }, [closeAnimDropdown, closeCleanStrip, closeContextMenu, closeFeedStrip, closeLifeDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeContextMenu, closeFeedStrip, closeLifeDropdown, closeTaskDropdown])
+
+  const openTaskDropdown = useCallback((mode: TaskDropdownMode, anchor?: { left: number; top: number } | null) => {
+    closeFeedStrip()
+    closeCleanStrip()
+    closeAnimDropdown()
+    closeLifeDropdown()
+    pinActionButtons()
+
+    const fallbackAnchor = anchor
+      ?? taskDropdownPosition
+      ?? (taskButtonRef.current ? getActionDropdownPosition(taskButtonRef.current) : null)
+      ?? (lifeButtonRef.current ? getActionDropdownPosition(lifeButtonRef.current) : null)
+
+    if (!fallbackAnchor) return
+
+    setTaskDropdownMode(mode)
+    setTaskDropdownPosition(fallbackAnchor)
+    setIsTaskDropdownReady(false)
+    setShowTaskDropdown(true)
+  }, [
+    closeAnimDropdown,
+    closeCleanStrip,
+    closeFeedStrip,
+    closeLifeDropdown,
+    getActionDropdownPosition,
+    pinActionButtons,
+    taskDropdownPosition,
+  ])
 
   const openPanel = useCallback((panel: Exclude<ActivePanel, null>) => {
     closeFloatingUi()
@@ -455,25 +548,28 @@ function App() {
     event?.stopPropagation()
     closeAnimDropdown()
     closeLifeDropdown()
+    closeTaskDropdown()
     closeCleanStrip()
     pinActionButtons()
     setShowFeedStrip((current) => !current)
-  }, [closeAnimDropdown, closeCleanStrip, closeLifeDropdown, pinActionButtons])
+  }, [closeAnimDropdown, closeCleanStrip, closeLifeDropdown, closeTaskDropdown, pinActionButtons])
 
   const handleClean = useCallback((event?: React.MouseEvent) => {
     event?.stopPropagation()
     closeAnimDropdown()
     closeLifeDropdown()
+    closeTaskDropdown()
     closeFeedStrip()
     pinActionButtons()
     setShowCleanStrip((current) => !current)
-  }, [closeAnimDropdown, closeFeedStrip, closeLifeDropdown, pinActionButtons])
+  }, [closeAnimDropdown, closeFeedStrip, closeLifeDropdown, closeTaskDropdown, pinActionButtons])
 
   const handleToggleAnimDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     closeFeedStrip()
     closeCleanStrip()
     closeLifeDropdown()
+    closeTaskDropdown()
     pinActionButtons()
 
     if (showAnimDropdown) {
@@ -484,13 +580,14 @@ function App() {
     setAnimDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsAnimDropdownReady(false)
     setShowAnimDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeFeedStrip, closeLifeDropdown, getActionDropdownPosition, pinActionButtons, showAnimDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeFeedStrip, closeLifeDropdown, closeTaskDropdown, getActionDropdownPosition, pinActionButtons, showAnimDropdown])
 
   const handleToggleLifeDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     closeFeedStrip()
     closeCleanStrip()
     closeAnimDropdown()
+    closeTaskDropdown()
     pinActionButtons()
 
     if (showLifeDropdown) {
@@ -501,7 +598,36 @@ function App() {
     setLifeDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsLifeDropdownReady(false)
     setShowLifeDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeFeedStrip, closeLifeDropdown, getActionDropdownPosition, pinActionButtons, showLifeDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeFeedStrip, closeLifeDropdown, closeTaskDropdown, getActionDropdownPosition, pinActionButtons, showLifeDropdown])
+
+  const handleToggleTaskDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    closeFeedStrip()
+    closeCleanStrip()
+    closeAnimDropdown()
+    closeLifeDropdown()
+    pinActionButtons()
+
+    if (showTaskDropdown && taskDropdownMode === 'overview') {
+      closeTaskDropdown()
+      return
+    }
+
+    setTaskDropdownPosition(getActionDropdownPosition(event.currentTarget))
+    setTaskDropdownMode('overview')
+    setIsTaskDropdownReady(false)
+    setShowTaskDropdown(true)
+  }, [
+    closeAnimDropdown,
+    closeCleanStrip,
+    closeFeedStrip,
+    closeLifeDropdown,
+    closeTaskDropdown,
+    getActionDropdownPosition,
+    pinActionButtons,
+    showTaskDropdown,
+    taskDropdownMode,
+  ])
 
   const handleOpenChat = useCallback((event?: React.MouseEvent) => {
     event?.stopPropagation()
@@ -519,11 +645,12 @@ function App() {
   const handlePlaySwf = useCallback((swfUrl: string, animationId?: string) => {
     clearActionResetTimer()
     playSwfPath(swfUrl, animationId ? { animationId } : undefined)
-  }, [clearActionResetTimer, playSwfPath])
+    setPenguinAction('play')
+    scheduleReturnToIdle(3000)
+  }, [clearActionResetTimer, playSwfPath, scheduleReturnToIdle])
 
   const handleStopSwf = useCallback(() => {
     resetToIdle(true)
-    setBubbleText('先停下来，回到待机状态。')
   }, [resetToIdle])
 
   const handleSwfLoad = useCallback(() => {
@@ -536,29 +663,31 @@ function App() {
     handleStopSwf()
   }, [handleStopSwf])
 
-  const handleCheckInAction = useCallback(() => {
-    const result = checkIn()
+  const handleClaimTaskGift = useCallback((kind: TaskGiftKind, index: number) => {
+    const result = claimTaskGift(kind, index)
 
-    if (!result.success) {
-      setBubbleText('今天已经签过到了，明天再来。')
-      setToastMessage('今日已签到')
+    if (!result.success || !result.reward) {
+      if (result.reason === 'claimed') {
+        setBubbleText('这个礼物已经领取过了。')
+      } else if (result.reason === 'locked') {
+        setBubbleText(kind === 'sign' ? '登录送礼还没到领取时间。' : '在线时长还不够，继续陪我一会儿。')
+      } else {
+        setBubbleText('这个礼物暂时不能领取。')
+      }
       return
     }
 
-    playSwfPath('/assets/swf_original/102/1020060441.swf', { animationId: '38' })
-    setPenguinAction('happy')
-    setBubbleText(
-      result.levelUps > 0
-        ? `签到成功！+${result.expGained} 经验，升到 Lv.${result.newLevel}。`
-        : `签到成功！+${result.expGained} 经验，已连续签到 ${result.streak} 天。`,
+    playSwfPath(
+      kind === 'sign'
+        ? '/assets/swf_original/102/1020060441.swf'
+        : '/assets/swf_original/102/1022070141.swf',
+      { animationId: kind === 'sign' ? '38' : '316' },
     )
+    setPenguinAction('happy')
+    setBubbleText((kind === 'sign' ? '登录送礼领取成功，' : '在线送礼领取成功，') + formatTaskReward(result.reward) + '。')
     scheduleReturnToIdle(1600)
-  }, [checkIn, playSwfPath, scheduleReturnToIdle])
+  }, [claimTaskGift, formatTaskReward, playSwfPath, scheduleReturnToIdle])
 
-  const handleCheckIn = useCallback((event: React.MouseEvent) => {
-    event.stopPropagation()
-    handleCheckInAction()
-  }, [handleCheckInAction])
 
   const handlePlay = useCallback((event?: React.MouseEvent) => {
     event?.stopPropagation()
@@ -567,7 +696,6 @@ function App() {
       swfPath: '/assets/swf_original/102/1022070141.swf',
       animationId: '316',
       penguinAction: 'play',
-      bubbleText: '好开心～',
       baseDuration: 1400,
     })
   }, [play, runTimedInteraction])
@@ -578,20 +706,15 @@ function App() {
       swfPath: '/assets/swf_original/102/1020030141.swf',
       animationId: '10',
       penguinAction: 'sleep',
-      bubbleText: '先睡一会，补充体力。',
       baseDuration: 2800,
     })
   }, [rest, runTimedInteraction])
 
   const handlePetHover = useCallback(() => {
     if (isContextMenuOpen || isActionDropdownOpen) return
-    clearHideActionsTimer()
     setShowActions(true)
-    hideActionsTimer.current = window.setTimeout(() => {
-      setShowActions(false)
-      hideActionsTimer.current = null
-    }, 3000)
-  }, [clearHideActionsTimer, isActionDropdownOpen, isContextMenuOpen])
+    scheduleHideActions()
+  }, [isActionDropdownOpen, isContextMenuOpen, scheduleHideActions])
 
   useEffect(() => {
     return () => {
@@ -610,7 +733,6 @@ function App() {
 
   const handleDizzy = useCallback((swfPath: string) => {
     playSwfPath(swfPath)
-    setBubbleText('好晕～头好晕...')
   }, [playSwfPath])
 
   useMouseGaze({
@@ -627,25 +749,25 @@ function App() {
   })
 
   const feedAnimations = useMemo(() => ([
-    { id: '85', name: '🍚 吃饭', path: '/assets/swf_original/102/1022010141.swf', emoji: '🍚' },
-    { id: '312', name: '🥤 喝水', path: '/assets/swf_original/102/1022020141.swf', emoji: '🥤' },
-    { id: '313', name: '🐟 烤鱼', path: '/assets/swf_original/102/1023160141.swf', emoji: '🐟' },
-    { id: '314', name: '☕ 喝咖啡', path: '/assets/swf_original/102/1023160341.swf', emoji: '☕' },
-    { id: '315', name: '🧊 喝冷饮', path: '/assets/swf_original/102/1023160441.swf', emoji: '🧊' },
-    { id: '301', name: '🏝️ 下岛咖啡', path: '/assets/swf_original/102/1021001541.swf', emoji: '🏝️' },
-    { id: '302', name: '🧃 滴答果果', path: '/assets/swf_original/102/1021001641.swf', emoji: '🧃' },
-    { id: '307', name: '🍬 霹雳啪啦糖', path: '/assets/swf_original/102/1021003841.swf', emoji: '🍬' },
-    { id: '308', name: '🥞 蛋黄甩甩饼', path: '/assets/swf_original/102/1021004141.swf', emoji: '🥞' },
-    { id: '310', name: '🥔 某薯片', path: '/assets/swf_original/102/1022010241.swf', emoji: '🥔' },
+    { id: '85', name: '吃 吃饭', path: '/assets/swf_original/102/1022010141.swf', emoji: '吃' },
+    { id: '312', name: '喝 喝水', path: '/assets/swf_original/102/1022020141.swf', emoji: '喝' },
+    { id: '313', name: '鱼 烤鱼', path: '/assets/swf_original/102/1023160141.swf', emoji: '鱼' },
+    { id: '314', name: '咖 喝咖啡', path: '/assets/swf_original/102/1023160341.swf', emoji: '咖' },
+    { id: '315', name: '饮 冷饮', path: '/assets/swf_original/102/1023160441.swf', emoji: '饮' },
+    { id: '301', name: '杯 岛屿咖啡', path: '/assets/swf_original/102/1021001541.swf', emoji: '杯' },
+    { id: '302', name: '果 果冻', path: '/assets/swf_original/102/1021001641.swf', emoji: '果' },
+    { id: '307', name: '奶 奶茶', path: '/assets/swf_original/102/1021003841.swf', emoji: '奶' },
+    { id: '308', name: '布 布丁', path: '/assets/swf_original/102/1021004141.swf', emoji: '布' },
+    { id: '310', name: '面 意面', path: '/assets/swf_original/102/1022010241.swf', emoji: '面' },
   ]), [])
 
   const cleanAnimations = useMemo(() => ([
-    { id: '87', name: '🛁 洗澡', path: '/assets/swf_original/102/1022040141.swf', emoji: '🛁' },
-    { id: '304', name: '🧼 妙味香皂', path: '/assets/swf_original/102/1023140141.swf', emoji: '🧼' },
-    { id: '305', name: '🍋 柠檬洗面奶', path: '/assets/swf_original/102/1023140241.swf', emoji: '🍋' },
-    { id: '306', name: '✨ 宝宝爽身粉', path: '/assets/swf_original/102/1023140341.swf', emoji: '✨' },
-    { id: '303', name: '💦 舒爽喷湿器', path: '/assets/swf_original/102/1021001941.swf', emoji: '💦' },
-    { id: '309', name: '🧖 魔幻矿泉泥', path: '/assets/swf_original/102/1021005241.swf', emoji: '🧖' },
+    { id: '87', name: '洗 洗澡', path: '/assets/swf_original/102/1022040141.swf', emoji: '洗' },
+    { id: '304', name: '香 香氛沐浴', path: '/assets/swf_original/102/1023140141.swf', emoji: '香' },
+    { id: '305', name: '皂 柠檬香皂', path: '/assets/swf_original/102/1023140241.swf', emoji: '皂' },
+    { id: '306', name: '护 宝宝护肤', path: '/assets/swf_original/102/1023140341.swf', emoji: '护' },
+    { id: '303', name: '喷 喷雾清洁', path: '/assets/swf_original/102/1021001941.swf', emoji: '喷' },
+    { id: '309', name: '泡 泡泡矿泉', path: '/assets/swf_original/102/1021005241.swf', emoji: '泡' },
   ]), [])
 
   const feedStripItems: ScrollStripItem[] = useMemo(() => (
@@ -653,7 +775,8 @@ function App() {
       id: animation.id,
       icon: animation.emoji,
       label: animation.name.split(' ').slice(1).join(' ') || animation.name,
-      description: `名称: ${animation.name.split(' ').slice(1).join(' ') || animation.name}\n饱食: +30`,
+      description: `名称: ${animation.name.split(' ').slice(1).join(' ') || animation.name}
+饥饿: +30`,
       accent: dropdownAccentColors[index % dropdownAccentColors.length],
       onSelect: () => {
         closeFeedStrip()
@@ -662,7 +785,6 @@ function App() {
           swfPath: animation.path,
           animationId: animation.id,
           penguinAction: 'eat',
-          bubbleText: '吃饱啦，继续陪你。',
           baseDuration: 1400,
         })
       },
@@ -674,7 +796,8 @@ function App() {
       id: animation.id,
       icon: animation.emoji,
       label: animation.name.split(' ').slice(1).join(' ') || animation.name,
-      description: `名称: ${animation.name.split(' ').slice(1).join(' ') || animation.name}\n清洁: +40`,
+      description: `名称: ${animation.name.split(' ').slice(1).join(' ') || animation.name}
+清洁: +40`,
       accent: dropdownAccentColors[(index + 1) % dropdownAccentColors.length],
       onSelect: () => {
         closeCleanStrip()
@@ -683,7 +806,6 @@ function App() {
           swfPath: animation.path,
           animationId: animation.id,
           penguinAction: 'bathe',
-          bubbleText: '洗香香了，状态恢复。',
           baseDuration: 1600,
         })
       },
@@ -706,11 +828,54 @@ function App() {
     }))
   ), [handlePlaySwf])
 
+  const taskDropdownItems: ActionDropdownMenuItem[] = useMemo(() => {
+    const buildTaskSlotLabel = (kind: TaskGiftKind, slot: TaskGiftSlot) => {
+      const prefix = kind === 'sign' ? ('第' + slot.order + '天') : slot.seeTime
+      const status = slot.isTake === 2 ? '已领取' : slot.isTake === 1 ? '可领取' : '未达成'
+      return prefix + ' ' + status
+    }
+
+    if (taskDropdownMode === 'overview') {
+      const signReady = countReadyTaskGifts(taskGifts.sign)
+      const signClaimed = countClaimedTaskGifts(taskGifts.sign)
+      const onlineReady = countReadyTaskGifts(taskGifts.online)
+      const onlineClaimed = countClaimedTaskGifts(taskGifts.online)
+
+      return [
+        {
+          id: 'task-sign',
+          label: '登录送礼 ' + signClaimed + '/12' + (signReady > 0 ? ' 可领 ' + signReady : ''),
+          icon: '礼',
+          accent: dropdownAccentColors[5],
+          onSelect: () => window.setTimeout(() => openTaskDropdown('sign'), 0),
+        },
+        {
+          id: 'task-online',
+          label: '在线送礼 ' + onlineClaimed + '/8，在线 ' + onlineDataTime + ' 分钟' + (onlineReady > 0 ? '，可领 ' + onlineReady : ''),
+          icon: '时',
+          accent: dropdownAccentColors[6],
+          onSelect: () => window.setTimeout(() => openTaskDropdown('online'), 0),
+        },
+      ]
+    }
+
+    const activeKind = taskDropdownMode
+    const group = taskGifts[activeKind]
+
+    return group.slots.map((slot, index) => ({
+      id: activeKind + '-' + slot.order,
+      label: buildTaskSlotLabel(activeKind, slot),
+      icon: activeKind === 'sign' ? '登' : '在',
+      accent: dropdownAccentColors[(index + (activeKind === 'sign' ? 2 : 4)) % dropdownAccentColors.length],
+      onSelect: () => handleClaimTaskGift(activeKind, index),
+    }))
+  }, [handleClaimTaskGift, onlineDataTime, openTaskDropdown, taskDropdownMode, taskGifts])
+
   const lifeMenuItems: ActionDropdownMenuItem[] = useMemo(() => ([
     {
       id: 'feed',
       label: '喂食',
-      icon: '🍚',
+      icon: '食',
       accent: dropdownAccentColors[0],
       onSelect: () => {
         closeLifeDropdown()
@@ -720,7 +885,7 @@ function App() {
     {
       id: 'clean',
       label: '清洁',
-      icon: '🧼',
+      icon: '洁',
       accent: dropdownAccentColors[1],
       onSelect: () => {
         closeLifeDropdown()
@@ -728,36 +893,56 @@ function App() {
       },
     },
     {
+      id: 'task',
+      label: '任务',
+      icon: '礼',
+      accent: dropdownAccentColors[6],
+      children: [
+        {
+          id: 'task-sign-entry',
+          label: '登录送礼' + (countReadyTaskGifts(taskGifts.sign) > 0 ? ' 可领' : ''),
+          icon: '登',
+          accent: dropdownAccentColors[5],
+          onSelect: () => openTaskDropdown('sign', lifeDropdownPosition),
+        },
+        {
+          id: 'task-online-entry',
+          label: '在线送礼' + (countReadyTaskGifts(taskGifts.online) > 0 ? ' 可领' : ''),
+          icon: '在',
+          accent: dropdownAccentColors[6],
+          onSelect: () => openTaskDropdown('online', lifeDropdownPosition),
+        },
+      ],
+    },
+    {
       id: 'heal',
       label: '治疗',
-      icon: '💊',
+      icon: '医',
       accent: dropdownAccentColors[2],
       children: [
         {
           id: 'heal-95',
           label: '吃药',
-          icon: '💊',
+          icon: '药',
           accent: dropdownAccentColors[2],
           onSelect: () => runTimedInteraction({
             perform: heal,
             swfPath: '/assets/swf_original/102/1022050141.swf',
             animationId: '95',
             penguinAction: 'happy',
-            bubbleText: '药效生效中，状态好多了。',
             baseDuration: 1400,
           }),
         },
         {
           id: 'heal-96',
           label: '打针',
-          icon: '💉',
+          icon: '针',
           accent: dropdownAccentColors[2],
           onSelect: () => runTimedInteraction({
             perform: heal,
             swfPath: '/assets/swf_original/102/1022050241.swf',
             animationId: '96',
             penguinAction: 'happy',
-            bubbleText: '打针结束，恢复精神。',
             baseDuration: 1600,
           }),
         },
@@ -766,34 +951,32 @@ function App() {
     {
       id: 'study',
       label: '学习',
-      icon: '📖',
+      icon: '学',
       accent: dropdownAccentColors[3],
       children: [
         {
           id: 'study-61',
           label: '看书',
-          icon: '📖',
+          icon: '书',
           accent: dropdownAccentColors[3],
           onSelect: () => runTimedInteraction({
             perform: study,
             swfPath: '/assets/swf_original/102/1020060241.swf',
             animationId: '61',
             penguinAction: 'happy',
-            bubbleText: '认真学习，赚到 12 元宝。',
             baseDuration: 1800,
           }),
         },
         {
           id: 'study-69',
           label: '记笔记',
-          icon: '📝',
+          icon: '记',
           accent: dropdownAccentColors[3],
           onSelect: () => runTimedInteraction({
             perform: study,
             swfPath: '/assets/swf_original/102/1020060541.swf',
             animationId: '69',
             penguinAction: 'happy',
-            bubbleText: '知识和元宝都进账了。',
             baseDuration: 1800,
           }),
         },
@@ -802,34 +985,32 @@ function App() {
     {
       id: 'work',
       label: '打工',
-      icon: '💼',
+      icon: '工',
       accent: dropdownAccentColors[4],
       children: [
         {
           id: 'work-71',
           label: '办公',
-          icon: '💼',
+          icon: '办',
           accent: dropdownAccentColors[4],
           onSelect: () => runTimedInteraction({
             perform: petWork,
             swfPath: '/assets/swf_original/102/1020060341.swf',
             animationId: '71',
             penguinAction: 'work',
-            bubbleText: '今天也有认真打工，赚到 28 元宝。',
             baseDuration: 2000,
           }),
         },
         {
           id: 'work-126',
           label: '做手工',
-          icon: '🎨',
+          icon: '手',
           accent: dropdownAccentColors[4],
           onSelect: () => runTimedInteraction({
             perform: petWork,
             swfPath: '/assets/swf_original/102/1022070441.swf',
             animationId: '126',
             penguinAction: 'work',
-            bubbleText: '手工订单完成，元宝到手。',
             baseDuration: 2000,
           }),
         },
@@ -838,77 +1019,92 @@ function App() {
     {
       id: 'travel',
       label: '旅行',
-      icon: '🧳',
+      icon: '行',
       accent: dropdownAccentColors[5],
       children: [
         {
           id: 'travel-23',
           label: '钓鱼',
-          icon: '🎣',
+          icon: '鱼',
           accent: dropdownAccentColors[5],
           onSelect: () => runTimedInteraction({
             perform: travel,
             swfPath: '/assets/swf_original/102/1020040141.swf',
             animationId: '23',
             penguinAction: 'happy',
-            bubbleText: '出去散心，心情回来了。',
             baseDuration: 1800,
           }),
         },
       ],
     },
-  ]), [closeLifeDropdown, heal, petWork, runTimedInteraction, study, travel])
+  ]), [closeLifeDropdown, heal, lifeDropdownPosition, openTaskDropdown, petWork, runTimedInteraction, study, taskGifts, travel])
 
   const menuItems: MenuItem[] = useMemo(() => ([
     {
       label: 'AI 助手',
-      icon: '馃',
+      icon: 'AI',
       onClick: () => {},
       children: [
-        { label: '打开聊天', icon: '馃挰', onClick: () => handleOpenChat() },
-        { label: 'AI 配置', icon: '鈿欙笍', onClick: () => openSettingsSection('ai') },
+        { label: '打开聊天', icon: 'CH', onClick: () => handleOpenChat() },
+        { label: 'AI 设置', icon: 'CF', onClick: () => openSettingsSection('ai') },
       ],
     },
     {
-      label: '喂养宠物',
-      icon: '🍽️',
+      label: '宠物互动',
+      icon: '宠',
       onClick: () => {},
       children: [
-        { label: '喂食', icon: '🍚', onClick: () => handleFeed() },
-        { label: '清洁', icon: '🧼', onClick: () => handleClean() },
-        { label: '玩耍', icon: '🎉', onClick: () => handlePlay() },
-        { label: '休息', icon: '💤', onClick: handleRest },
-        { label: '签到', icon: '✅', onClick: handleCheckInAction },
+        { label: '喂食', icon: '食', onClick: () => handleFeed() },
+        { label: '清洁', icon: '洁', onClick: () => handleClean() },
+        { label: '玩耍', icon: '玩', onClick: () => handlePlay() },
+        { label: '休息', icon: '休', onClick: handleRest },
+        {
+          label: '任务',
+          icon: '礼',
+          onClick: () => {},
+          children: [
+            {
+              label: '登录送礼' + (countReadyTaskGifts(taskGifts.sign) > 0 ? ' 可领' : ''),
+              icon: '登',
+              onClick: () => openTaskDropdown('sign', contextMenu ? { left: contextMenu.x, top: contextMenu.y } : null),
+            },
+            {
+              label: '在线送礼' + (countReadyTaskGifts(taskGifts.online) > 0 ? ' 可领' : ''),
+              icon: '在',
+              onClick: () => openTaskDropdown('online', contextMenu ? { left: contextMenu.x, top: contextMenu.y } : null),
+            },
+          ],
+        },
       ],
     },
     {
       label: '商城',
-      icon: '🛍️',
-      onClick: () => setToastMessage('商城即将开放，后续会接元宝与道具系统。'),
+      icon: '商',
+      onClick: () => setToastMessage('商城暂未开放。'),
     },
     {
       label: '选项',
-      icon: '⚙️',
+      icon: '设',
       onClick: () => {},
       children: [
-        { label: '设置', icon: '⚙️', onClick: () => openSettingsSection('game') },
-        { label: '宠物资料', icon: '📋', onClick: () => openSettingsSection('profile') },
-        { label: '中止动画', icon: '⏹️', onClick: handleStopSwf },
-        { label: '关于', icon: 'ℹ️', onClick: () => openSettingsSection('about') },
+        { label: '设置', icon: '设', onClick: () => openSettingsSection('game') },
+        { label: '资料', icon: '资', onClick: () => openSettingsSection('profile') },
+        { label: '停止动画', icon: '停', onClick: handleStopSwf },
+        { label: '关于', icon: '关', onClick: () => openSettingsSection('about') },
       ],
     },
     { divider: true, label: '', onClick: () => {} },
     {
       label: '隐藏宠物',
-      icon: '🙈',
+      icon: '隐',
       onClick: handleHideToTray,
     },
     {
       label: '退出宠物',
-      icon: '⏻',
+      icon: '退',
       onClick: handleQuit,
     },
-  ]), [handleCheckInAction, handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openSettingsSection])
+  ]), [contextMenu, handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openSettingsSection, openTaskDropdown, taskGifts])
 
   useEffect(() => {
     if (['eat', 'bathe', 'play', 'sleep', 'happy', 'work'].includes(penguinAction)) {
@@ -942,6 +1138,25 @@ function App() {
     clearHideActionsTimer()
     setShowActions(true)
   }, [clearHideActionsTimer, isActionDropdownOpen])
+
+  useEffect(() => {
+    if (!showActions) return
+    if (activePanel !== null || isContextMenuOpen || isActionDropdownOpen || isBubbleOpen) return
+
+    scheduleHideActions()
+
+    return () => {
+      clearHideActionsTimer()
+    }
+  }, [
+    activePanel,
+    clearHideActionsTimer,
+    isActionDropdownOpen,
+    isBubbleOpen,
+    isContextMenuOpen,
+    scheduleHideActions,
+    showActions,
+  ])
 
   useEffect(() => {
     if (activePanel !== null) return
@@ -990,6 +1205,10 @@ function App() {
               setIsLifeDropdownReady(true)
             }
 
+            if (showTaskDropdown) {
+              setIsTaskDropdownReady(true)
+            }
+
             if ((showFeedStrip || showCleanStrip) && actionBarRef.current) {
               setStripPosition(getActionStripPosition(actionBarRef.current))
             }
@@ -1022,6 +1241,7 @@ function App() {
     showCleanStrip,
     showFeedStrip,
     showLifeDropdown,
+    showTaskDropdown,
   ])
 
   useEffect(() => {
@@ -1093,27 +1313,32 @@ function App() {
           {!isContextMenuOpen && (
             <>
               <div ref={actionBarRef} className={`pet-actions ${showActions ? 'show' : ''}`}>
-                <button className="action-btn" onClick={handleOpenChat} title="AI 助手">
-                  🦞
+                <button className="action-btn action-btn--qq" onClick={handleOpenChat} title="AI 助手">
+                  <span className="action-btn__ai-icon" aria-hidden="true">AI</span>
                 </button>
                 <button
                   ref={animButtonRef}
-                  className="action-btn"
+                  className="action-btn action-btn--qq action-btn--image"
                   onClick={handleToggleAnimDropdown}
                   title="动画"
                 >
-                  🎬
+                  <img className="action-btn__group-image" src={richangIcon} alt="" aria-hidden="true" />
                 </button>
                 <button
                   ref={lifeButtonRef}
-                  className="action-btn"
+                  className="action-btn action-btn--qq action-btn--image"
                   onClick={handleToggleLifeDropdown}
                   title="互动"
                 >
-                  🎮
+                  <img className="action-btn__group-image" src={chongwuIcon} alt="" aria-hidden="true" />
                 </button>
-                <button className="action-btn" onClick={handleCheckIn} title="签到">
-                  ✅
+                <button
+                  ref={taskButtonRef}
+                  className="action-btn action-btn--qq action-btn--image"
+                  onClick={handleToggleTaskDropdown}
+                  title="任务"
+                >
+                  <img className="action-btn__group-image" src={gonggaoIcon} alt="" aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -1142,7 +1367,7 @@ function App() {
           meter={{
             label: '饥饿值',
             value: hunger,
-            hint: '饥饿值会提升。',
+            hint: '喂食会提升饥饿值。',
           }}
         />
       )}
@@ -1157,7 +1382,7 @@ function App() {
           meter={{
             label: '清洁值',
             value: cleanliness,
-            hint: '清洁值会提升。',
+            hint: '清洁会提升清洁值。',
           }}
         />
       )}
@@ -1180,6 +1405,15 @@ function App() {
         />
       )}
 
+      {showTaskDropdown && (
+        <ActionDropdownMenu
+          items={taskDropdownItems}
+          position={taskDropdownPosition}
+          ready={isTaskDropdownReady}
+          onClose={closeTaskDropdown}
+        />
+      )}
+
       {toastMessage && (
         <Toast
           message={toastMessage}
@@ -1199,7 +1433,7 @@ function App() {
             resizeWindowForMode('chat')
           }}
           onSaved={() => {
-            setToastMessage('AI 配置已保存并立即生效')
+            setToastMessage('AI 设置已保存并立即生效')
           }}
           onNotice={(message) => setToastMessage(message)}
           onGameSettingsSaved={(settings) => {
@@ -1211,13 +1445,13 @@ function App() {
       {showChat && (
         <div className="chat-panel">
           <div ref={chatHeaderRef} className="chat-panel-header">
-            <span>AI 助手 🦞</span>
+            <span>AI 助手</span>
             <button
               className="close-chat-btn"
               data-window-drag-ignore="true"
               onClick={handleOpenChat}
             >
-              ✕
+              x
             </button>
           </div>
           <div className="chat-panel-content">

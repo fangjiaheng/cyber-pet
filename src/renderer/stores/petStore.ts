@@ -1,4 +1,13 @@
 import { create } from 'zustand'
+import {
+  claimTaskGift,
+  countClaimedTaskGifts,
+  createInitialTaskGiftState,
+  refreshTaskGiftState,
+  type TaskGiftKind,
+  type TaskGiftReward,
+  type TaskGiftState,
+} from '../../shared/taskGift'
 
 export type AnimationAction = 'idle' | 'walk' | 'run' | 'sit' | 'sleep' | 'working' | 'eating' | 'bathing' | 'playing'
 export type Emotion = 'happy' | 'sad' | 'angry' | 'tired' | 'hungry' | 'neutral'
@@ -21,6 +30,14 @@ export interface CheckInResult {
   newLevel: number
 }
 
+export interface TaskGiftClaimActionResult {
+  success: boolean
+  reason: 'ready' | 'locked' | 'claimed' | 'missing'
+  kind: TaskGiftKind
+  slotIndex: number
+  reward: TaskGiftReward | null
+}
+
 export interface PetState {
   id: string
   name: string
@@ -33,6 +50,8 @@ export interface PetState {
   coins: number
   lastCheckIn: number | null
   checkInStreak: number
+  onlineDataTime: number
+  taskGifts: TaskGiftState
   position: { x: number; y: number }
   currentAction: AnimationAction
   currentEmotion: Emotion
@@ -64,6 +83,8 @@ interface PetActions {
   work: () => void
   travel: () => void
   checkIn: () => CheckInResult
+  ensureTaskGiftState: () => void
+  claimTaskGift: (kind: TaskGiftKind, index: number) => TaskGiftClaimActionResult
   cancelCurrentAction: () => void
   startWorking: () => void
   finishWorking: (workTimeMinutes: number) => void
@@ -102,6 +123,8 @@ const INITIAL_STATE: PetState = {
   coins: 0,
   lastCheckIn: null,
   checkInStreak: 0,
+  onlineDataTime: 0,
+  taskGifts: createInitialTaskGiftState(Date.now()),
   position: { x: 100, y: 100 },
   currentAction: 'idle',
   currentEmotion: 'neutral',
@@ -164,6 +187,8 @@ function buildPersistedState(state: PetState) {
     coins: state.coins,
     lastCheckIn: state.lastCheckIn,
     checkInStreak: state.checkInStreak,
+    onlineDataTime: state.onlineDataTime,
+    taskGifts: state.taskGifts,
     profile: state.profile,
     lastUpdateTime: Date.now(),
   }
@@ -178,6 +203,8 @@ function normalizeLoadedState(savedState: Partial<PetState> | null | undefined):
   }
 
   const education = profile.education || resolveEducation(profile.intelligence)
+  const onlineDataTime = Math.max(0, Number(savedState.onlineDataTime ?? 0))
+  const taskGifts = refreshTaskGiftState(savedState.taskGifts ?? null, Date.now(), onlineDataTime)
 
   return {
     hunger: clampStatus(savedState.hunger ?? INITIAL_STATE.hunger),
@@ -189,6 +216,8 @@ function normalizeLoadedState(savedState: Partial<PetState> | null | undefined):
     coins: Math.max(0, savedState.coins ?? 0),
     lastCheckIn: savedState.lastCheckIn ?? null,
     checkInStreak: Math.max(0, savedState.checkInStreak ?? 0),
+    onlineDataTime,
+    taskGifts,
     profile: {
       ...profile,
       education,
@@ -355,6 +384,63 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     }
   }),
 
+  ensureTaskGiftState: () => {
+    const state = get()
+    const nextTaskGifts = refreshTaskGiftState(state.taskGifts, Date.now(), state.onlineDataTime)
+    const claimedSignCount = countClaimedTaskGifts(nextTaskGifts.sign)
+
+    set({
+      taskGifts: nextTaskGifts,
+      checkInStreak: claimedSignCount,
+    })
+  },
+
+  claimTaskGift: (kind, index) => {
+    const state = get()
+    const now = Date.now()
+    const result = claimTaskGift(state.taskGifts, kind, index, now, state.onlineDataTime)
+
+    if (!result.ok || !result.reward) {
+      set({
+        taskGifts: result.state,
+        checkInStreak: countClaimedTaskGifts(result.state.sign),
+      })
+
+      return {
+        success: false,
+        reason: result.reason,
+        kind,
+        slotIndex: index,
+        reward: null,
+      }
+    }
+
+    const reward = result.reward
+    const progress = applyExperienceProgress(state, reward.experience)
+
+    set({
+      hunger: clampStatus(state.hunger + reward.hunger),
+      cleanliness: clampStatus(state.cleanliness + reward.cleanliness),
+      mood: clampStatus(state.mood + reward.mood),
+      energy: clampStatus(state.energy + reward.energy),
+      experience: progress.experience,
+      level: progress.level,
+      coins: Math.max(0, state.coins + reward.coins),
+      currentEmotion: 'happy',
+      lastCheckIn: kind === 'sign' ? now : state.lastCheckIn,
+      checkInStreak: countClaimedTaskGifts(result.state.sign),
+      taskGifts: result.state,
+    })
+
+    return {
+      success: true,
+      reason: result.reason,
+      kind,
+      slotIndex: index,
+      reward,
+    }
+  },
+
   checkIn: () => {
     const state = get()
     const now = Date.now()
@@ -425,6 +511,7 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     const energy = state.currentAction === 'sleep'
       ? clampStatus(state.energy + 1)
       : clampStatus(state.energy - 0.2)
+    const onlineDataTime = Math.max(0, state.onlineDataTime + 1)
 
     let nextEmotion: Emotion = state.currentEmotion
     if (hunger < 30) nextEmotion = 'hungry'
@@ -438,11 +525,16 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
       mood = clampStatus(mood - 0.5)
     }
 
+    const taskGifts = refreshTaskGiftState(state.taskGifts, Date.now(), onlineDataTime)
+
     return {
       hunger,
       cleanliness,
       energy,
       mood,
+      onlineDataTime,
+      taskGifts,
+      checkInStreak: countClaimedTaskGifts(taskGifts.sign),
       currentEmotion: nextEmotion,
     }
   }),
@@ -453,7 +545,11 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     try {
       const savedState = await window.electronAPI.storage.getPetState()
       if (savedState) {
-        set(normalizeLoadedState(savedState))
+        const normalizedState = normalizeLoadedState(savedState)
+        set({
+          ...normalizedState,
+          checkInStreak: countClaimedTaskGifts((normalizedState.taskGifts ?? createInitialTaskGiftState(Date.now())).sign),
+        })
         console.log('✅ 宠物状态已从存储恢复')
       }
     } catch (error) {
@@ -466,7 +562,13 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     window.electronAPI.storage.savePetState(buildPersistedState(get()))
   },
 
-  reset: () => set(INITIAL_STATE),
+  reset: () => set({
+    ...INITIAL_STATE,
+    createdAt: Date.now(),
+    lastFed: Date.now(),
+    lastCleaned: Date.now(),
+    taskGifts: createInitialTaskGiftState(Date.now()),
+  }),
 }))
 
 if (typeof window !== 'undefined' && window.electronAPI?.storage) {

@@ -55,6 +55,9 @@ function fitWindowToWorkArea(x: number, y: number, windowWidth: number, windowHe
 }
 
 function createWindow() {
+  const { workAreaSize } = screen.getPrimaryDisplay()
+  const margin = 20
+
   mainWindow = new BrowserWindow({
     width: PET_WINDOW_WIDTH,
     height: PET_WINDOW_HEIGHT,
@@ -63,8 +66,8 @@ function createWindow() {
     backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: false,
-    x: 100,  // 固定位置，方便找到
-    y: 100,
+    x: workAreaSize.width - PET_WINDOW_WIDTH - margin,
+    y: workAreaSize.height - PET_WINDOW_HEIGHT - margin,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -169,7 +172,7 @@ app.whenReady().then(() => {
   })
 
   // 监听调整窗口大小
-  ipcMain.on('window:resize', (_, { width, height, options }: { width: number; height: number; options?: { fitToScreen?: boolean } }) => {
+  ipcMain.on('window:resize', (_, { width, height, options }: { width: number; height: number; options?: { fitToScreen?: boolean; offsetX?: number; offsetY?: number } }) => {
     if (mainWindow) {
       const [currentX, currentY] = mainWindow.getPosition()
       const [currentWidth, currentHeight] = mainWindow.getSize()
@@ -191,9 +194,17 @@ app.whenReady().then(() => {
         return
       }
 
+      if (options?.offsetX !== undefined) {
+        nextX = Math.round(currentX + options.offsetX)
+      }
+
+      if (options?.offsetY !== undefined) {
+        nextY = Math.round(currentY + options.offsetY)
+      }
+
       mainWindow.setBounds({
-        x: currentX,
-        y: currentY,
+        x: nextX,
+        y: nextY,
         width,
         height,
       })

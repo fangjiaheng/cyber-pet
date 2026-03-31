@@ -4,6 +4,8 @@
 
 interface ResizeWindowOptions {
   fitToScreen?: boolean;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 // Electron API 类型定义

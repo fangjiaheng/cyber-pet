@@ -3,12 +3,14 @@
  * 用于：1. 聊天页未配置时的引导界面  2. 设置面板
  */
 
-import React, { useState, useEffect } from 'react'
-import { availableModels } from '../../ai/config'
+import React, { useEffect, useMemo, useState } from 'react'
+import { getDefaultBaseUrlForProvider, getDefaultModelForProvider, getModelsForProvider, getProviderDefinition, getProviderOptions } from '../../ai/providerCatalog'
+import type { AIProvider } from '../../ai/types'
 import { initializeAI } from '../aiInit'
 import './AIConfigForm.css'
 
 export interface AIConfig {
+  provider: AIProvider
   apiKey: string
   baseUrl: string
   model: string
@@ -22,53 +24,75 @@ interface AIConfigFormProps {
 }
 
 export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = false }) => {
+  const [provider, setProvider] = useState<AIProvider>('claude')
   const [apiKey, setApiKey] = useState('')
-  const [baseUrl, setBaseUrl] = useState('https://api.anthropic.com')
-  const [model, setModel] = useState(availableModels[0].id)
+  const [baseUrl, setBaseUrl] = useState(getDefaultBaseUrlForProvider('claude'))
+  const [model, setModel] = useState(getDefaultModelForProvider('claude'))
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'fail' | null>(null)
   const [showKey, setShowKey] = useState(false)
+  const providerOptions = useMemo(() => getProviderOptions(), [])
+  const providerDefinition = useMemo(() => getProviderDefinition(provider), [provider])
+  const modelOptions = useMemo(() => getModelsForProvider(provider), [provider])
 
   // 加载已保存的配置
   useEffect(() => {
     const load = async () => {
       try {
         const stored = await window.electronAPI?.storage?.getAISettings?.()
+        if (stored?.provider) setProvider(stored.provider)
         if (stored?.apiKey) setApiKey(stored.apiKey)
         if (stored?.baseUrl) setBaseUrl(stored.baseUrl)
         if (stored?.defaultModel) setModel(stored.defaultModel)
-      } catch (e) {}
+      } catch {}
     }
     load()
   }, [])
 
+  const handleProviderChange = (nextProvider: AIProvider) => {
+    const currentDefaultBaseUrl = getDefaultBaseUrlForProvider(provider)
+    const currentDefaultModel = getDefaultModelForProvider(provider)
+
+    setProvider(nextProvider)
+
+    if (!baseUrl.trim() || baseUrl === currentDefaultBaseUrl) {
+      setBaseUrl(getDefaultBaseUrlForProvider(nextProvider))
+    }
+
+    if (!model.trim() || model === currentDefaultModel) {
+      setModel(getDefaultModelForProvider(nextProvider))
+    }
+
+    setTestResult(null)
+  }
+
   const handleSave = async () => {
-    if (!apiKey.trim() || !baseUrl.trim()) return
+    if (!apiKey.trim() || !baseUrl.trim() || !model.trim()) return
     setSaving(true)
     setTestResult(null)
     try {
       // 保存到存储
       await window.electronAPI?.storage?.saveAISettings?.({
+        provider,
         apiKey: apiKey.trim(),
         baseUrl: baseUrl.trim(),
-        defaultModel: model,
-        provider: 'claude',
+        defaultModel: model.trim(),
       })
       // 用新配置重新初始化引擎
-      await initializeAI({ apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), model })
-      onSaved?.({ apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), model })
+      await initializeAI({ provider, apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), model: model.trim() })
+      onSaved?.({ provider, apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), model: model.trim() })
     } finally {
       setSaving(false)
     }
   }
 
   const handleTest = async () => {
-    if (!apiKey.trim() || !baseUrl.trim()) return
+    if (!apiKey.trim() || !baseUrl.trim() || !model.trim()) return
     setTesting(true)
     setTestResult(null)
     try {
-      await initializeAI({ apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), model })
+      await initializeAI({ provider, apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), model: model.trim() })
       // 发一条测试消息
       const { aiManager } = await import('../../ai')
       let ok = false
@@ -77,7 +101,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
         onContent: () => { ok = true },
         onComplete: () => {},
         onError: () => { ok = false },
-      }, { maxTokens: 10, model })
+      }, { maxTokens: 10, model: model.trim() })
       setTestResult(ok ? 'success' : 'fail')
     } catch {
       setTestResult('fail')
@@ -98,12 +122,30 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
 
       <div className="config-fields">
         <div className="field-group">
+          <label>Provider</label>
+          <select
+            value={provider}
+            onChange={e => handleProviderChange(e.target.value as AIProvider)}
+            className="config-input"
+          >
+            {providerOptions.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.label} - {option.description}
+              </option>
+            ))}
+          </select>
+          <small className="field-hint">
+            {providerDefinition.region === 'global' ? 'Global provider' : 'Mainland-friendly provider'}
+          </small>
+        </div>
+
+        <div className="field-group">
           <label>Base URL</label>
           <input
             type="text"
             value={baseUrl}
             onChange={e => setBaseUrl(e.target.value)}
-            placeholder="https://api.anthropic.com"
+            placeholder={providerDefinition.baseUrlPlaceholder}
             className="config-input"
           />
         </div>
@@ -135,7 +177,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
             onChange={e => setModel(e.target.value)}
             className="config-input"
           >
-            {availableModels.map(m => (
+            {modelOptions.map(m => (
               <option key={m.id} value={m.id}>
                 {m.name} — {m.description}
               </option>
@@ -154,14 +196,14 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
         <button
           className="test-btn"
           onClick={handleTest}
-          disabled={testing || !apiKey.trim() || !baseUrl.trim()}
+          disabled={testing || !apiKey.trim() || !baseUrl.trim() || !model.trim()}
         >
           {testing ? '测试中...' : '测试连接'}
         </button>
         <button
           className="save-btn"
           onClick={handleSave}
-          disabled={saving || !apiKey.trim() || !baseUrl.trim()}
+          disabled={saving || !apiKey.trim() || !baseUrl.trim() || !model.trim()}
         >
           {saving ? '保存中...' : '保存'}
         </button>

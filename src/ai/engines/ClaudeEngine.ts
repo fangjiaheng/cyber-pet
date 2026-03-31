@@ -11,6 +11,7 @@ import type {
   StreamCallbacks,
   TokenUsage,
 } from '../types';
+import { getProviderDefinition } from '../providerCatalog';
 
 interface ClaudeMessage {
   role: 'user' | 'assistant';
@@ -65,17 +66,19 @@ export class ClaudeEngine extends BaseAIEngine {
   private defaultModel: string;
 
   constructor(config: AIEngineConfig) {
+    const definition = getProviderDefinition('claude');
+
     super({
-      provider: 'claude',
-      baseUrl: config.baseUrl || 'https://cclaude.cc/api',
       ...config,
+      provider: 'claude',
+      baseUrl: config.baseUrl || definition.defaultBaseUrl,
     });
 
-    this.defaultModel = config.model || 'claude-opus-4-5-20251101';
+    this.defaultModel = config.model || definition.defaultModel;
   }
 
   get name(): string {
-    return 'Claude (CClaude)';
+    return 'Claude';
   }
 
   /**
@@ -134,7 +137,7 @@ export class ClaudeEngine extends BaseAIEngine {
           throw new Error(`Claude API error (${response.status}): ${errorText}`);
         }
 
-        const data: ClaudeResponse = await response.json();
+        const data = await response.json() as ClaudeResponse;
         return this.parseResponse(data);
       } catch (error: any) {
         clearTimeout(timeoutId);

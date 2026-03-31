@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { type CSSProperties, type Ref, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './ActionDropdownMenu.css'
 
 export interface ActionDropdownMenuItem {
@@ -28,6 +28,8 @@ interface ActionDropdownMenuColumnProps {
   onItemHover: (item: ActionDropdownMenuItem) => void
   onItemClick: (item: ActionDropdownMenuItem) => void
   submenu?: boolean
+  columnRef?: Ref<HTMLDivElement>
+  style?: CSSProperties
 }
 
 function ActionDropdownMenuColumn({
@@ -36,9 +38,15 @@ function ActionDropdownMenuColumn({
   onItemHover,
   onItemClick,
   submenu = false,
+  columnRef,
+  style,
 }: ActionDropdownMenuColumnProps) {
   return (
-    <div className={`action-dropdown-menu__column ${submenu ? 'action-dropdown-menu__column--submenu' : 'action-dropdown-menu__column--root'}`}>
+    <div
+      ref={columnRef}
+      style={style}
+      className={`action-dropdown-menu__column ${submenu ? 'action-dropdown-menu__column--submenu' : 'action-dropdown-menu__column--root'}`}
+    >
       {items.map((item) => {
         const itemStyle = item.accent
           ? ({ '--action-dropdown-accent': item.accent } as CSSProperties)
@@ -74,11 +82,42 @@ export function ActionDropdownMenu({
   className = '',
 }: ActionDropdownMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
+  const rootColumnRef = useRef<HTMLDivElement>(null)
   const [activeItemId, setActiveItemId] = useState<string | null>(null)
+  const [submenuMaxHeight, setSubmenuMaxHeight] = useState<number | null>(null)
 
   useEffect(() => {
     setActiveItemId(null)
   }, [items])
+
+  useLayoutEffect(() => {
+    const rootColumn = rootColumnRef.current
+    if (!rootColumn) return
+
+    const updateHeight = () => {
+      setSubmenuMaxHeight(Math.round(rootColumn.getBoundingClientRect().height))
+    }
+
+    updateHeight()
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateHeight)
+
+      return () => {
+        window.removeEventListener('resize', updateHeight)
+      }
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateHeight()
+    })
+
+    observer.observe(rootColumn)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [items, ready])
 
   useEffect(() => {
     const handlePointerDown = (e: PointerEvent) => {
@@ -176,6 +215,7 @@ export function ActionDropdownMenu({
     >
       <div className="action-dropdown-menu__rail">
         <ActionDropdownMenuColumn
+          columnRef={rootColumnRef}
           items={items}
           activeItemId={activeItemId}
           onItemHover={handleItemHover}
@@ -188,6 +228,7 @@ export function ActionDropdownMenu({
             activeItemId={null}
             onItemHover={() => {}}
             onItemClick={handleItemClick}
+            style={submenuMaxHeight ? { maxHeight: `${submenuMaxHeight}px` } : undefined}
             submenu
           />
         ) : null}

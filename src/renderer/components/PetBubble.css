@@ -1,8 +1,5 @@
-/* 企鹅对话气泡样式 */
-
 .pet-bubble {
   position: absolute;
-  top: -136px;
   left: 50%;
   transform: translateX(-50%) scale(0.8);
   opacity: 0;
@@ -12,6 +9,14 @@
   -webkit-app-region: no-drag;
   width: max-content;
   max-width: min(320px, calc(100vw - 32px));
+}
+
+.pet-bubble--above {
+  top: -136px;
+}
+
+.pet-bubble--below {
+  top: 132px;
 }
 
 .pet-bubble.visible {
@@ -69,15 +74,4 @@
 
 .bubble-close-btn:hover {
   background: rgba(102, 126, 234, 0.1);
-}
-
-/* 较小的文字提示 */
-.pet-bubble.small .bubble-content {
-  width: 185px;
-  height: 138px;
-  padding: 30px 40px 40px 40px;
-}
-
-.pet-bubble.small .bubble-content p {
-  font-size: 18px;
 }

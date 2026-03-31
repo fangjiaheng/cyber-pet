@@ -4,6 +4,7 @@
  */
 
 import Store from 'electron-store';
+import { createInitialTaskGiftState, type TaskGiftState } from '../shared/taskGift';
 
 // 宠物状态数据结构
 export interface PetStateData {
@@ -16,6 +17,8 @@ export interface PetStateData {
   coins: number;
   lastCheckIn: number | null;
   checkInStreak: number;
+  onlineDataTime: number;
+  taskGifts: TaskGiftState;
   profile: {
     petName: string;
     ownerName: string;
@@ -31,7 +34,7 @@ export interface PetStateData {
 export interface SettingsData {
   // AI 配置
   ai: {
-    provider: 'claude' | 'openclaw';
+    provider: 'claude' | 'openclaw' | 'openai' | 'bailian' | 'glm';
     apiKey?: string;
     baseUrl?: string;
     defaultModel?: string;
@@ -108,6 +111,8 @@ const defaultPetState: PetStateData = {
   coins: 0,
   lastCheckIn: null,
   checkInStreak: 0,
+  onlineDataTime: 0,
+  taskGifts: createInitialTaskGiftState(Date.now()),
   profile: {
     petName: 'Cyber Mate',
     ownerName: '主人',

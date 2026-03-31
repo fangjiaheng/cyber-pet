@@ -3,13 +3,13 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   background: transparent;
   padding-top: 0;
   pointer-events: none;
 }
-  
+
 .app.panel-expanded,
 .app.chat-expanded {
   justify-content: center;
@@ -31,7 +31,7 @@
 
 .app.bubble-open {
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   padding-top: 0;
 }
 
@@ -39,10 +39,11 @@
   position: relative;
   text-align: center;
   cursor: move;
-  padding: 4px 20px 16px;
+  width: 260px;
+  padding: 148px 20px 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   pointer-events: none;
 }
@@ -56,23 +57,13 @@
 .pet-container.context-menu-open {
   width: 260px;
   height: auto;
-  align-items: center;
   justify-content: flex-start;
-  padding: 4px 20px 16px;
+  padding: 148px 20px 16px;
 }
 
 .pet-container.action-dropdown-open {
   width: 260px;
   height: auto;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 4px 20px 16px;
-}
-
-.pet-container.bubble-open {
-  width: 100%;
-  height: 100%;
-  align-items: center;
   justify-content: flex-start;
   padding: 148px 20px 16px;
 }
@@ -82,7 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
+  cursor: url('./assets/cursor/qq-focus-normal.cur'), pointer;
   position: absolute;
   top: 6px;
   left: 50%;
@@ -107,21 +98,11 @@
   padding: 0;
 }
 
-.pet-container.bubble-open .penguin-wrapper {
-  justify-content: center;
-  top: 6px;
-  padding: 0;
-}
-
 .pet-container.context-menu-open .swf-player-container {
   align-items: center;
 }
 
 .pet-container.action-dropdown-open .swf-player-container {
-  align-items: center;
-}
-
-.pet-container.bubble-open .swf-player-container {
   align-items: center;
 }
 
@@ -131,11 +112,6 @@
 }
 
 .pet-container.action-dropdown-open .pet-actions {
-  justify-content: center;
-  margin-left: 0;
-}
-
-.pet-container.bubble-open .pet-actions {
   justify-content: center;
   margin-left: 0;
 }
@@ -177,10 +153,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   position: absolute;
   left: 50%;
-  bottom: 24px;
+  bottom: 20px;
   width: max-content;
   margin-top: 0;
   -webkit-app-region: no-drag;
@@ -189,6 +165,7 @@
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
   z-index: 20;
+  cursor: url('./assets/cursor/qq-focus-normal.cur'), pointer;
 }
 
 .pet-actions.show {
@@ -231,29 +208,117 @@
 }
 
 .action-btn {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: none;
-  font-size: 22px;
-  cursor: pointer;
+  background: transparent;
+  cursor: url('./assets/cursor/qq-focus-normal.cur'), pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  box-shadow: none;
+  transition: transform 0.16s ease, filter 0.16s ease, background-image 0.16s ease;
   -webkit-app-region: no-drag;
-}
-
-.action-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 1);
+  appearance: none;
+  outline: none;
 }
 
 .action-btn:active {
-  transform: scale(0.95);
+  cursor: url('./assets/cursor/qq-focus-press.cur'), pointer;
+}
+
+.action-btn--qq {
+  background-image: url('./assets/toolbar/qq-circle-normal.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  filter: drop-shadow(0 2px 4px rgba(83, 60, 41, 0.2));
+}
+
+.action-btn--image {
+  background-image: url('./assets/toolbar/qq-circle-normal.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  filter: drop-shadow(0 2px 4px rgba(83, 60, 41, 0.2));
+}
+
+.action-btn--qq:hover {
+  background-image: url('./assets/toolbar/qq-circle-hover.svg');
+  filter: drop-shadow(0 3px 5px rgba(83, 60, 41, 0.22));
+  transform: translateY(-1px);
+}
+
+.action-btn--image:hover {
+  background-image: url('./assets/toolbar/qq-circle-hover.svg');
+  filter: drop-shadow(0 3px 5px rgba(83, 60, 41, 0.22));
+}
+
+.action-btn--qq:active {
+  background-image: url('./assets/toolbar/qq-circle-hover.svg');
+  filter: drop-shadow(0 1px 2px rgba(83, 60, 41, 0.14));
+  transform: translateY(1px);
+}
+
+.action-btn--image:active {
+  background-image: url('./assets/toolbar/qq-circle-hover.svg');
+  filter: drop-shadow(0 1px 2px rgba(83, 60, 41, 0.14));
+}
+
+.action-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+}
+
+.action-btn__icon,
+.action-btn__ai-icon,
+.action-btn__group-image {
+  pointer-events: none;
+}
+
+.action-btn__icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+.action-btn__icon--food,
+.action-btn__icon--clean {
+  width: 22px;
+  height: 22px;
+}
+
+.action-btn__icon--task {
+  width: 24px;
+  height: 24px;
+}
+
+.action-btn__ai-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transform: translateY(-1px);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.action-btn__group-image {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: transform 0.22s ease;
+}
+
+.action-btn--image:hover .action-btn__group-image {
+  transform: rotate(45deg);
+}
+
+.action-btn--image:active .action-btn__group-image {
+  transform: rotate(45deg) scale(0.97);
 }
 
 /* SWF 播放器容器 */
@@ -273,13 +338,18 @@
 /* 企鹅可拖拽区域 - 只有这里可以拖动 */
 .pet-draggable-area {
   position: relative;
-  cursor: pointer;
+  cursor: url('./assets/cursor/qq-focus-normal.cur'), pointer;
   pointer-events: auto !important;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 140px;
   height: 140px;
+}
+
+.penguin-wrapper:active,
+.pet-draggable-area:active {
+  cursor: url('./assets/cursor/qq-focus-press.cur'), pointer;
 }
 
 .stop-swf-btn {

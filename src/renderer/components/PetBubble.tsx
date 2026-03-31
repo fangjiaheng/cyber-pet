@@ -1,62 +1,59 @@
-/**
- * 企鹅对话气泡组件
- * 使用原版素材 wors_bg.png 作为背景
- */
-
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './PetBubble.css'
 
 interface PetBubbleProps {
   text: string
-  duration?: number  // 显示时长（毫秒），0 表示不自动消失
+  placement?: 'above' | 'below'
+  duration?: number
   onClose?: () => void
 }
 
-export const PetBubble: React.FC<PetBubbleProps> = ({
+export function PetBubble({
   text,
+  placement = 'above',
   duration = 3000,
   onClose,
-}) => {
+}: PetBubbleProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // 延迟一点再显示，让动画更自然
-    const showTimer = setTimeout(() => {
+    const showTimer = window.setTimeout(() => {
       setIsVisible(true)
     }, 100)
 
-    // 如果设置了自动消失时长
     if (duration > 0) {
-      const hideTimer = setTimeout(() => {
+      const hideTimer = window.setTimeout(() => {
         setIsVisible(false)
-        setTimeout(() => {
+        window.setTimeout(() => {
           onClose?.()
-        }, 300) // 等待淡出动画完成
+        }, 300)
       }, duration)
 
       return () => {
-        clearTimeout(showTimer)
-        clearTimeout(hideTimer)
+        window.clearTimeout(showTimer)
+        window.clearTimeout(hideTimer)
       }
     }
 
     return () => {
-      clearTimeout(showTimer)
+      window.clearTimeout(showTimer)
     }
   }, [duration, onClose])
 
   const handleClose = () => {
     setIsVisible(false)
-    setTimeout(() => {
+    window.setTimeout(() => {
       onClose?.()
     }, 300)
   }
 
   return (
-    <div className={`pet-bubble ${isVisible ? 'visible' : ''}`}>
+    <div className={`pet-bubble pet-bubble--${placement} ${isVisible ? 'visible' : ''}`}>
       <div className="bubble-content">
         <p>{text}</p>
-        <button className="bubble-close-btn" onClick={handleClose}>知道了</button>
+        <button className="bubble-close-btn" onClick={handleClose}>
+          Close
+        </button>
       </div>
     </div>
   )
