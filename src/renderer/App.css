@@ -78,7 +78,7 @@
   top: 6px;
   left: 50%;
   width: 180px;
-  height: 156px;
+  height: 180px;
   transform: translateX(-50%);
   pointer-events: auto !important;
   -webkit-app-region: no-drag;
@@ -329,8 +329,8 @@
   align-items: center;
   gap: 10px;
   background: transparent !important;
-  min-width: 140px;
-  min-height: 140px;
+  min-width: 180px;
+  min-height: 180px;
   pointer-events: none !important;
   z-index: 2;
 }
@@ -343,8 +343,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 140px;
-  height: 140px;
+  width: 180px;
+  height: 180px;
 }
 
 .penguin-wrapper:active,

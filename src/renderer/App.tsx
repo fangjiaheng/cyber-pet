@@ -19,7 +19,6 @@ import { ChatWindow } from '../components/ChatWindow'
 import { SettingsPanel } from './components/SettingsPanel'
 import { initializeAI } from './aiInit'
 import { useWindowDrag } from './hooks/useWindowDrag'
-import { useMouseGaze } from './hooks/useMouseGaze'
 import {
   ACTION_DROPDOWN_WINDOW_HEIGHT,
   ACTION_DROPDOWN_WINDOW_WIDTH,
@@ -1002,30 +1001,6 @@ function App() {
     }
   }, [clearActionResetTimer, clearHideActionsTimer])
 
-  const handleGaze = useCallback((swfPath: string) => {
-    playSwfPath(swfPath, { appendIdle: false })
-  }, [playSwfPath])
-
-  const handleGazeEnd = useCallback(() => {
-    playPlaylist(IDLE_SWF_PATH)
-  }, [playPlaylist])
-
-  const handleDizzy = useCallback((swfPath: string) => {
-    playSwfPath(swfPath)
-  }, [playSwfPath])
-
-  useMouseGaze({
-    targetRef: penguinWrapperRef,
-    isDraggingRef: isDragging,
-    penguinAction,
-    activePanel,
-    isContextMenuOpen,
-    isActionDropdownOpen,
-    isBubbleOpen,
-    onGaze: handleGaze,
-    onGazeEnd: handleGazeEnd,
-    onDizzy: handleDizzy,
-  })
 
   const feedStripItems: ScrollStripItem[] = useMemo(() => (
     ORIGINAL_FOOD_ITEMS.map((item, index) => ({
@@ -1555,8 +1530,8 @@ function App() {
                   playlist={playerCommand.playlist}
                   playToken={playerCommand.token}
                   petId={0}
-                  width={140}
-                  height={140}
+                  width={180}
+                  height={180}
                   scale={1}
                   onLoad={handleSwfLoad}
                   onError={handleSwfError}
