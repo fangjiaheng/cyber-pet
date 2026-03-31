@@ -3,7 +3,9 @@ import './HorizontalScrollStrip.css'
 
 export interface ScrollStripItem {
   id: string
-  icon: string
+  icon?: string
+  imageSrc?: string
+  imageAlt?: string
   label: string
   description?: string
   accent?: string
@@ -20,6 +22,7 @@ export interface HorizontalScrollStripProps {
   meter?: {
     label: string
     value: number
+    max?: number
     hint?: string
   }
 }
@@ -96,7 +99,15 @@ export default function HorizontalScrollStrip({ items, title, onClose, className
               onClick={() => handleClick(item)}
             >
               <div className="scroll-strip__circle">
-                {item.icon}
+                {item.imageSrc ? (
+                  <img
+                    className="scroll-strip__image"
+                    src={item.imageSrc}
+                    alt={item.imageAlt ?? item.label}
+                  />
+                ) : (
+                  item.icon
+                )}
               </div>
               <span className="scroll-strip__label">{item.label}</span>
             </div>
@@ -116,10 +127,13 @@ export default function HorizontalScrollStrip({ items, title, onClose, className
         <div className="scroll-strip__meter">
           <div className="scroll-strip__meter-header">
             <span>{meter.label}</span>
-            <strong>{Math.round(meter.value)} / 100</strong>
+            <strong>{Math.round(meter.value)} / {Math.round(meter.max ?? 100)}</strong>
           </div>
           <div className="scroll-strip__meter-track">
-            <div className="scroll-strip__meter-fill" style={{ width: `${Math.max(0, Math.min(100, meter.value))}%` }} />
+            <div
+              className="scroll-strip__meter-fill"
+              style={{ width: `${Math.max(0, Math.min(100, (meter.value / Math.max(1, meter.max ?? 100)) * 100))}%` }}
+            />
           </div>
           {meter.hint ? <p className="scroll-strip__meter-hint">{meter.hint}</p> : null}
         </div>

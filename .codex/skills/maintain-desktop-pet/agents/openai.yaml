@@ -1,0 +1,4 @@
+interface:
+  display_name: "桌面宠物维护"
+  short_description: "维护这个基于 Electron、Ruffle、任务送礼和本地 AI 聊天的桌面宠物原型。"
+  default_prompt: "使用 $maintain-desktop-pet 安全地修改这个桌面宠物仓库，并验证受影响的交互流程。"

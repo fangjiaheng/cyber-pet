@@ -5,6 +5,7 @@ import chongwuIcon from './assets/toolbar/qq-chongwu.png'
 import gonggaoIcon from './assets/toolbar/qq-gonggao.png'
 import richangIcon from './assets/toolbar/qq-richang.png'
 import { usePetStore } from './stores/petStore'
+import { HUNGER_MAX, CLEANLINESS_MAX } from './stores/petStore'
 import { useShallow } from 'zustand/react/shallow'
 import { usePetDecay } from './hooks/usePetDecay'
 import { ActionDropdownMenu, ActionDropdownMenuItem } from './components/ActionDropdownMenu'
@@ -36,9 +37,9 @@ import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH } from './utils/s
 import {
   countClaimedTaskGifts,
   countReadyTaskGifts,
+  getTaskGiftReward,
   type TaskGiftKind,
   type TaskGiftReward,
-  type TaskGiftSlot,
 } from '../shared/taskGift'
 
 type PenguinAction =
@@ -65,8 +66,18 @@ type TimedInteractionOptions = {
   bubbleText?: string
   baseDuration: number
 }
-
-type TaskDropdownMode = 'overview' | TaskGiftKind
+type OriginalStoreItem = {
+  id: string
+  name: string
+  swfPath: string
+  iconPath: string
+  starve?: number
+  clean?: number
+  charm?: number
+  intel?: number
+  strong?: number
+  desc?: string
+}
 
 const dropdownAccentColors = [
   '#69dcff',
@@ -81,6 +92,225 @@ const dropdownAccentColors = [
 
 const ACTION_STRIP_WIDTH = 280
 const FLOATING_UI_VIEWPORT_PADDING = 16
+
+function resolveRendererAssetUrl(assetPath: string) {
+  const normalized = assetPath.replace(/^\/+/, '')
+
+  if (typeof window === 'undefined') {
+    return normalized
+  }
+
+  return new URL(normalized, window.location.href).toString()
+}
+
+const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
+  {
+    id: '100010031',
+    name: '雪泥爽',
+    swfPath: '/assets/swf_original/102/1022010141.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010031.gif',
+    starve: 720,
+    intel: 8,
+  },
+  {
+    id: '100010032',
+    name: '小笼包',
+    swfPath: '/assets/swf_original/102/1022020141.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010032.gif',
+    starve: 500,
+    charm: 100,
+    intel: 100,
+    strong: 100,
+    desc: '一颗小笼包，原地爆炸三千里~',
+  },
+  {
+    id: '100010033',
+    name: '黑森林蛋糕',
+    swfPath: '/assets/swf_original/102/1023160141.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010033.gif',
+    starve: 720,
+    charm: 8,
+  },
+  {
+    id: '100010034',
+    name: '鱼肉香肠',
+    swfPath: '/assets/swf_original/102/1023160341.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010034.gif',
+    starve: 1080,
+    strong: 15,
+  },
+  {
+    id: '100010035',
+    name: '葡萄香槟',
+    swfPath: '/assets/swf_original/102/1023160441.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010035.gif',
+    starve: 900,
+    intel: 12,
+  },
+  {
+    id: '100010036',
+    name: '八宝饭',
+    swfPath: '/assets/swf_original/102/1021001541.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010036.gif',
+    starve: 540,
+    intel: 5,
+  },
+  {
+    id: '100010037',
+    name: '长寿面',
+    swfPath: '/assets/swf_original/102/1021001641.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010037.gif',
+    starve: 720,
+    strong: 8,
+  },
+  {
+    id: '100010038',
+    name: '火腿汉堡',
+    swfPath: '/assets/swf_original/102/1021003841.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010038.gif',
+    starve: 720,
+    charm: 8,
+  },
+  {
+    id: '100010039',
+    name: '饺子',
+    swfPath: '/assets/swf_original/102/1021004141.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010039.gif',
+    starve: 900,
+    intel: 12,
+  },
+  {
+    id: '100010040',
+    name: '年糕',
+    swfPath: '/assets/swf_original/102/1022010241.swf',
+    iconPath: 'assets/1.2.4source/img_res/food/100010040.gif',
+    starve: 900,
+    strong: 12,
+  },
+]
+
+const ORIGINAL_CLEAN_ITEMS: OriginalStoreItem[] = [
+  {
+    id: '102020011',
+    name: '宝宝爽身粉',
+    swfPath: '/assets/swf_original/102/1022040141.swf',
+    iconPath: 'assets/1.2.4source/img_res/commodity/102020011.gif',
+    clean: 1080,
+  },
+  {
+    id: '102020012',
+    name: '宝宝金水',
+    swfPath: '/assets/swf_original/102/1023140141.swf',
+    iconPath: 'assets/1.2.4source/img_res/commodity/102020012.gif',
+    clean: 540,
+  },
+  {
+    id: '102020013',
+    name: '含香凝露',
+    swfPath: '/assets/swf_original/102/1023140241.swf',
+    iconPath: 'assets/1.2.4source/img_res/commodity/102020013.gif',
+    clean: 720,
+  },
+  {
+    id: '102020014',
+    name: '啤酒香波',
+    swfPath: '/assets/swf_original/102/1023140341.swf',
+    iconPath: 'assets/1.2.4source/img_res/commodity/102020014.gif',
+    clean: 2340,
+  },
+  {
+    id: '102020015',
+    name: '飘飘护发素',
+    swfPath: '/assets/swf_original/102/1021001941.swf',
+    iconPath: 'assets/1.2.4source/img_res/commodity/102020015.gif',
+    clean: 1080,
+  },
+  {
+    id: '102020016',
+    name: '保湿啫喱',
+    swfPath: '/assets/swf_original/102/1021005241.swf',
+    iconPath: 'assets/1.2.4source/img_res/commodity/102020016.gif',
+    clean: 2700,
+  },
+]
+
+const ORIGINAL_HEAL_ITEMS: OriginalStoreItem[] = [
+  {
+    id: '10001',
+    name: '板蓝根',
+    swfPath: '/assets/swf_original/102/1022050141.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/10001.gif',
+    desc: '用于治疗感冒',
+  },
+  {
+    id: '10002',
+    name: '消食片',
+    swfPath: '/assets/swf_original/102/1022050141.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/10002.gif',
+    desc: '用于治疗消化不良',
+  },
+  {
+    id: '10003',
+    name: '枇杷糖浆',
+    swfPath: '/assets/swf_original/102/1022050141.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/10003.gif',
+    desc: '用于治疗咳嗽',
+  },
+  {
+    id: '10004',
+    name: '清凉油',
+    swfPath: '/assets/swf_original/102/1022050141.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/10004.gif',
+    desc: '用于治疗头晕',
+  },
+  {
+    id: '10005',
+    name: '润肤露',
+    swfPath: '/assets/swf_original/102/1022050141.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/10005.gif',
+    desc: '用于治疗皮肤瘙痒',
+  },
+  {
+    id: '20001',
+    name: '银翘丸',
+    swfPath: '/assets/swf_original/102/1022050241.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/20001.gif',
+    desc: '用于治疗重感冒',
+  },
+  {
+    id: '50001',
+    name: '百草丹',
+    swfPath: '/assets/swf_original/102/1022050241.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/50001.gif',
+    desc: '包治百病，一粒见效',
+  },
+  {
+    id: '60001',
+    name: '还魂丹',
+    swfPath: '/assets/swf_original/102/1022050241.swf',
+    iconPath: 'assets/1.2.4source/img_res/medicine/60001.gif',
+    starve: 500,
+    clean: 500,
+    strong: 100,
+    desc: '用于复活宠物，也可治百病,吃一颗长生不老！',
+  },
+]
+
+function formatOriginalItemDescription(item: OriginalStoreItem) {
+  const attributes = [
+    item.charm ? `魅力 +${item.charm}` : null,
+    item.intel ? `智力 +${item.intel}` : null,
+    item.strong ? `武力 +${item.strong}` : null,
+  ].filter(Boolean)
+
+  return [
+    `名称：${item.name}`,
+    item.starve ? `饥饿值：+${item.starve}` : null,
+    item.clean ? `清洁值：+${item.clean}` : null,
+    attributes.length ? `属性：${attributes.join('  ')}` : null,
+    item.desc ? `说明：${item.desc}` : null,
+  ].filter(Boolean).join('\n')
+}
 
 function App() {
   const {
@@ -131,7 +361,8 @@ function App() {
   const chatHeaderRef = useRef<HTMLDivElement | null>(null)
   const penguinWrapperRef = useRef<HTMLDivElement | null>(null)
   const actionBarRef = useRef<HTMLDivElement | null>(null)
-  const animButtonRef = useRef<HTMLButtonElement | null>(null)
+  const animDropdownAnchorRef = useRef<HTMLButtonElement | null>(null)
+  const dailyButtonRef = useRef<HTMLButtonElement | null>(null)
   const lifeButtonRef = useRef<HTMLButtonElement | null>(null)
   const taskButtonRef = useRef<HTMLButtonElement | null>(null)
   const windowLayoutModeRef = useRef<WindowMode>('pet')
@@ -145,16 +376,20 @@ function App() {
   const [bubbleText, setBubbleText] = useState<string | null>(null)
   const [showFeedStrip, setShowFeedStrip] = useState(false)
   const [showCleanStrip, setShowCleanStrip] = useState(false)
+  const [showHealStrip, setShowHealStrip] = useState(false)
+  const [taskStripKind, setTaskStripKind] = useState<TaskGiftKind | null>(null)
   const [showAnimDropdown, setShowAnimDropdown] = useState(false)
+  const [showDailyDropdown, setShowDailyDropdown] = useState(false)
   const [showLifeDropdown, setShowLifeDropdown] = useState(false)
   const [showTaskDropdown, setShowTaskDropdown] = useState(false)
-  const [taskDropdownMode, setTaskDropdownMode] = useState<TaskDropdownMode>('overview')
   const [animDropdownPosition, setAnimDropdownPosition] = useState<{ left: number; top: number } | null>(null)
+  const [dailyDropdownPosition, setDailyDropdownPosition] = useState<{ left: number; top: number } | null>(null)
   const [lifeDropdownPosition, setLifeDropdownPosition] = useState<{ left: number; top: number } | null>(null)
   const [taskDropdownPosition, setTaskDropdownPosition] = useState<{ left: number; top: number } | null>(null)
   const [stripPosition, setStripPosition] = useState<{ left: number; top: number } | null>(null)
   const [isContextMenuReady, setIsContextMenuReady] = useState(false)
   const [isAnimDropdownReady, setIsAnimDropdownReady] = useState(false)
+  const [isDailyDropdownReady, setIsDailyDropdownReady] = useState(false)
   const [isLifeDropdownReady, setIsLifeDropdownReady] = useState(false)
   const [isTaskDropdownReady, setIsTaskDropdownReady] = useState(false)
   const [animationIntervalMs, setAnimationIntervalMs] = useState(2400)
@@ -167,7 +402,8 @@ function App() {
   const showSettingsPanel = activePanel === 'settings'
   const showPlayerSwfProbe = activePanel === 'probe'
   const isContextMenuOpen = contextMenu !== null
-  const isActionDropdownOpen = showAnimDropdown || showLifeDropdown || showTaskDropdown || showFeedStrip || showCleanStrip
+  const showTaskStrip = taskStripKind !== null
+  const isActionDropdownOpen = showAnimDropdown || showDailyDropdown || showLifeDropdown || showTaskDropdown || showFeedStrip || showCleanStrip || showHealStrip || showTaskStrip
   const isBubbleOpen = bubbleText !== null
 
   useEffect(() => {
@@ -465,10 +701,26 @@ function App() {
     setStripPosition(null)
   }, [])
 
+  const closeHealStrip = useCallback(() => {
+    setShowHealStrip(false)
+    setStripPosition(null)
+  }, [])
+
+  const closeTaskStrip = useCallback(() => {
+    setTaskStripKind(null)
+    setStripPosition(null)
+  }, [])
+
   const closeAnimDropdown = useCallback(() => {
     setShowAnimDropdown(false)
     setAnimDropdownPosition(null)
     setIsAnimDropdownReady(false)
+  }, [])
+
+  const closeDailyDropdown = useCallback(() => {
+    setShowDailyDropdown(false)
+    setDailyDropdownPosition(null)
+    setIsDailyDropdownReady(false)
   }, [])
 
   const closeLifeDropdown = useCallback(() => {
@@ -481,46 +733,32 @@ function App() {
     setShowTaskDropdown(false)
     setTaskDropdownPosition(null)
     setIsTaskDropdownReady(false)
-    setTaskDropdownMode('overview')
   }, [])
 
   const closeFloatingUi = useCallback(() => {
     closeContextMenu()
     closeFeedStrip()
     closeCleanStrip()
+    closeHealStrip()
+    closeTaskStrip()
     closeAnimDropdown()
+    closeDailyDropdown()
     closeLifeDropdown()
     closeTaskDropdown()
     setShowActions(false)
-  }, [closeAnimDropdown, closeCleanStrip, closeContextMenu, closeFeedStrip, closeLifeDropdown, closeTaskDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeContextMenu, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeTaskDropdown, closeTaskStrip])
 
-  const openTaskDropdown = useCallback((mode: TaskDropdownMode, anchor?: { left: number; top: number } | null) => {
+  const openTaskStrip = useCallback((kind: TaskGiftKind) => {
+    closeTaskDropdown()
     closeFeedStrip()
     closeCleanStrip()
+    closeHealStrip()
     closeAnimDropdown()
+    closeDailyDropdown()
     closeLifeDropdown()
     pinActionButtons()
-
-    const fallbackAnchor = anchor
-      ?? taskDropdownPosition
-      ?? (taskButtonRef.current ? getActionDropdownPosition(taskButtonRef.current) : null)
-      ?? (lifeButtonRef.current ? getActionDropdownPosition(lifeButtonRef.current) : null)
-
-    if (!fallbackAnchor) return
-
-    setTaskDropdownMode(mode)
-    setTaskDropdownPosition(fallbackAnchor)
-    setIsTaskDropdownReady(false)
-    setShowTaskDropdown(true)
-  }, [
-    closeAnimDropdown,
-    closeCleanStrip,
-    closeFeedStrip,
-    closeLifeDropdown,
-    getActionDropdownPosition,
-    pinActionButtons,
-    taskDropdownPosition,
-  ])
+    setTaskStripKind(kind)
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeTaskDropdown, pinActionButtons])
 
   const openPanel = useCallback((panel: Exclude<ActivePanel, null>) => {
     closeFloatingUi()
@@ -547,27 +785,37 @@ function App() {
   const handleFeed = useCallback((event?: React.MouseEvent) => {
     event?.stopPropagation()
     closeAnimDropdown()
+    closeDailyDropdown()
     closeLifeDropdown()
     closeTaskDropdown()
+    closeTaskStrip()
     closeCleanStrip()
+    closeHealStrip()
     pinActionButtons()
     setShowFeedStrip((current) => !current)
-  }, [closeAnimDropdown, closeCleanStrip, closeLifeDropdown, closeTaskDropdown, pinActionButtons])
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeHealStrip, closeLifeDropdown, closeTaskDropdown, closeTaskStrip, pinActionButtons])
 
   const handleClean = useCallback((event?: React.MouseEvent) => {
     event?.stopPropagation()
     closeAnimDropdown()
+    closeDailyDropdown()
     closeLifeDropdown()
     closeTaskDropdown()
+    closeTaskStrip()
     closeFeedStrip()
+    closeHealStrip()
     pinActionButtons()
     setShowCleanStrip((current) => !current)
-  }, [closeAnimDropdown, closeFeedStrip, closeLifeDropdown, closeTaskDropdown, pinActionButtons])
+  }, [closeAnimDropdown, closeFeedStrip, closeDailyDropdown, closeHealStrip, closeLifeDropdown, closeTaskDropdown, closeTaskStrip, pinActionButtons])
 
   const handleToggleAnimDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
+    animDropdownAnchorRef.current = event.currentTarget
     closeFeedStrip()
     closeCleanStrip()
+    closeHealStrip()
+    closeTaskStrip()
+    closeDailyDropdown()
     closeLifeDropdown()
     closeTaskDropdown()
     pinActionButtons()
@@ -580,13 +828,37 @@ function App() {
     setAnimDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsAnimDropdownReady(false)
     setShowAnimDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeFeedStrip, closeLifeDropdown, closeTaskDropdown, getActionDropdownPosition, pinActionButtons, showAnimDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeTaskDropdown, closeTaskStrip, getActionDropdownPosition, pinActionButtons, showAnimDropdown])
+
+  const handleToggleDailyDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    closeFeedStrip()
+    closeCleanStrip()
+    closeHealStrip()
+    closeTaskStrip()
+    closeAnimDropdown()
+    closeLifeDropdown()
+    closeTaskDropdown()
+    pinActionButtons()
+
+    if (showDailyDropdown) {
+      closeDailyDropdown()
+      return
+    }
+
+    setDailyDropdownPosition(getActionDropdownPosition(event.currentTarget))
+    setIsDailyDropdownReady(false)
+    setShowDailyDropdown(true)
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeTaskDropdown, closeTaskStrip, getActionDropdownPosition, pinActionButtons, showDailyDropdown])
 
   const handleToggleLifeDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     closeFeedStrip()
     closeCleanStrip()
+    closeHealStrip()
+    closeTaskStrip()
     closeAnimDropdown()
+    closeDailyDropdown()
     closeTaskDropdown()
     pinActionButtons()
 
@@ -598,35 +870,39 @@ function App() {
     setLifeDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsLifeDropdownReady(false)
     setShowLifeDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeFeedStrip, closeLifeDropdown, closeTaskDropdown, getActionDropdownPosition, pinActionButtons, showLifeDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeTaskDropdown, closeTaskStrip, getActionDropdownPosition, pinActionButtons, showLifeDropdown])
 
   const handleToggleTaskDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     closeFeedStrip()
     closeCleanStrip()
+    closeHealStrip()
+    closeTaskStrip()
     closeAnimDropdown()
+    closeDailyDropdown()
     closeLifeDropdown()
     pinActionButtons()
 
-    if (showTaskDropdown && taskDropdownMode === 'overview') {
+    if (showTaskDropdown) {
       closeTaskDropdown()
       return
     }
 
     setTaskDropdownPosition(getActionDropdownPosition(event.currentTarget))
-    setTaskDropdownMode('overview')
     setIsTaskDropdownReady(false)
     setShowTaskDropdown(true)
   }, [
     closeAnimDropdown,
     closeCleanStrip,
+    closeDailyDropdown,
     closeFeedStrip,
+    closeHealStrip,
     closeLifeDropdown,
     closeTaskDropdown,
+    closeTaskStrip,
     getActionDropdownPosition,
     pinActionButtons,
     showTaskDropdown,
-    taskDropdownMode,
   ])
 
   const handleOpenChat = useCallback((event?: React.MouseEvent) => {
@@ -748,69 +1024,99 @@ function App() {
     onDizzy: handleDizzy,
   })
 
-  const feedAnimations = useMemo(() => ([
-    { id: '85', name: '吃 吃饭', path: '/assets/swf_original/102/1022010141.swf', emoji: '吃' },
-    { id: '312', name: '喝 喝水', path: '/assets/swf_original/102/1022020141.swf', emoji: '喝' },
-    { id: '313', name: '鱼 烤鱼', path: '/assets/swf_original/102/1023160141.swf', emoji: '鱼' },
-    { id: '314', name: '咖 喝咖啡', path: '/assets/swf_original/102/1023160341.swf', emoji: '咖' },
-    { id: '315', name: '饮 冷饮', path: '/assets/swf_original/102/1023160441.swf', emoji: '饮' },
-    { id: '301', name: '杯 岛屿咖啡', path: '/assets/swf_original/102/1021001541.swf', emoji: '杯' },
-    { id: '302', name: '果 果冻', path: '/assets/swf_original/102/1021001641.swf', emoji: '果' },
-    { id: '307', name: '奶 奶茶', path: '/assets/swf_original/102/1021003841.swf', emoji: '奶' },
-    { id: '308', name: '布 布丁', path: '/assets/swf_original/102/1021004141.swf', emoji: '布' },
-    { id: '310', name: '面 意面', path: '/assets/swf_original/102/1022010241.swf', emoji: '面' },
-  ]), [])
-
-  const cleanAnimations = useMemo(() => ([
-    { id: '87', name: '洗 洗澡', path: '/assets/swf_original/102/1022040141.swf', emoji: '洗' },
-    { id: '304', name: '香 香氛沐浴', path: '/assets/swf_original/102/1023140141.swf', emoji: '香' },
-    { id: '305', name: '皂 柠檬香皂', path: '/assets/swf_original/102/1023140241.swf', emoji: '皂' },
-    { id: '306', name: '护 宝宝护肤', path: '/assets/swf_original/102/1023140341.swf', emoji: '护' },
-    { id: '303', name: '喷 喷雾清洁', path: '/assets/swf_original/102/1021001941.swf', emoji: '喷' },
-    { id: '309', name: '泡 泡泡矿泉', path: '/assets/swf_original/102/1021005241.swf', emoji: '泡' },
-  ]), [])
-
   const feedStripItems: ScrollStripItem[] = useMemo(() => (
-    feedAnimations.map((animation, index) => ({
-      id: animation.id,
-      icon: animation.emoji,
-      label: animation.name.split(' ').slice(1).join(' ') || animation.name,
-      description: `名称: ${animation.name.split(' ').slice(1).join(' ') || animation.name}
-饥饿: +30`,
+    ORIGINAL_FOOD_ITEMS.map((item, index) => ({
+      id: item.id,
+      imageSrc: resolveRendererAssetUrl(item.iconPath),
+      imageAlt: item.name,
+      label: item.name,
+      description: formatOriginalItemDescription(item),
       accent: dropdownAccentColors[index % dropdownAccentColors.length],
       onSelect: () => {
         closeFeedStrip()
         runTimedInteraction({
           perform: feed,
-          swfPath: animation.path,
-          animationId: animation.id,
+          swfPath: item.swfPath,
+          animationId: item.id,
           penguinAction: 'eat',
           baseDuration: 1400,
         })
       },
     }))
-  ), [closeFeedStrip, feed, feedAnimations, runTimedInteraction])
+  ), [closeFeedStrip, feed, runTimedInteraction])
 
   const cleanStripItems: ScrollStripItem[] = useMemo(() => (
-    cleanAnimations.map((animation, index) => ({
-      id: animation.id,
-      icon: animation.emoji,
-      label: animation.name.split(' ').slice(1).join(' ') || animation.name,
-      description: `名称: ${animation.name.split(' ').slice(1).join(' ') || animation.name}
-清洁: +40`,
+    ORIGINAL_CLEAN_ITEMS.map((item, index) => ({
+      id: item.id,
+      imageSrc: resolveRendererAssetUrl(item.iconPath),
+      imageAlt: item.name,
+      label: item.name,
+      description: formatOriginalItemDescription(item),
       accent: dropdownAccentColors[(index + 1) % dropdownAccentColors.length],
       onSelect: () => {
         closeCleanStrip()
         runTimedInteraction({
           perform: clean,
-          swfPath: animation.path,
-          animationId: animation.id,
+          swfPath: item.swfPath,
+          animationId: item.id,
           penguinAction: 'bathe',
           baseDuration: 1600,
         })
       },
     }))
-  ), [clean, cleanAnimations, closeCleanStrip, runTimedInteraction])
+  ), [clean, closeCleanStrip, runTimedInteraction])
+
+  const healStripItems: ScrollStripItem[] = useMemo(() => (
+    ORIGINAL_HEAL_ITEMS.map((item, index) => ({
+      id: item.id,
+      imageSrc: resolveRendererAssetUrl(item.iconPath),
+      imageAlt: item.name,
+      label: item.name,
+      description: formatOriginalItemDescription(item),
+      accent: dropdownAccentColors[(index + 2) % dropdownAccentColors.length],
+      onSelect: () => {
+        closeHealStrip()
+        runTimedInteraction({
+          perform: heal,
+          swfPath: item.swfPath,
+          animationId: item.id,
+          penguinAction: 'happy',
+          baseDuration: item.swfPath.includes('0241') ? 1600 : 1400,
+        })
+      },
+    }))
+  ), [closeHealStrip, heal, runTimedInteraction])
+
+  const taskStripItems: ScrollStripItem[] = useMemo(() => {
+    if (!taskStripKind) return []
+
+    const activeGroup = taskGifts[taskStripKind]
+
+    return activeGroup.slots.map((slot, index) => {
+      const reward = getTaskGiftReward(taskStripKind, slot)
+      const status = slot.isTake === 2 ? '已领取' : slot.isTake === 1 ? '可领取' : '未达成'
+      const prefix = taskStripKind === 'sign' ? ('第' + slot.order + '天') : slot.seeTime
+      const accent = slot.isTake === 2
+        ? '#8f9aa7'
+        : slot.isTake === 1
+          ? dropdownAccentColors[(index + 2) % dropdownAccentColors.length]
+          : '#7d6a72'
+
+      return {
+        id: `${taskStripKind}-${slot.order}`,
+        icon: slot.isTake === 2 ? '领' : taskStripKind === 'sign' ? '登' : '在',
+        label: taskStripKind === 'sign' ? ('第' + slot.order + '天') : ('在线' + slot.time + '分'),
+        description: `${prefix}
+状态: ${status}
+奖励: ${formatTaskReward(reward)}`,
+        accent,
+        onSelect: () => {
+          closeTaskStrip()
+          handleClaimTaskGift(taskStripKind, index)
+        },
+      }
+    })
+  }, [closeTaskStrip, formatTaskReward, handleClaimTaskGift, taskGifts, taskStripKind])
 
   const animationMenuItems: ActionDropdownMenuItem[] = useMemo(() => (
     swfCategories.map((category, index) => ({
@@ -829,125 +1135,63 @@ function App() {
   ), [handlePlaySwf])
 
   const taskDropdownItems: ActionDropdownMenuItem[] = useMemo(() => {
-    const buildTaskSlotLabel = (kind: TaskGiftKind, slot: TaskGiftSlot) => {
-      const prefix = kind === 'sign' ? ('第' + slot.order + '天') : slot.seeTime
-      const status = slot.isTake === 2 ? '已领取' : slot.isTake === 1 ? '可领取' : '未达成'
-      return prefix + ' ' + status
-    }
+    const signReady = countReadyTaskGifts(taskGifts.sign)
+    const signClaimed = countClaimedTaskGifts(taskGifts.sign)
+    const onlineReady = countReadyTaskGifts(taskGifts.online)
+    const onlineClaimed = countClaimedTaskGifts(taskGifts.online)
 
-    if (taskDropdownMode === 'overview') {
-      const signReady = countReadyTaskGifts(taskGifts.sign)
-      const signClaimed = countClaimedTaskGifts(taskGifts.sign)
-      const onlineReady = countReadyTaskGifts(taskGifts.online)
-      const onlineClaimed = countClaimedTaskGifts(taskGifts.online)
+    return [
+      {
+        id: 'task-sign',
+        label: '登录送礼 ' + signClaimed + '/12' + (signReady > 0 ? ' 可领 ' + signReady : ''),
+        icon: '礼',
+        accent: dropdownAccentColors[5],
+        onSelect: () => window.setTimeout(() => openTaskStrip('sign'), 0),
+      },
+      {
+        id: 'task-online',
+        label: '在线送礼 ' + onlineClaimed + '/8，在线 ' + onlineDataTime + ' 分钟' + (onlineReady > 0 ? '，可领 ' + onlineReady : ''),
+        icon: '时',
+        accent: dropdownAccentColors[6],
+        onSelect: () => window.setTimeout(() => openTaskStrip('online'), 0),
+      },
+    ]
+  }, [onlineDataTime, openTaskStrip, taskGifts])
 
-      return [
-        {
-          id: 'task-sign',
-          label: '登录送礼 ' + signClaimed + '/12' + (signReady > 0 ? ' 可领 ' + signReady : ''),
-          icon: '礼',
-          accent: dropdownAccentColors[5],
-          onSelect: () => window.setTimeout(() => openTaskDropdown('sign'), 0),
-        },
-        {
-          id: 'task-online',
-          label: '在线送礼 ' + onlineClaimed + '/8，在线 ' + onlineDataTime + ' 分钟' + (onlineReady > 0 ? '，可领 ' + onlineReady : ''),
-          icon: '时',
-          accent: dropdownAccentColors[6],
-          onSelect: () => window.setTimeout(() => openTaskDropdown('online'), 0),
-        },
-      ]
-    }
-
-    const activeKind = taskDropdownMode
-    const group = taskGifts[activeKind]
-
-    return group.slots.map((slot, index) => ({
-      id: activeKind + '-' + slot.order,
-      label: buildTaskSlotLabel(activeKind, slot),
-      icon: activeKind === 'sign' ? '登' : '在',
-      accent: dropdownAccentColors[(index + (activeKind === 'sign' ? 2 : 4)) % dropdownAccentColors.length],
-      onSelect: () => handleClaimTaskGift(activeKind, index),
-    }))
-  }, [handleClaimTaskGift, onlineDataTime, openTaskDropdown, taskDropdownMode, taskGifts])
-
-  const lifeMenuItems: ActionDropdownMenuItem[] = useMemo(() => ([
+  const dailyMenuItems: ActionDropdownMenuItem[] = useMemo(() => ([
     {
-      id: 'feed',
-      label: '喂食',
+      id: 'daily-feed',
+      label: '食物',
       icon: '食',
       accent: dropdownAccentColors[0],
       onSelect: () => {
-        closeLifeDropdown()
+        closeDailyDropdown()
         setShowFeedStrip(true)
       },
     },
     {
-      id: 'clean',
+      id: 'daily-clean',
       label: '清洁',
       icon: '洁',
       accent: dropdownAccentColors[1],
       onSelect: () => {
-        closeLifeDropdown()
+        closeDailyDropdown()
         setShowCleanStrip(true)
       },
     },
     {
-      id: 'task',
-      label: '任务',
-      icon: '礼',
-      accent: dropdownAccentColors[6],
-      children: [
-        {
-          id: 'task-sign-entry',
-          label: '登录送礼' + (countReadyTaskGifts(taskGifts.sign) > 0 ? ' 可领' : ''),
-          icon: '登',
-          accent: dropdownAccentColors[5],
-          onSelect: () => openTaskDropdown('sign', lifeDropdownPosition),
-        },
-        {
-          id: 'task-online-entry',
-          label: '在线送礼' + (countReadyTaskGifts(taskGifts.online) > 0 ? ' 可领' : ''),
-          icon: '在',
-          accent: dropdownAccentColors[6],
-          onSelect: () => openTaskDropdown('online', lifeDropdownPosition),
-        },
-      ],
-    },
-    {
-      id: 'heal',
+      id: 'daily-heal',
       label: '治疗',
       icon: '医',
       accent: dropdownAccentColors[2],
-      children: [
-        {
-          id: 'heal-95',
-          label: '吃药',
-          icon: '药',
-          accent: dropdownAccentColors[2],
-          onSelect: () => runTimedInteraction({
-            perform: heal,
-            swfPath: '/assets/swf_original/102/1022050141.swf',
-            animationId: '95',
-            penguinAction: 'happy',
-            baseDuration: 1400,
-          }),
-        },
-        {
-          id: 'heal-96',
-          label: '打针',
-          icon: '针',
-          accent: dropdownAccentColors[2],
-          onSelect: () => runTimedInteraction({
-            perform: heal,
-            swfPath: '/assets/swf_original/102/1022050241.swf',
-            animationId: '96',
-            penguinAction: 'happy',
-            baseDuration: 1600,
-          }),
-        },
-      ],
+      onSelect: () => {
+        closeDailyDropdown()
+        setShowHealStrip(true)
+      },
     },
+  ]), [closeDailyDropdown])
+
+  const lifeMenuItems: ActionDropdownMenuItem[] = useMemo(() => ([
     {
       id: 'study',
       label: '学习',
@@ -1037,7 +1281,7 @@ function App() {
         },
       ],
     },
-  ]), [closeLifeDropdown, heal, lifeDropdownPosition, openTaskDropdown, petWork, runTimedInteraction, study, taskGifts, travel])
+  ]), [petWork, runTimedInteraction, study, travel])
 
   const menuItems: MenuItem[] = useMemo(() => ([
     {
@@ -1054,7 +1298,7 @@ function App() {
       icon: '宠',
       onClick: () => {},
       children: [
-        { label: '喂食', icon: '食', onClick: () => handleFeed() },
+        { label: '食物', icon: '食', onClick: () => handleFeed() },
         { label: '清洁', icon: '洁', onClick: () => handleClean() },
         { label: '玩耍', icon: '玩', onClick: () => handlePlay() },
         { label: '休息', icon: '休', onClick: handleRest },
@@ -1066,12 +1310,12 @@ function App() {
             {
               label: '登录送礼' + (countReadyTaskGifts(taskGifts.sign) > 0 ? ' 可领' : ''),
               icon: '登',
-              onClick: () => openTaskDropdown('sign', contextMenu ? { left: contextMenu.x, top: contextMenu.y } : null),
+              onClick: () => openTaskStrip('sign'),
             },
             {
               label: '在线送礼' + (countReadyTaskGifts(taskGifts.online) > 0 ? ' 可领' : ''),
               icon: '在',
-              onClick: () => openTaskDropdown('online', contextMenu ? { left: contextMenu.x, top: contextMenu.y } : null),
+              onClick: () => openTaskStrip('online'),
             },
           ],
         },
@@ -1104,7 +1348,7 @@ function App() {
       icon: '退',
       onClick: handleQuit,
     },
-  ]), [contextMenu, handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openSettingsSection, openTaskDropdown, taskGifts])
+  ]), [handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openSettingsSection, openTaskStrip, taskGifts])
 
   useEffect(() => {
     if (['eat', 'bathe', 'play', 'sleep', 'happy', 'work'].includes(penguinAction)) {
@@ -1195,9 +1439,14 @@ function App() {
         resizeWindowForMode('action-dropdown')
         frame2 = window.requestAnimationFrame(() => {
           frame3 = window.requestAnimationFrame(() => {
-            if (showAnimDropdown && animButtonRef.current) {
-              setAnimDropdownPosition(getActionDropdownPosition(animButtonRef.current))
+            if (showAnimDropdown && animDropdownAnchorRef.current) {
+              setAnimDropdownPosition(getActionDropdownPosition(animDropdownAnchorRef.current))
               setIsAnimDropdownReady(true)
+            }
+
+            if (showDailyDropdown && dailyButtonRef.current) {
+              setDailyDropdownPosition(getActionDropdownPosition(dailyButtonRef.current))
+              setIsDailyDropdownReady(true)
             }
 
             if (showLifeDropdown && lifeButtonRef.current) {
@@ -1209,7 +1458,7 @@ function App() {
               setIsTaskDropdownReady(true)
             }
 
-            if ((showFeedStrip || showCleanStrip) && actionBarRef.current) {
+            if ((showFeedStrip || showCleanStrip || showHealStrip || showTaskStrip) && actionBarRef.current) {
               setStripPosition(getActionStripPosition(actionBarRef.current))
             }
           })
@@ -1239,8 +1488,11 @@ function App() {
     resizeWindowForMode,
     showAnimDropdown,
     showCleanStrip,
+    showDailyDropdown,
     showFeedStrip,
+    showHealStrip,
     showLifeDropdown,
+    showTaskStrip,
     showTaskDropdown,
   ])
 
@@ -1317,10 +1569,17 @@ function App() {
                   <span className="action-btn__ai-icon" aria-hidden="true">AI</span>
                 </button>
                 <button
-                  ref={animButtonRef}
                   className="action-btn action-btn--qq action-btn--image"
                   onClick={handleToggleAnimDropdown}
                   title="动画"
+                >
+                  <span className="action-btn__ai-icon" aria-hidden="true">素</span>
+                </button>
+                <button
+                  ref={dailyButtonRef}
+                  className="action-btn action-btn--qq action-btn--image"
+                  onClick={handleToggleDailyDropdown}
+                  title="日常"
                 >
                   <img className="action-btn__group-image" src={richangIcon} alt="" aria-hidden="true" />
                 </button>
@@ -1360,14 +1619,15 @@ function App() {
       {showFeedStrip && (
         <HorizontalScrollStrip
           items={feedStripItems}
-          title="喂食"
+          title="食物"
           onClose={closeFeedStrip}
           className="feed-strip-positioned"
           style={stripPosition ?? undefined}
           meter={{
             label: '饥饿值',
             value: hunger,
-            hint: '喂食会提升饥饿值。',
+            max: HUNGER_MAX,
+            hint: '食物会提升饥饿值。',
           }}
         />
       )}
@@ -1382,8 +1642,45 @@ function App() {
           meter={{
             label: '清洁值',
             value: cleanliness,
+            max: CLEANLINESS_MAX,
             hint: '清洁会提升清洁值。',
           }}
+        />
+      )}
+
+      {showHealStrip && (
+        <HorizontalScrollStrip
+          items={healStripItems}
+          title="治疗"
+          onClose={closeHealStrip}
+          className="feed-strip-positioned"
+          style={stripPosition ?? undefined}
+          meter={{
+            label: '体力值',
+            value: energy,
+            hint: '治疗会帮助恢复体力值。',
+          }}
+        />
+      )}
+
+      {showTaskStrip && taskStripKind && (
+        <HorizontalScrollStrip
+          items={taskStripItems}
+          title={taskStripKind === 'sign' ? '登录送礼' : '在线送礼'}
+          onClose={closeTaskStrip}
+          className="feed-strip-positioned"
+          style={stripPosition ?? undefined}
+          meter={taskStripKind === 'sign'
+            ? {
+                label: '领取进度',
+                value: Math.round((countClaimedTaskGifts(taskGifts.sign) / Math.max(1, taskGifts.sign.slots.length)) * 100),
+                hint: '点击礼物即可尝试领取当前奖励。',
+              }
+            : {
+                label: '在线进度',
+                value: Math.min(100, Math.round((onlineDataTime / 220) * 100)),
+                hint: '在线时长达到对应分钟后即可领取。',
+              }}
         />
       )}
 
@@ -1402,6 +1699,15 @@ function App() {
           position={lifeDropdownPosition}
           ready={isLifeDropdownReady}
           onClose={closeLifeDropdown}
+        />
+      )}
+
+      {showDailyDropdown && (
+        <ActionDropdownMenu
+          items={dailyMenuItems}
+          position={dailyDropdownPosition}
+          ready={isDailyDropdownReady}
+          onClose={closeDailyDropdown}
         />
       )}
 

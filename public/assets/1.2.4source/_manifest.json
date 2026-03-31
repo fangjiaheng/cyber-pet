@@ -1,0 +1,1327 @@
+{
+  "source": {
+    "root": "D:/QQPetSource",
+    "versionTag": "1.2.4source",
+    "extractedFrom": [
+      "resources/app.asar:src/assets",
+      "resources/libs/assets"
+    ]
+  },
+  "extractedAt": "2026-03-31T06:00:16.824Z",
+  "totals": {
+    "files": 3422,
+    "bytes": 147070675
+  },
+  "topLevelSummary": {
+    "floatStyle.ico": {
+      "files": 1,
+      "bytes": 13804
+    },
+    "floatStyle.png": {
+      "files": 1,
+      "bytes": 7734
+    },
+    "icon.ico": {
+      "files": 1,
+      "bytes": 2550
+    },
+    "penguin.ico": {
+      "files": 1,
+      "bytes": 79515
+    },
+    "qqfont.ttf": {
+      "files": 1,
+      "bytes": 1669784
+    },
+    "ysbth.TTF": {
+      "files": 1,
+      "bytes": 1414784
+    },
+    "tip": {
+      "files": 72,
+      "bytes": 470524
+    },
+    "sysSeting": {
+      "files": 50,
+      "bytes": 341056
+    },
+    "stateInfo": {
+      "files": 58,
+      "bytes": 183706
+    },
+    "shop": {
+      "files": 252,
+      "bytes": 1315314
+    },
+    "login": {
+      "files": 56,
+      "bytes": 319711
+    },
+    "loading": {
+      "files": 1,
+      "bytes": 2087
+    },
+    "info": {
+      "files": 48,
+      "bytes": 683266
+    },
+    "img_res": {
+      "files": 1036,
+      "bytes": 3968154
+    },
+    "iconList": {
+      "files": 56,
+      "bytes": 180132
+    },
+    "help": {
+      "files": 11,
+      "bytes": 236817
+    },
+    "goodList": {
+      "files": 42,
+      "bytes": 201562
+    },
+    "game": {
+      "files": 24,
+      "bytes": 57985837
+    },
+    "friendList": {
+      "files": 8,
+      "bytes": 154034
+    },
+    "float": {
+      "files": 15,
+      "bytes": 47311
+    },
+    "control": {
+      "files": 97,
+      "bytes": 345694
+    },
+    "active": {
+      "files": 55,
+      "bytes": 205776
+    },
+    "Menu": {
+      "files": 25,
+      "bytes": 31451
+    },
+    "Communication": {
+      "files": 144,
+      "bytes": 7143
+    },
+    "Background": {
+      "files": 17,
+      "bytes": 1252436
+    },
+    "Action": {
+      "files": 1345,
+      "bytes": 75088618
+    },
+    "libs-assets": {
+      "files": 4,
+      "bytes": 861875
+    }
+  },
+  "sampleFiles": [
+    {
+      "path": "floatStyle.ico",
+      "bytes": 13804,
+      "sha256": "3078b5949959f819f39c133a617a636b10949965ea18371981976b13c20c641d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "floatStyle.png",
+      "bytes": 7734,
+      "sha256": "c8b1a75e0ccbda0a50bf0b83066c87a0b56dfa4ef50cc92482d3dfe72ab32100",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "icon.ico",
+      "bytes": 2550,
+      "sha256": "08757737fca0d16aa38e5f28939f61854b2778d9620502813e9dab4b28d7ce45",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "penguin.ico",
+      "bytes": 79515,
+      "sha256": "dc4a48d4166e9b96a94d94e7b03916ef4ecf59e59d62a30d779ea49836c9d251",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "qqfont.ttf",
+      "bytes": 1669784,
+      "sha256": "302d8dee7d2cb7d25d6bc89399e43513d2cafd031862bd46bce47f573c68807e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "ysbth.TTF",
+      "bytes": 1414784,
+      "sha256": "dab883d69fb713233ea5d9aff8d1f27ccc2b71e249143edf6ea08367784c5dba",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/BonusBubblev2.swf",
+      "bytes": 12272,
+      "sha256": "dcc5fb1c5d49bfce350df12528871668e1a32627226a9b15fc4e7034f1f9bd8b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/Info.swf",
+      "bytes": 1357,
+      "sha256": "15b6c03ad45eaab05f84a5d5a128186ca87267cc7c1f5f20a2a11e8a94d4ab48",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/Star.swf",
+      "bytes": 548,
+      "sha256": "22bf429497bb1ff223598a3d63dc377d1d24fc89fd1fb215c351f793403db58e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/window/bg.png",
+      "bytes": 4332,
+      "sha256": "a20dfa548b54678e0a29f4d65c9744a65a2adf9d39c9d000dff979a2dc58deea",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/window/close_00.png",
+      "bytes": 1380,
+      "sha256": "e47c042d11d271f02209667a6ba17a0eeb71d0af265ec8250e966f006d52108c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/window/close_01.png",
+      "bytes": 1388,
+      "sha256": "ae97c1a10db19d11eb3997cbe3965aaca492441808979f3590b55b7b369a1aac",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/window/close_02.png",
+      "bytes": 1375,
+      "sha256": "d0913af519e1438a4a8c55ba7c6816febade5490d50dbb3215e67d5762a44e6a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/vip/1020110099.swf",
+      "bytes": 15891,
+      "sha256": "35e668d699d4752afe1590c09b2cdf52d5fcaa3ce4d369bcccc23867a1d1ef80",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/vip/14.svg",
+      "bytes": 61331,
+      "sha256": "a74497bad1d9c6258ce4d73944e5b920fa0f4436bbf70a121c72ff79e504a47f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/vip/2.svg",
+      "bytes": 3071,
+      "sha256": "f9e401e0f34574a3bc0b2437a130e4f6d7c3aa784956c9286d87e27c1b21ce46",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/vip/4.svg",
+      "bytes": 2007,
+      "sha256": "8d95604c7944b04b08628f1dac85288ad6c2df00901cc113d287311cde32d710",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/vip/6.svg",
+      "bytes": 2283,
+      "sha256": "7065685ac1dde6a6d5d195713dbc29ff96f01ca5d248a6e14174ae491ecdfcc8",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/13.svg",
+      "bytes": 4436,
+      "sha256": "80695cd57d80042b0ab1db6aac6da4268e274ff040519b3f83b91911ef706d6e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/18.svg",
+      "bytes": 1401,
+      "sha256": "46ab966d23b5ef42b95dfc508a53c3b88086b3fbf9732d3b8bcd167213689633",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/2.svg",
+      "bytes": 6781,
+      "sha256": "dbcafb7735171cc24223d670f9a335981aab083bbf3bf5d5a4d4a8987e7ada0f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/21.svg",
+      "bytes": 1197,
+      "sha256": "b64e2a2417ded4e7f020571fac84ae673f9047d22a00368737937166367d047e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/28.svg",
+      "bytes": 54819,
+      "sha256": "bef1777d9dc5681f3126125a1f4ee22196f43a47bd56d5103c7e85875be6812e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/31.svg",
+      "bytes": 4447,
+      "sha256": "8ded7b6890d20f8a9fd0f9c2711aaec8f34042fa83aca72221f3de0c870af888",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/35.svg",
+      "bytes": 14667,
+      "sha256": "7202c99c99dd23b9b9eda9ea7d8ad75d3a529640a95cc2d799836c52abcf3928",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/37.svg",
+      "bytes": 9483,
+      "sha256": "a2d4ec74594b46efb8b83d50e7cdbd2b1c4a68eae7fedb692800e5ea4e4ee6fd",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/5.svg",
+      "bytes": 1489,
+      "sha256": "b65602c5709c016153f1f32c4a141e99fca362a6408dfe06b2f614db08f24b8b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/7.svg",
+      "bytes": 1473,
+      "sha256": "136e1f6aef13b7ad4d739bb9fa98b158c6bbd9b0e6b0f28e116e1924b69f84f3",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/setMsg/9.svg",
+      "bytes": 1397,
+      "sha256": "03da0d4dcc64a9e3f3874ac828f0cc27407df4a0ea73cad9b6f7fb3c77790ef6",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/normal/14.svg",
+      "bytes": 61331,
+      "sha256": "a74497bad1d9c6258ce4d73944e5b920fa0f4436bbf70a121c72ff79e504a47f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/normal/2.svg",
+      "bytes": 3071,
+      "sha256": "f9e401e0f34574a3bc0b2437a130e4f6d7c3aa784956c9286d87e27c1b21ce46",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/normal/4.svg",
+      "bytes": 2007,
+      "sha256": "8d95604c7944b04b08628f1dac85288ad6c2df00901cc113d287311cde32d710",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/normal/6.svg",
+      "bytes": 2283,
+      "sha256": "7065685ac1dde6a6d5d195713dbc29ff96f01ca5d248a6e14174ae491ecdfcc8",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/normal/提示.swf",
+      "bytes": 17103,
+      "sha256": "accaf62f8ed20d7a8e046e066791356d19b7d98a6232f46e6e6899fc62cb850c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/heart/1.svg",
+      "bytes": 1029,
+      "sha256": "a0ba1b43d60c97c7952ad0d125c09763791194a4edd79a363a9a9cceb28f49b9",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/heart/10.svg",
+      "bytes": 10543,
+      "sha256": "70d4057651f242f64762cd93b8377d481b1633009f06536a55984b2843853aca",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/heart/12.svg",
+      "bytes": 546,
+      "sha256": "bb145fa225a53f41da1eff4dd60a2bcc91b525ea3c6970cfbc1289124ee1701e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/heart/2.svg",
+      "bytes": 1033,
+      "sha256": "5315582db8998917ff9ed6b2eea04f510eee09dac43f3a3d1dd4fc129687901c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/heart/4.svg",
+      "bytes": 366,
+      "sha256": "d546e11558a09dc91d6ff3999db7f19ce5c8e3e2a1a18cbc0cd0835403338a6c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/11.svg",
+      "bytes": 1035,
+      "sha256": "c17cfc13be3d0ea964ae4347995cf89bfd8589383fe8ce08c3ae4d2c61403d3a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/12.svg",
+      "bytes": 9575,
+      "sha256": "8f13ca2a0a4ddcc1e2963af8a99e35562237b45165159490532a7f2d5355257d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/13.svg",
+      "bytes": 1039,
+      "sha256": "689bf06cd4bdac00be698f04ef2cf5ebc3ee08cbc11a0e5646839cb9c3c99de5",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/15.svg",
+      "bytes": 1031,
+      "sha256": "fad234bd58c19e84a5ca2ed5ba15de7fb0cca1f6a44d22db0d0dedc60460a819",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/18.svg",
+      "bytes": 1031,
+      "sha256": "e9b5f5926c01202d5e5ea1f83db261da9b4c88ee29f4a61cbb2c2bae25e86b55",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/19.svg",
+      "bytes": 2091,
+      "sha256": "69f5f1bab0abe29fe0a1a166ad521ee2270744e2d28d315d196cb9e7e84ed277",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/2.svg",
+      "bytes": 3057,
+      "sha256": "508462406658ce4aff6578b619c50499ef3cda3f6a1f764a02c5b3ebf047227b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/20.svg",
+      "bytes": 1031,
+      "sha256": "5308e436b88222aa88bd88a4dfc2610260e11ff99aa026c6b1556996d143c811",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/22.svg",
+      "bytes": 1023,
+      "sha256": "8dcd31a2ceb4f5da6d5ca8cf954a2a2d4543a9c549d828a73a57a04e648e8c50",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/25.svg",
+      "bytes": 1047,
+      "sha256": "a62dadb5d1a21e9f1c1f3b708995cafdf3809fa1114dc71e8ef845cca31add66",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/27.svg",
+      "bytes": 1051,
+      "sha256": "770120f950d82f8d1510d48368672eeb2a213c32372825c58f7844b49eb3540b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/29.svg",
+      "bytes": 1043,
+      "sha256": "6a86b349afd4a8c8c5c97016c554d1c98858f7f59ad2f1e26c82033fd2e22829",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/30.svg",
+      "bytes": 2191,
+      "sha256": "002bfa2cf488476d00e3f6ace4bd121502c9c5a73442eaae45c15cc76dd9dcd3",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/32.svg",
+      "bytes": 1989,
+      "sha256": "d4331cb969a7390ce6561d63a52a19a66f6409977f6e0adc4549761702f5d3ce",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/34.svg",
+      "bytes": 2077,
+      "sha256": "d4797d5d08ff1e1f0096e913ca2eb56fd93d905523b19573db53f2252f66a6d1",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/36.svg",
+      "bytes": 1973,
+      "sha256": "766567fc6216f057240a8513301cf209996fa9ea2b5daaed2a5dc4370141c45c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/4.svg",
+      "bytes": 1399,
+      "sha256": "2b324e6f225e7a3bf143a5cca44de0dc0ef262ad783f02048b7f2f46786366b7",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/41.svg",
+      "bytes": 1524,
+      "sha256": "d406f05aa6a6f0302bb7d5cc6f4bd9c080c10752a085e47869e7dbdcec3eb8d4",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/43.svg",
+      "bytes": 1528,
+      "sha256": "841df86db818d09afe85cb20b28d98d1aa5018ba88d079e4d06f650d35191c56",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/46.svg",
+      "bytes": 1524,
+      "sha256": "303a68ef603c6e6d461041ba3b73cceae6bc9ca8cda41d00e68f8e5a73bab603",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/48.svg",
+      "bytes": 1536,
+      "sha256": "89e502063100772381f85ab9e91e6f37ec86ab7038399d7d639a46c7c9e6e18d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/52.svg",
+      "bytes": 967,
+      "sha256": "0129e87d5d2aea500f6e54e9a89035c1750fbe2d9c2bb3bd2b1539703a1be943",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/54.svg",
+      "bytes": 959,
+      "sha256": "0c9a667e891959a429ed4981a93d616000931d98ded5f54decc31315aad8b218",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/59.svg",
+      "bytes": 1562,
+      "sha256": "eb56b48c317d4f430bdc11449df1d988bf3f0d7e2e4dffc643f1d0d35d794875",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/6.svg",
+      "bytes": 1375,
+      "sha256": "c4e59eded5713d6e0efe2ad9cc6b04fa7d69944fd3c09da45b1af81efb3ac701",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/60.svg",
+      "bytes": 8075,
+      "sha256": "36f0101638efa4e2c9b2613f9249969a048df09ecac4079af8771123026f3fbb",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/61.svg",
+      "bytes": 6204,
+      "sha256": "e2574667dd63ca7eb3d286a4a145419d240cbbab933ee04041d6fe73fe543f9c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/gift/8.svg",
+      "bytes": 362,
+      "sha256": "eaeb6e5b11de7d107f2c880b57bcccead6da0fd41c3533aeb59eff71ef83e1e4",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/bg.png",
+      "bytes": 53206,
+      "sha256": "762c8b2d49668551e3996e45286927de53c6929134f47f4e3b36f2a685abd1eb",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btncancel_00.png",
+      "bytes": 7260,
+      "sha256": "2981a1b2abcf643d1d6f3894ed460e3462f8245b3e334ccf545a7c24f0987288",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btncancel_01.png",
+      "bytes": 7350,
+      "sha256": "509862ea096f1464a8b1eefc33258bb2b6386b4c94b701847fc16e0d33c6f821",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btncancel_02.png",
+      "bytes": 6989,
+      "sha256": "31a464411bb1d3f7c8fe254b2aefb623de126d4444e04f5254a0045d93ed32ea",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btnclose_00.png",
+      "bytes": 1190,
+      "sha256": "d889d555da33c7902d3d05843a951da52540197be4248391608aa2f4c188b0dd",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btnclose_01.png",
+      "bytes": 1137,
+      "sha256": "b4d2509c53d9e31a5fefd47cd68c8e31a9100c58768636fbe00ece734aa632f4",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btnclose_02.png",
+      "bytes": 1224,
+      "sha256": "abef61cf64f40769104f8d90a28d464d3bd46e65430729d460dbbe1b337f1c8c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btnok_00.png",
+      "bytes": 7348,
+      "sha256": "a89dd6e6da8a157a5ca55d9d41103fd5573fda7674e7d01a923f7a946373c871",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btnok_01.png",
+      "bytes": 7446,
+      "sha256": "0c2879e61673337c05c4e6775e3d588dec561da63db4f6ef678b1ea401891ebd",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/btnok_02.png",
+      "bytes": 6982,
+      "sha256": "1405fb38e24cd20e85220f7c838511927d597bcc91d1c5aa2ec0dbf370fa29de",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "tip/alert/icon.png",
+      "bytes": 2956,
+      "sha256": "111a15bc6f8f9630c10fe51a722c26bfd1220aab1c5b61a5a85955e755877b0f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/FPSTip.png",
+      "bytes": 9659,
+      "sha256": "1ec70d254a0f165fa722822a5065bcf0df90e0dff1e55489051e239caf2e7b48",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/FPS_SliderBK.png",
+      "bytes": 3464,
+      "sha256": "d13e0e33ac7de63c9dd5b2443811ebc140bc1bf005ca9c7e15ce213abd6d9e4a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/VolumeBtn00.png",
+      "bytes": 4797,
+      "sha256": "f0900157820e8c66b8526861651934ea96637034c609fd9c3eb26ea502c61201",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/VolumeBtn01.png",
+      "bytes": 4891,
+      "sha256": "2c23fa0aed1cfeca35bfbae811425cc42b4dc536a28111025b89f117e8c6e955",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/VolumeBtn02.png",
+      "bytes": 4620,
+      "sha256": "3e3dabcc2b888b4ddb32fe37f35f77a3e11aa05540b14731c3f1cc0dfd82c27f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/banshou.png",
+      "bytes": 2871,
+      "sha256": "e0b90f817bca5b78d2f25adb8e0bd2f10cd3a99f99a6c1af1f70fc6c164f3b40",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/but.gif",
+      "bytes": 2222,
+      "sha256": "2ced9a442132a17b139819101015d183d910bbbf41939856e6d3dcc14a6e2dfc",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/combox.png",
+      "bytes": 2863,
+      "sha256": "4365ba3ff9b8b5b07116151cbd329fec3b0e640532a7c48f4b2c0af033a91a42",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/ditu.png",
+      "bytes": 85403,
+      "sha256": "bd85d29880e14cbcb3b93cd3ea44c34192acd4056d285336e845f3dac00af3bc",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/fangxuankuang00.png",
+      "bytes": 3455,
+      "sha256": "e6e4cb2895d17c7f606c8e0681c27fd0b0afb698151c29c4b1f9adc1c043316e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/fangxuankuang01.png",
+      "bytes": 3434,
+      "sha256": "692691ec96b0183d9e925ee3aece5f99c98b6a05584963ecfb56d5f7a8985293",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/fangxuankuang02.png",
+      "bytes": 3838,
+      "sha256": "09628d7920d259d79cb219d522faafe56a47ee53102882553744edb302a8aa6a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/guanbi00.png",
+      "bytes": 3909,
+      "sha256": "d7c5bb1f0bc180b47d8f856bd5f740ecbf341f66ca33a99c6c92caeb7a8e195f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/guanbi01.png",
+      "bytes": 3867,
+      "sha256": "f4e6090cd6a89bf6fac1bf4e21d0852cd8e029dae2406f4c93b4338ee41737ca",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/guanbi02.png",
+      "bytes": 3985,
+      "sha256": "ec66229dc317d01bd6d94ed3dc1908375b58e7df17e1959abd786c70474d1681",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/icon.png",
+      "bytes": 1895,
+      "sha256": "a4aae4c6787e3c2080771c67338d7ad4730390076fb850e20e1673c6e3ca38e8",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/moren00.png",
+      "bytes": 8369,
+      "sha256": "a0ba29ad828886b60d82fe74ff225e98e6d150dfffa5088bb9354c9bcdf7762d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/moren01.png",
+      "bytes": 8037,
+      "sha256": "2c9d9241bdac4bf4b02abe55d7b5dfd0d4f1ffb3ed16526d61bcfc42ff762911",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/moren02.png",
+      "bytes": 8168,
+      "sha256": "831521941e2a81cbb388910186ad7dd97f122d41468bbc0e2559728d5d43e7db",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/moren03.png",
+      "bytes": 8107,
+      "sha256": "e688bb4aa2a5db8028b2c2db9ad9e369d2c58a38d772a85729415593162003a6",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/queding00.png",
+      "bytes": 8145,
+      "sha256": "f38141015154901c5799899d9bff525bc53446c5aebe1dd27e77d10470c158c1",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/queding01.png",
+      "bytes": 8207,
+      "sha256": "9a09d62db75771b6e4132c1028c8f59786d9d399aa7a12fb4b2adde7bb64691c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/queding02.png",
+      "bytes": 7674,
+      "sha256": "35d0b5118921aecb9affcbd2673e6e0ec08c48ad4c38e55006c8878feffb31c8",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/queding03.png",
+      "bytes": 7588,
+      "sha256": "898cafbdfe5c96e06941bbf7d6c4349a2aba2c520cc122de634864c0a7e5e3b1",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/quxiao00.png",
+      "bytes": 8254,
+      "sha256": "16abe47aa3843bff7c17ad764ee8f1189e8e272ff787726647c081347805122f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/quxiao01.png",
+      "bytes": 8330,
+      "sha256": "a16efb497d34a9bd8cd76240723660440b9205f26caecb2c1c37793ba452f44d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/quxiao02.png",
+      "bytes": 7733,
+      "sha256": "58e6bb4061cb1a598ba74d4faaa8cb8cf511ff2bf9947d44cba2d6ba176ada5e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/shequyinxiao.png",
+      "bytes": 6604,
+      "sha256": "0fe00f2a7a2119e0f3710055e3a3e0371ae71b0217f3606b9c425e480cb1b5ae",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/title.png",
+      "bytes": 1527,
+      "sha256": "deeeee55fd2c431f64978ffd83a65b16fba8626d9bf8682a90425b8b8f323908",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/tuodonganniu00.png",
+      "bytes": 3092,
+      "sha256": "5541f9c0148c516df8fdbfb6424ea2ae469b79b9826732b7e3ca931758d622b2",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/tuodonganniu01.png",
+      "bytes": 3059,
+      "sha256": "3f1f8bc7127f50833e10eba7c2a9b256c12a08d369adce144562f52cd00b2823",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/tuodonganniu02.png",
+      "bytes": 3120,
+      "sha256": "cfd68be25e7ee731a4b3a921502e8d4a97e171749ba3411dfeb538f268c64def",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/xiala00.png",
+      "bytes": 3389,
+      "sha256": "716d81549524d5e29ecf566880567959f5eac9590d321ab6e4ba4ea99a095487",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/xiala01.png",
+      "bytes": 3368,
+      "sha256": "4293eed9c3fb3d7f7e3e497b8e0b8febe02c93b93b3db0aa72c06fe1ec57d0e5",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/xiala02.png",
+      "bytes": 3349,
+      "sha256": "6a09ed548bbd8fe11e39bd843cb06c69e8dfe8540daffbd4adf00e418b8fad59",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yeqian00.png",
+      "bytes": 5420,
+      "sha256": "132f71250d2b140c9252546b2b6286de5dad9c987aafe5b3bff44721a0bd1424",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yeqian01.png",
+      "bytes": 5184,
+      "sha256": "12c804043ff87a9120536b280b3965ccee973b958f18d1339c603eabc96212f5",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yeqian02.png",
+      "bytes": 5076,
+      "sha256": "efe8c6f722efa270907933059ac70e415836c024a5b069909ccf17a3cd6493e2",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yeqianup.png",
+      "bytes": 3544,
+      "sha256": "cfdf9d1a70cc2a2cede467560b2da93b791bc3a0fab46351ee2b64778fb613be",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yingyong00.png",
+      "bytes": 7851,
+      "sha256": "cefcba436168878dccc65f314a9bd16a473947edf2d9b078bfb564407980f675",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yingyong01.png",
+      "bytes": 7953,
+      "sha256": "d1179d567b2e6cbd85e627891a5ab18be93a711312658fd9848b0639578b67ea",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yingyong02.png",
+      "bytes": 7398,
+      "sha256": "ec8cc33bec5d9683ac7098ff65ec8589318b4e8dc1fe6614e47028ec17b90596",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yingyong03.png",
+      "bytes": 7281,
+      "sha256": "9cc2bad66ec9e06444b7c64894a2a075a87b2cd1f96913c80b72a57cc99610b0",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yinxiaotiao.png",
+      "bytes": 3556,
+      "sha256": "c8be29aff4e35e4d2fa9578d47f50c6ee786a440375d29f8d33bba34e935aa52",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yuanxuankuang00.png",
+      "bytes": 3697,
+      "sha256": "936336ffe4c828719b003cd34b51a76b6aaeff840e21ca85bfa1000d7605861b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yuanxuankuang01.png",
+      "bytes": 3667,
+      "sha256": "2034c9c9f5f9df1f5c8fec20d3076445d942e1dc2221ebe1c14fcbf7333aa68f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/yuanxuankuang02.png",
+      "bytes": 3737,
+      "sha256": "acd399ee40f0dd374e472c7e785da2895f3da26fcaa235f424a6874d9db653c5",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/zhenlv.png",
+      "bytes": 5037,
+      "sha256": "9372c615da039334cd8d814fee80c6e1acde88283213bb940ea39ce5490ec5b1",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/zhenshutiao.png",
+      "bytes": 4122,
+      "sha256": "5c4979860fefb02d646d3d7585683c64c86a5602d5e220fb6aa774ca502fbf1f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "sysSeting/zhuomianyinxiao.png",
+      "bytes": 6240,
+      "sha256": "0da79315101b5dc5b3768a22c7dc6cd214beb23309b300030131ca4e4cfb62f6",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/00.png",
+      "bytes": 4900,
+      "sha256": "00a8423e81cb50e0ecfb63ea1ff3a8589ac1bb492ae9cc7d07eb27605b270c14",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/01.png",
+      "bytes": 4988,
+      "sha256": "34e4584332014a58f1f6e040aab6abe449067503ab7834cfa807cbcedeab2049",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/02.png",
+      "bytes": 4832,
+      "sha256": "7740e451930b3b7f6f03af841fc50221924fde6b758b39702fb8b6637fbbb1fd",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/13.svg",
+      "bytes": 4436,
+      "sha256": "80695cd57d80042b0ab1db6aac6da4268e274ff040519b3f83b91911ef706d6e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/18.svg",
+      "bytes": 1401,
+      "sha256": "46ab966d23b5ef42b95dfc508a53c3b88086b3fbf9732d3b8bcd167213689633",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/21.svg",
+      "bytes": 1197,
+      "sha256": "b64e2a2417ded4e7f020571fac84ae673f9047d22a00368737937166367d047e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/bluejidutiao_01.png",
+      "bytes": 3030,
+      "sha256": "e40150a1d4200291c2245a54133bf983ab661b3b19252db5a0df4102333546c8",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/bluejidutiao_02.png",
+      "bytes": 3002,
+      "sha256": "6bd411f0477ec6707f0cbd3173245da6257bd8734e664892666c1db8435f3f76",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/bluejidutiao_03.png",
+      "bytes": 3064,
+      "sha256": "a333b526bfc20dc06921952599bf24974a931324fc1fc247f795adb5898c56f5",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/chengsejindutiao00.png",
+      "bytes": 2980,
+      "sha256": "20edded2e41378a6d37b371e9fccf044de0cb5e5588d54ae0791a7858ca037af",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/chengsejindutiao01.png",
+      "bytes": 2996,
+      "sha256": "e2ca662df84a2cb81b4b79bfa781bd500d9f3acae8a66da0751bbcf013c5b7c7",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/chengsejindutiao02.png",
+      "bytes": 3070,
+      "sha256": "3a902c359818ce88b09fdbd9e6060d6a98d49b22ce56b73f477de14939cb9edb",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/close_click.png",
+      "bytes": 655,
+      "sha256": "a5502664b7b4b2cdef9c62c97fd7506b7352c536c1fe503377a22ab75cd60c18",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/close_normal.png",
+      "bytes": 728,
+      "sha256": "811b90ba0108ab2ab76ba82fbc0b565b0b1d0a171c825107dee46854d042a317",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/close_over.png",
+      "bytes": 698,
+      "sha256": "072edd1b8ff0c198cb5ef5cdf027c9e94594ee124f6929bb12753d6b47b4146b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/dengji.png",
+      "bytes": 2958,
+      "sha256": "e03826c4d5fb6e5051ee16dadb42f5f166b2c5a17cb7a771c6dcc2eacae91058",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/dengji1.png",
+      "bytes": 2991,
+      "sha256": "8f778ea3a45ef295c4dcc598b1a8c1e070362dd15f6be32fc49868820b2ea777",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/dengji2.png",
+      "bytes": 2986,
+      "sha256": "f9f962426dd4f3fe583b603994cacfa6ff5d613f4494f92a156335acfcf17dcf",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/dengji3.png",
+      "bytes": 2970,
+      "sha256": "47d33be6ea7203ac25113b3d38da76edff0f8ca8dbc68d0661101483d6bd54b2",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu01.png",
+      "bytes": 3458,
+      "sha256": "62a332b9426021c09120cc685359be071ea2c10b4af12854c883b11130bfed5f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu02.png",
+      "bytes": 2986,
+      "sha256": "50a5a9146a854b9dbe74b74c1b9e54adc64a8a33b26a139e7e4019dc7a34ff07",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu03.png",
+      "bytes": 3759,
+      "sha256": "d34531d27c1d2355d635b99b7827ab5856f208ad8b599826c1c1574fb824dedd",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu04.png",
+      "bytes": 2935,
+      "sha256": "59337f0844be2d8b0f3c8bb2e2b9f5a3ea8494d0985f1f15304406f61d4a48b5",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu05.png",
+      "bytes": 3576,
+      "sha256": "41ea52c297229ae79545f8b87535cb3484f3cd4e452e9f05380fb54b1c4bfd92",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu06.png",
+      "bytes": 2982,
+      "sha256": "793beb1f1c6aefd53c6ea41531b4ae5a3a7a5f33bcd1072cccd7d0a834069e27",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu07.png",
+      "bytes": 3678,
+      "sha256": "4eb5f758f60d914aab70640488e31a5248a870ec1b18ae47cf6bd23f4087fa5b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu08.png",
+      "bytes": 2989,
+      "sha256": "1582395ae6d7b22a5c0e5fa1ba7234fa41af788e9de1fc2ee64425ec9da1403a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/ditu09.png",
+      "bytes": 3634,
+      "sha256": "a5b79eef24cbc6b1837ea11095c092a71b55bc46314f683874911880cd064e62",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/guanbi_down.png",
+      "bytes": 3500,
+      "sha256": "b77e29ea44ceea2e88fbe61ae55a0618ae17ad13b91d0d7c41c25100b0f43cce",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/guanbi_over.png",
+      "bytes": 3481,
+      "sha256": "cf2a8a64170a26f2e9d6db4ea25dfba53626bee4f097444eb63d6bc7dc6645c8",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/guanbi_up.png",
+      "bytes": 3451,
+      "sha256": "a5e3c62f022f6beb7fc3691876f8b4e6120d2f8ae8460359a8ffb07649acd610",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/h_down.png",
+      "bytes": 3575,
+      "sha256": "d54cb1126e3608cf91cc8885fc3a6aa20d7f7d12b6efe5ce1842616adf3d0b7c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/h_up.png",
+      "bytes": 4019,
+      "sha256": "f64911c2bb9e77b431bf347905c18a92366e7b1982a8c237d80b4494ef60a884",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/hongsejindutiao00.png",
+      "bytes": 2978,
+      "sha256": "a96e168d5bf5c03a5a6845f5c6e81a10bf8e2cccda846294679117969dac1bcf",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/hongsejindutiao01.png",
+      "bytes": 3005,
+      "sha256": "2d68c679c7443244ff40e7086c5bda448fcf41de894fe220c1ff4ac886d2131e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/hongsejindutiao02.png",
+      "bytes": 3103,
+      "sha256": "ac82d6003a88a65f3dc5b98f710b5cc209d588eca929d3ca73efccc1a2312766",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/huangsejindutiao00.png",
+      "bytes": 2984,
+      "sha256": "49e25f600ffba45681f3c038a6f60f255bc60829764876924c7df2b6753b8557",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/huangsejindutiao01.png",
+      "bytes": 3089,
+      "sha256": "17aa905e8a41323cd436d3fe4caecdf2c3aeaefb991a8ef280fd2d1ced33d127",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/huangsejindutiao02.png",
+      "bytes": 3015,
+      "sha256": "04449d5ce546e5b679edc804b5a6f51349e78833eae5c12246059b08362dd257",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/kaiqi_down.png",
+      "bytes": 3433,
+      "sha256": "d83b8539ede4e1f0ae33745c987f5c583157422b628ddc327df5d956732a453b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/kaiqi_over.png",
+      "bytes": 3414,
+      "sha256": "a40878a3bb3c25e9ee79306df6f007b7dc049d5b6cc25bb233073bb36369e62f",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/kaiqi_up.png",
+      "bytes": 3386,
+      "sha256": "01c43537d06f50fe45b465b446b49f70aaa6d33fefce8b8d50d70a91ff681f93",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/lusejindutiao00.png",
+      "bytes": 3061,
+      "sha256": "6bb4fba4b2929668039f1750420a4dc1a39dc766967a2cf462b42cbf2baa92fe",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/lusejindutiao01.png",
+      "bytes": 3038,
+      "sha256": "aa75d417c031a42b355afc38364eadcc09d15e223c4e975922a8aca8dbd41cf1",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/lusejindutiao02.png",
+      "bytes": 3114,
+      "sha256": "c05423722689c0f0688ba531497863d68cdf78ee11ce47e99d836ee4e2c37bb4",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/shenglanjindutiao00.png",
+      "bytes": 3024,
+      "sha256": "44e4ac577113b3a0eb5395fc8b10d1597d9d1161831846d0beb4ba4e43388d6c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/shenglanjindutiao01.png",
+      "bytes": 3006,
+      "sha256": "e091d48de14136e8d7851ca932f2711f70c6dbc0e55847284f3698918840800c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/shenglanjindutiao02.png",
+      "bytes": 3043,
+      "sha256": "e5c74aa102260ec44f82441278b0fc4b318ee00dbf81c2641a52ffd18b934e54",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/shuaxin00.png",
+      "bytes": 3743,
+      "sha256": "ba23ed1b75b8f43bc168d156f2422aaabb517564529dd25201c79b18d1ff8e28",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/shuaxin01.png",
+      "bytes": 3274,
+      "sha256": "615a027f8f499ba2223cfbf562c2f41cef199f845f8291d135cceed00d35e02d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/shuaxin02.png",
+      "bytes": 3279,
+      "sha256": "e119800f1ebd3f98c3f33a40884728b3aad45d7335fc18139f408c3e26e2e84b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tie.png",
+      "bytes": 3794,
+      "sha256": "316f3f487c0314ac2043c522800870b67765074b946902670205b240ae5428bd",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tiexinbaobei00.png",
+      "bytes": 3557,
+      "sha256": "c9bc49bad073b6b2554854c060e68cdf398f6f0e5f7db9d299913b6c23247756",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tiexinbaobei01.png",
+      "bytes": 3542,
+      "sha256": "dd55609debcf341ddbc2d0a99f7ec09c47f80b898d02975a270b52643eddf47b",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tiexinbaobei02.png",
+      "bytes": 3551,
+      "sha256": "1e2cfbdad76646a64187aec40601c8f13b4380c794de7607a159a6165f1c4b2d",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tingzhi_down.png",
+      "bytes": 3438,
+      "sha256": "1afe3b44f0ec0d598c621932a4eb515ecad4a1642cc2388b86f3f8bf49cade27",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tingzhi_over.png",
+      "bytes": 3462,
+      "sha256": "a2330888ed074fa934d70a0d92c8bc9b9571ad453fc6f9c0dca33769e69db86c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "stateInfo/tingzhi_up.png",
+      "bytes": 3468,
+      "sha256": "7531ed51a1f67eddc3e9e5fd5bed53f829e91435803b3851bdba43e7d28eed94",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/Thumbs.db",
+      "bytes": 145920,
+      "sha256": "4584dc333106d56d2066a46624225e357d4c5f5057cf9316658a0f2d1fc44822",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/bg.gif",
+      "bytes": 24164,
+      "sha256": "d3ce4e380fb938a6343c4dfe5d534bb583a5b8a39dfffab6e28ac2d3fd5da39c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/bg1.gif",
+      "bytes": 19039,
+      "sha256": "d18c8b7d5c05f386d463fdf9e0160f85da5ee4a0f168b207e1d4bfb398a445a3",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/bg_02.gif",
+      "bytes": 259,
+      "sha256": "053188f4a747d2abb4c1d880708dc841f64055b27cccc4705ff426d75999507a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/btn_empty.gif",
+      "bytes": 1008,
+      "sha256": "0e68bf9489ac06d461eea001a875fbf85eed2659ec45295fd6bb353cf7e4c03e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buttom_01.gif",
+      "bytes": 2564,
+      "sha256": "7090edd06e4ffe5ce7740df13e172b2dd63b47548f459ea05f7a475b9581ac4e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buttom_02.gif",
+      "bytes": 2596,
+      "sha256": "567045f1b42e444b76f317cc7033a0c13d21a56e386711ba7e9a05cbd2d15202",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buttom_03.gif",
+      "bytes": 1522,
+      "sha256": "afac84b98fedf7aa44c583eca8fb84b1d988d7fe14224aa7503ea71704273d35",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buttom_04.gif",
+      "bytes": 1169,
+      "sha256": "c578c47dc714ac62b8929dade5a1c7c60ced769f342cbfbf761481a76765744a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buy1_03.gif",
+      "bytes": 846,
+      "sha256": "58eaca4099ff4243b3df59c9598dcfda368089cf1fffce308a13f8de8181bb6c",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buy1_07.gif",
+      "bytes": 1617,
+      "sha256": "d50fb9ac6c569366452e3d9eae91c18c23dcf843b7af262a971692920319101a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buy1_11.gif",
+      "bytes": 1945,
+      "sha256": "4506b9c36c2fe561eb1ecb9220c182aefd7eec0c6de423308bc3e20947e1b85a",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buy1_bg.gif",
+      "bytes": 19682,
+      "sha256": "6fa36aaf931577ce299461c35681a5894074c63bea9516d26371c7eeb8f3ff2e",
+      "source": "app.asar:src/assets"
+    },
+    {
+      "path": "shop/store/images/buy2_bg.gif",
+      "bytes": 18655,
+      "sha256": "c9bb92fb0938692fabe17e505d4150b75357859ef2793ecc7ee142c1e1e72976",
+      "source": "app.asar:src/assets"
+    }
+  ]
+}
