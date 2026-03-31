@@ -2,13 +2,22 @@ import { PENGUIN_102_SPECIAL_PLAYLIST_BY_ID } from './penguin102OriginalPlaylist
 
 const LEGACY_SWF_BASE_PATH = '/assets/swf_original/'
 const ABSOLUTE_ANIME_BASE_PATH = '/anime/'
+// 新版素材路径前缀
+const NEW_ASSETS_BASE_PATH = '/assets/1.2.4source/'
 
-export const IDLE_SWF_PATH = 'anime/102/1020000141.swf'
-export const END_SWF_PATH = 'anime/end.swf'
-export const ENTER_PLAYLIST = `anime/102/1020110141.swf,${IDLE_SWF_PATH}`
+// ============================================================
+// 使用新版素材 (1.2.4source) - 独立 SWF 文件，直接加载
+// ============================================================
+export const IDLE_SWF_PATH = 'assets/1.2.4source/Action/GG/Adult/peaceful/Stand.swf'
+export const END_SWF_PATH = 'assets/1.2.4source/Action/GG/Adult/Exit1.swf'
+export const ENTER_PLAYLIST = `assets/1.2.4source/Action/GG/Adult/Enter1.swf,${IDLE_SWF_PATH}`
 
 const ENDING_SWF_PATHS = new Set([
   'anime/102/1020120141.swf',
+  'assets/1.2.4source/Action/GG/Adult/Exit1.swf',
+  'assets/1.2.4source/Action/GG/Adult/Exit2.swf',
+  'assets/1.2.4source/Action/GG/Adult/Exit3.swf',
+  'assets/1.2.4source/Action/GG/Adult/Exit4.swf',
 ])
 
 export function normalizeLoadlistsPath(path: string): string {
@@ -25,14 +34,22 @@ export function normalizeLoadlistsPath(path: string): string {
       .join(',')
   }
 
+  // 处理旧版素材路径
   if (trimmedPath.startsWith(LEGACY_SWF_BASE_PATH)) {
     return `anime/${trimmedPath.slice(LEGACY_SWF_BASE_PATH.length)}`
   }
 
+  // 处理 anime 绝对路径
   if (trimmedPath.startsWith(ABSOLUTE_ANIME_BASE_PATH)) {
     return trimmedPath.slice(1)
   }
 
+  // 处理新版素材路径 - 去掉开头的 /
+  if (trimmedPath.startsWith(NEW_ASSETS_BASE_PATH)) {
+    return trimmedPath.slice(1)
+  }
+
+  // 其他以 / 开头的路径
   if (trimmedPath.startsWith('/')) {
     return trimmedPath.slice(1)
   }

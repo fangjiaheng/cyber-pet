@@ -32,8 +32,15 @@ interface RufflePlayerProps {
 }
 
 const CONTROLLER_SWF_URL = '/player.swf'
+// 新版素材路径前缀 - 这些 SWF 是独立文件，需要直接加载
+const NEW_ASSETS_PREFIX = 'assets/1.2.4source/'
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// 检测是否为新版独立 SWF 素材
+function isStandaloneSwf(playlist: string): boolean {
+  return playlist.includes(NEW_ASSETS_PREFIX)
+}
 
 async function ensureRuffleLoaded(): Promise<void> {
   if (window.RufflePlayer && typeof window.RufflePlayer.newest === 'function') return
@@ -236,10 +243,69 @@ export const RufflePlayer: React.FC<RufflePlayerProps> = ({
     }
   }, [])
 
+  // 直接加载独立 SWF 文件（用于新版素材）
+  const playStandaloneSwf = async (swfPath: string) => {
+    await ensureRuffleLoaded()
+
+    if (!stageRef.current || !mountedRef.current) return
+
+    const ruffle = window.RufflePlayer.newest()
+    const player = ruffle.createPlayer()
+
+    player.config = {
+      autoplay: 'on',
+      allowScriptAccess: true,
+      unmuteOverlay: 'hidden',
+      backgroundColor: null,
+      letterbox: 'off',
+      warnOnUnsupportedContent: false,
+      contextMenu: false,
+      wmode: 'transparent',
+      splashScreen: false,
+      preloader: false,
+      quality: 'best',
+    }
+
+    player.style.width = `${stageWidth}px`
+    player.style.height = `${stageHeight}px`
+    player.style.background = 'transparent'
+    player.style.backgroundColor = 'transparent'
+    player.style.display = 'block'
+    player.style.pointerEvents = 'none'
+
+    // 清除旧播放器
+    if (playerRef.current) {
+      try {
+        playerRef.current.destroy?.()
+      } catch {
+        // ignore
+      }
+    }
+
+    stageRef.current.replaceChildren()
+    stageRef.current.appendChild(player)
+    playerRef.current = player
+
+    // 直接加载 SWF 文件
+    const url = swfPath.startsWith('/') ? swfPath : `/${swfPath}`
+    await player.load({ url })
+    onLoadRef.current?.()
+  }
+
   useEffect(() => {
     if (!playlist) return
 
     const play = async () => {
+      // 检测是否为新版独立 SWF 素材
+      if (isStandaloneSwf(playlist)) {
+        // 新版素材：直接加载 SWF 文件
+        // 如果是播放列表（逗号分隔），只播放第一个
+        const firstSwf = playlist.split(',')[0].trim()
+        await playStandaloneSwf(firstSwf)
+        return
+      }
+
+      // 旧版素材：使用 player.swf 控制器
       const { player, controllerState } = await ensureControllerReady()
 
       if (!mountedRef.current) return
@@ -257,7 +323,7 @@ export const RufflePlayer: React.FC<RufflePlayerProps> = ({
       console.error('RufflePlayer 播放失败:', nextError)
       onErrorRef.current?.(nextError)
     })
-  }, [petId, playToken, playlist])
+  }, [petId, playToken, playlist, stageHeight, stageWidth])
 
   const visualScale = Math.min(width / stageWidth, height / stageHeight) * scale
 

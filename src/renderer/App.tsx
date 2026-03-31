@@ -103,11 +103,14 @@ function resolveRendererAssetUrl(assetPath: string) {
   return new URL(normalized, window.location.href).toString()
 }
 
+// 新版素材路径
+const NEW_SWF_BASE = '/assets/1.2.4source/Action/GG/Adult/'
+
 const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010031',
     name: '雪泥爽',
-    swfPath: '/assets/swf_original/102/1022010141.swf',
+    swfPath: NEW_SWF_BASE + 'Eat1.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010031.gif',
     starve: 720,
     intel: 8,
@@ -115,7 +118,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010032',
     name: '小笼包',
-    swfPath: '/assets/swf_original/102/1022020141.swf',
+    swfPath: NEW_SWF_BASE + 'Eat2.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010032.gif',
     starve: 500,
     charm: 100,
@@ -126,7 +129,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010033',
     name: '黑森林蛋糕',
-    swfPath: '/assets/swf_original/102/1023160141.swf',
+    swfPath: NEW_SWF_BASE + 'Eat1.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010033.gif',
     starve: 720,
     charm: 8,
@@ -134,7 +137,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010034',
     name: '鱼肉香肠',
-    swfPath: '/assets/swf_original/102/1023160341.swf',
+    swfPath: NEW_SWF_BASE + 'Eat2.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010034.gif',
     starve: 1080,
     strong: 15,
@@ -142,7 +145,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010035',
     name: '葡萄香槟',
-    swfPath: '/assets/swf_original/102/1023160441.swf',
+    swfPath: NEW_SWF_BASE + 'Eat1.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010035.gif',
     starve: 900,
     intel: 12,
@@ -150,7 +153,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010036',
     name: '八宝饭',
-    swfPath: '/assets/swf_original/102/1021001541.swf',
+    swfPath: NEW_SWF_BASE + 'Eat2.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010036.gif',
     starve: 540,
     intel: 5,
@@ -158,7 +161,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010037',
     name: '长寿面',
-    swfPath: '/assets/swf_original/102/1021001641.swf',
+    swfPath: NEW_SWF_BASE + 'Eat1.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010037.gif',
     starve: 720,
     strong: 8,
@@ -166,7 +169,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010038',
     name: '火腿汉堡',
-    swfPath: '/assets/swf_original/102/1021003841.swf',
+    swfPath: NEW_SWF_BASE + 'Eat2.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010038.gif',
     starve: 720,
     charm: 8,
@@ -174,7 +177,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010039',
     name: '饺子',
-    swfPath: '/assets/swf_original/102/1021004141.swf',
+    swfPath: NEW_SWF_BASE + 'Eat1.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010039.gif',
     starve: 900,
     intel: 12,
@@ -182,7 +185,7 @@ const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
   {
     id: '100010040',
     name: '年糕',
-    swfPath: '/assets/swf_original/102/1022010241.swf',
+    swfPath: NEW_SWF_BASE + 'Eat2.swf',
     iconPath: 'assets/1.2.4source/img_res/food/100010040.gif',
     starve: 900,
     strong: 12,
@@ -193,42 +196,42 @@ const ORIGINAL_CLEAN_ITEMS: OriginalStoreItem[] = [
   {
     id: '102020011',
     name: '宝宝爽身粉',
-    swfPath: '/assets/swf_original/102/1022040141.swf',
+    swfPath: NEW_SWF_BASE + 'Clean1.swf',
     iconPath: 'assets/1.2.4source/img_res/commodity/102020011.gif',
     clean: 1080,
   },
   {
     id: '102020012',
     name: '宝宝金水',
-    swfPath: '/assets/swf_original/102/1023140141.swf',
+    swfPath: NEW_SWF_BASE + 'Clean2.swf',
     iconPath: 'assets/1.2.4source/img_res/commodity/102020012.gif',
     clean: 540,
   },
   {
     id: '102020013',
     name: '含香凝露',
-    swfPath: '/assets/swf_original/102/1023140241.swf',
+    swfPath: NEW_SWF_BASE + 'Clean1.swf',
     iconPath: 'assets/1.2.4source/img_res/commodity/102020013.gif',
     clean: 720,
   },
   {
     id: '102020014',
     name: '啤酒香波',
-    swfPath: '/assets/swf_original/102/1023140341.swf',
+    swfPath: NEW_SWF_BASE + 'Clean2.swf',
     iconPath: 'assets/1.2.4source/img_res/commodity/102020014.gif',
     clean: 2340,
   },
   {
     id: '102020015',
     name: '飘飘护发素',
-    swfPath: '/assets/swf_original/102/1021001941.swf',
+    swfPath: NEW_SWF_BASE + 'Clean1.swf',
     iconPath: 'assets/1.2.4source/img_res/commodity/102020015.gif',
     clean: 1080,
   },
   {
     id: '102020016',
     name: '保湿啫喱',
-    swfPath: '/assets/swf_original/102/1021005241.swf',
+    swfPath: NEW_SWF_BASE + 'Clean2.swf',
     iconPath: 'assets/1.2.4source/img_res/commodity/102020016.gif',
     clean: 2700,
   },
@@ -238,56 +241,56 @@ const ORIGINAL_HEAL_ITEMS: OriginalStoreItem[] = [
   {
     id: '10001',
     name: '板蓝根',
-    swfPath: '/assets/swf_original/102/1022050141.swf',
+    swfPath: NEW_SWF_BASE + 'Cure1.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/10001.gif',
     desc: '用于治疗感冒',
   },
   {
     id: '10002',
     name: '消食片',
-    swfPath: '/assets/swf_original/102/1022050141.swf',
+    swfPath: NEW_SWF_BASE + 'Cure1.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/10002.gif',
     desc: '用于治疗消化不良',
   },
   {
     id: '10003',
     name: '枇杷糖浆',
-    swfPath: '/assets/swf_original/102/1022050141.swf',
+    swfPath: NEW_SWF_BASE + 'Cure1.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/10003.gif',
     desc: '用于治疗咳嗽',
   },
   {
     id: '10004',
     name: '清凉油',
-    swfPath: '/assets/swf_original/102/1022050141.swf',
+    swfPath: NEW_SWF_BASE + 'Cure1.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/10004.gif',
     desc: '用于治疗头晕',
   },
   {
     id: '10005',
     name: '润肤露',
-    swfPath: '/assets/swf_original/102/1022050141.swf',
+    swfPath: NEW_SWF_BASE + 'Cure1.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/10005.gif',
     desc: '用于治疗皮肤瘙痒',
   },
   {
     id: '20001',
     name: '银翘丸',
-    swfPath: '/assets/swf_original/102/1022050241.swf',
+    swfPath: NEW_SWF_BASE + 'Cure2.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/20001.gif',
     desc: '用于治疗重感冒',
   },
   {
     id: '50001',
     name: '百草丹',
-    swfPath: '/assets/swf_original/102/1022050241.swf',
+    swfPath: NEW_SWF_BASE + 'Cure2.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/50001.gif',
     desc: '包治百病，一粒见效',
   },
   {
     id: '60001',
     name: '还魂丹',
-    swfPath: '/assets/swf_original/102/1022050241.swf',
+    swfPath: NEW_SWF_BASE + 'Revival.swf',
     iconPath: 'assets/1.2.4source/img_res/medicine/60001.gif',
     starve: 500,
     clean: 500,
@@ -1205,7 +1208,7 @@ function App() {
           accent: dropdownAccentColors[3],
           onSelect: () => runTimedInteraction({
             perform: study,
-            swfPath: '/assets/swf_original/102/1020060241.swf',
+            swfPath: NEW_SWF_BASE + 'peaceful/play/P1.swf',
             animationId: '61',
             penguinAction: 'happy',
             baseDuration: 1800,
@@ -1218,7 +1221,7 @@ function App() {
           accent: dropdownAccentColors[3],
           onSelect: () => runTimedInteraction({
             perform: study,
-            swfPath: '/assets/swf_original/102/1020060541.swf',
+            swfPath: NEW_SWF_BASE + 'peaceful/play/P2.swf',
             animationId: '69',
             penguinAction: 'happy',
             baseDuration: 1800,
@@ -1239,7 +1242,7 @@ function App() {
           accent: dropdownAccentColors[4],
           onSelect: () => runTimedInteraction({
             perform: petWork,
-            swfPath: '/assets/swf_original/102/1020060341.swf',
+            swfPath: NEW_SWF_BASE + 'peaceful/play/P3.swf',
             animationId: '71',
             penguinAction: 'work',
             baseDuration: 2000,
@@ -1252,7 +1255,7 @@ function App() {
           accent: dropdownAccentColors[4],
           onSelect: () => runTimedInteraction({
             perform: petWork,
-            swfPath: '/assets/swf_original/102/1022070441.swf',
+            swfPath: NEW_SWF_BASE + 'peaceful/play/P4.swf',
             animationId: '126',
             penguinAction: 'work',
             baseDuration: 2000,
@@ -1273,7 +1276,7 @@ function App() {
           accent: dropdownAccentColors[5],
           onSelect: () => runTimedInteraction({
             perform: travel,
-            swfPath: '/assets/swf_original/102/1020040141.swf',
+            swfPath: NEW_SWF_BASE + 'peaceful/play/P5.swf',
             animationId: '23',
             penguinAction: 'happy',
             baseDuration: 1800,
