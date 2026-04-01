@@ -3,7 +3,9 @@
     "allow": [
       "Bash(grep -E \"\\\\.\\(ts|tsx|js\\)$\")",
       "Bash(grep -E \"\\\\.\\(js|html\\)$\")",
-      "Bash(grep -E \"\\\\.js$\")"
+      "Bash(grep -E \"\\\\.js$\")",
+      "Bash(claude plugin:*)",
+      "Bash(claude plugins:*)"
     ]
   }
 }
