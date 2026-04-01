@@ -5,7 +5,8 @@
       "Bash(grep -E \"\\\\.\\(js|html\\)$\")",
       "Bash(grep -E \"\\\\.js$\")",
       "Bash(claude plugin:*)",
-      "Bash(claude plugins:*)"
+      "Bash(claude plugins:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

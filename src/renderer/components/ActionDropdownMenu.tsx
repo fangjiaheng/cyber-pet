@@ -20,6 +20,7 @@ interface ActionDropdownMenuProps {
   ready?: boolean
   onClose: () => void
   className?: string
+  treeLines?: boolean // 是否显示树形折线
 }
 
 interface ActionDropdownMenuColumnProps {
@@ -30,6 +31,7 @@ interface ActionDropdownMenuColumnProps {
   submenu?: boolean
   columnRef?: Ref<HTMLDivElement>
   style?: CSSProperties
+  showTreeLines?: boolean // 是否显示树形折线
 }
 
 function ActionDropdownMenuColumn({
@@ -40,12 +42,13 @@ function ActionDropdownMenuColumn({
   submenu = false,
   columnRef,
   style,
+  showTreeLines = false,
 }: ActionDropdownMenuColumnProps) {
   return (
     <div
       ref={columnRef}
       style={style}
-      className={`action-dropdown-menu__column ${submenu ? 'action-dropdown-menu__column--submenu' : 'action-dropdown-menu__column--root'}`}
+      className={`action-dropdown-menu__column ${submenu ? 'action-dropdown-menu__column--submenu' : 'action-dropdown-menu__column--root'} ${showTreeLines ? 'action-dropdown-menu__column--tree' : ''}`}
     >
       {items.map((item) => {
         const itemStyle = item.accent
@@ -80,6 +83,7 @@ export function ActionDropdownMenu({
   ready = true,
   onClose,
   className = '',
+  treeLines = false,
 }: ActionDropdownMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
   const rootColumnRef = useRef<HTMLDivElement>(null)
@@ -220,6 +224,7 @@ export function ActionDropdownMenu({
           activeItemId={activeItemId}
           onItemHover={handleItemHover}
           onItemClick={handleItemClick}
+          showTreeLines={treeLines}
         />
 
         {activeItem?.children?.length ? (
