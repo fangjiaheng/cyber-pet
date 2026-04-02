@@ -130,7 +130,7 @@ type WindowWithPetSaveTimer = Window & {
 }
 
 const INITIAL_PROFILE: PetProfile = {
-  petName: 'Cyber Mate',
+  petName: 'Q宠宝贝',
   ownerName: '主人',
   intelligence: 18,
   strength: 12,
@@ -140,7 +140,7 @@ const INITIAL_PROFILE: PetProfile = {
 
 const INITIAL_STATE: PetState = {
   id: 'cyber-mate-1',
-  name: 'Cyber Mate',
+  name: 'Q宠宝贝',
   hunger: getHungerMax(1) * 0.8,    // 80% 满值
   cleanliness: getCleanlinessMax(1) * 0.8,
   mood: MOOD_MAX * 0.8,              // 800

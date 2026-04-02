@@ -114,7 +114,7 @@ const defaultPetState: PetStateData = {
   onlineDataTime: 0,
   taskGifts: createInitialTaskGiftState(Date.now()),
   profile: {
-    petName: 'Cyber Mate',
+    petName: 'Q宠宝贝',
     ownerName: '主人',
     intelligence: 18,
     strength: 12,
@@ -130,7 +130,7 @@ const defaultSettings: SettingsData = {
     defaultModel: 'claude-opus-4-5-20251101',
   },
   pet: {
-    name: 'Cyber Mate',
+    name: 'Q宠宝贝',
     skin: 'default',
     roamingEnabled: false,
     roamingSpeed: 1,

@@ -10,7 +10,9 @@
       "Bash(grep -E \"\\\\.\\(png|jpg|gif|svg|ico\\)$\")",
       "Bash(ls -la /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/control/icons/*.png)",
       "Bash(grep -E \"\\\\.tsx$\")",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ]
   }
 }

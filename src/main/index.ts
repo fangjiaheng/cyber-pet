@@ -391,7 +391,7 @@ function createTray() {
   ])
 
   tray.setContextMenu(contextMenu)
-  tray.setToolTip('桌面宠物 - Cyber Mate 🦞')
+  tray.setToolTip('桌面宠物 - Q宠宝贝')
 
   // 点击托盘图标时显示/隐藏窗口
   tray.on('click', () => {

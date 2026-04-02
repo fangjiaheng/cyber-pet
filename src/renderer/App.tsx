@@ -448,7 +448,7 @@ function App() {
       try {
         await usePetStore.getState().loadFromStorage()
       } catch (error) {
-        console.error('闂傚倸鍊风粈渚€骞夐垾鎰佹綎缂備焦蓱閸欏繘鏌熼锝囦汗鐟滅増甯掗悙濠囨煃鐟欏嫬鍔ゅù婊堢畺閺屾盯鏁傜拠鎻掔闁哥喎鎲＄换婵嬪煕閳ь剟宕橀埡浣锋樊闂備浇顕栭崰鎺楀疾閻樿绠犳繝濠傛噹閺嬪牊淇婇婵囥€冨瑙勬礃缁绘稒娼忛崜褏蓱闂佽鍠涢崺鏍矉瀹ュ棛闄勯柛娑橈工娴?', error)
+        console.error('❌ 加载宠物状态失败:', error)
       }
     }
 
@@ -461,7 +461,7 @@ function App() {
         const settings = await window.electronAPI?.storage?.getSettings?.()
         setAnimationIntervalMs(settings?.pet?.animationIntervalMs ?? 2400)
       } catch (error) {
-        console.error('闂傚倷娴囧畷鍨叏閺夋嚚娲煛閸滀焦鏅悷婊勫灴婵＄敻骞囬弶璺ㄥ€為梺闈浤涚仦楣冩暅闂傚倷绀佸﹢閬嶅磿閵堝鍨傚ù锝呭枤閺変粙姊绘担钘夊惞濠殿喖纾划鍫熸媴鐟欏嫭鐝锋繛瀵稿Т椤戝棝宕戦鍫熺厱闁斥晛鍘鹃鍡橆偨闁绘劕鎼痪褔鏌涢顐簻濞存粠鍨抽幃?', error)
+        console.error('❌ 加载窗口设置失败:', error)
       }
     }
 
@@ -663,7 +663,7 @@ function App() {
     }
 
     if (mode === 'bubble') {
-      // Pet and bubble use the same window size now 闂?no resize needed
+      // 宠物和气泡使用相同窗口大小，无需调整
       windowLayoutModeRef.current = mode
       return
     }
@@ -680,7 +680,7 @@ function App() {
       return
     }
 
-    // pet mode 闂?restore to default size
+    // 宠物模式 - 恢复默认大小
     window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT)
     windowLayoutModeRef.current = mode
   }, [])
