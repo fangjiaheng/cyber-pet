@@ -1,10 +1,10 @@
-import { type CSSProperties, type Ref, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, type Ref, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './ActionDropdownMenu.css'
 
 export interface ActionDropdownMenuItem {
   id: string
   label: string
-  icon?: string
+  icon?: ReactNode
   accent?: string
   disabled?: boolean
   onSelect?: () => void
@@ -56,21 +56,22 @@ function ActionDropdownMenuColumn({
           : undefined
 
         return (
-          <button
-            key={item.id}
-            type="button"
-            style={itemStyle}
-            className={`action-dropdown-menu__item ${item.id === activeItemId ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-            disabled={item.disabled}
-            onPointerEnter={() => onItemHover(item)}
-            onClick={() => onItemClick(item)}
-          >
-            <span className="action-dropdown-menu__icon">{item.icon ?? '•'}</span>
-            <span className="action-dropdown-menu__label">{item.label}</span>
-            {item.children?.length ? (
-              <span className="action-dropdown-menu__chevron">›</span>
-            ) : null}
-          </button>
+          <div key={item.id} className="action-dropdown-menu__row" style={itemStyle}>
+            <span className="action-dropdown-menu__dot" />
+            <button
+              type="button"
+              className={`action-dropdown-menu__item ${item.id === activeItemId ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
+              disabled={item.disabled}
+              onPointerEnter={() => onItemHover(item)}
+              onClick={() => onItemClick(item)}
+            >
+              <span className="action-dropdown-menu__icon">{item.icon ?? '•'}</span>
+              <span className="action-dropdown-menu__label">{item.label}</span>
+              {item.children?.length ? (
+                <span className="action-dropdown-menu__chevron">›</span>
+              ) : null}
+            </button>
+          </div>
         )
       })}
     </div>
@@ -162,15 +163,18 @@ export function ActionDropdownMenu({
       return
     }
 
-    const rect = menuRef.current.getBoundingClientRect()
+    // 用根列宽度计算位置，避免子菜单展开后整体偏移
+    const rootRect = rootColumnRef.current?.getBoundingClientRect()
+    const menuRect = menuRef.current.getBoundingClientRect()
+    const rootWidth = rootRect?.width ?? menuRect.width
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
 
     let adjustedLeft = position.left
     let adjustedTop = position.top
 
-    const minLeft = rect.width / 2 + 16
-    const maxLeft = viewportWidth - rect.width / 2 - 16
+    const minLeft = rootWidth / 2 + 16
+    const maxLeft = viewportWidth - rootWidth / 2 - 16
 
     if (adjustedLeft < minLeft) {
       adjustedLeft = minLeft
@@ -178,8 +182,8 @@ export function ActionDropdownMenu({
       adjustedLeft = maxLeft
     }
 
-    if (adjustedTop + rect.height > viewportHeight - 16) {
-      adjustedTop = viewportHeight - rect.height - 16
+    if (adjustedTop + menuRect.height > viewportHeight - 16) {
+      adjustedTop = viewportHeight - menuRect.height - 16
     }
 
     if (adjustedTop < 12) {

@@ -4,6 +4,12 @@ import './ChatPanel.css'
 import chongwuIcon from './assets/toolbar/qq-chongwu.png'
 import gonggaoIcon from './assets/toolbar/qq-gonggao.png'
 import richangIcon from './assets/toolbar/qq-richang.png'
+import menuIconFood from '/assets/1.2.4source/control/icons/richang.png'
+import menuIconClean from '/assets/1.2.4source/control/icons/qingjie.png'
+import menuIconHeal from '/assets/1.2.4source/control/icons/zhibing.png'
+import menuIconStudy from '/assets/1.2.4source/control/icons/xuexi.png'
+import menuIconWork from '/assets/1.2.4source/control/icons/dagong.png'
+import menuIconTravel from '/assets/1.2.4source/control/icons/lvyou.png'
 import { usePetStore } from './stores/petStore'
 import { HUNGER_MAX, CLEANLINESS_MAX } from './stores/petStore'
 import { useShallow } from 'zustand/react/shallow'
@@ -861,15 +867,10 @@ function App() {
     closeTaskDropdown()
     pinActionButtons()
 
-    if (showAnimDropdown) {
-      closeAnimDropdown()
-      return
-    }
-
     setAnimDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsAnimDropdownReady(false)
     setShowAnimDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, getActionDropdownPosition, pinActionButtons, showAnimDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, getActionDropdownPosition, pinActionButtons])
 
   const handleToggleDailyDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
@@ -885,15 +886,10 @@ function App() {
     closeTaskDropdown()
     pinActionButtons()
 
-    if (showDailyDropdown) {
-      closeDailyDropdown()
-      return
-    }
-
     setDailyDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsDailyDropdownReady(false)
     setShowDailyDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, getActionDropdownPosition, pinActionButtons, showDailyDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, getActionDropdownPosition, pinActionButtons])
 
   const handleToggleLifeDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
@@ -909,15 +905,10 @@ function App() {
     closeTaskDropdown()
     pinActionButtons()
 
-    if (showLifeDropdown) {
-      closeLifeDropdown()
-      return
-    }
-
     setLifeDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsLifeDropdownReady(false)
     setShowLifeDropdown(true)
-  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, getActionDropdownPosition, pinActionButtons, showLifeDropdown])
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, getActionDropdownPosition, pinActionButtons])
 
   const handleToggleTaskDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
@@ -932,11 +923,6 @@ function App() {
     closeDailyDropdown()
     closeLifeDropdown()
     pinActionButtons()
-
-    if (showTaskDropdown) {
-      closeTaskDropdown()
-      return
-    }
 
     setTaskDropdownPosition(getActionDropdownPosition(event.currentTarget))
     setIsTaskDropdownReady(false)
@@ -955,7 +941,6 @@ function App() {
     closeWorkStrip,
     getActionDropdownPosition,
     pinActionButtons,
-    showTaskDropdown,
   ])
 
   const handleOpenChat = useCallback((event?: React.MouseEvent) => {
@@ -1288,7 +1273,7 @@ function App() {
     {
       id: 'daily-feed',
       label: '食物',
-      icon: '食',
+      icon: <img src={menuIconFood} alt="食物" />,
       accent: dropdownAccentColors[0],
       onSelect: () => {
         closeDailyDropdown()
@@ -1298,7 +1283,7 @@ function App() {
     {
       id: 'daily-clean',
       label: '清洁',
-      icon: '洁',
+      icon: <img src={menuIconClean} alt="清洁" />,
       accent: dropdownAccentColors[1],
       onSelect: () => {
         closeDailyDropdown()
@@ -1308,7 +1293,7 @@ function App() {
     {
       id: 'daily-heal',
       label: '治疗',
-      icon: '医',
+      icon: <img src={menuIconHeal} alt="治疗" />,
       accent: dropdownAccentColors[2],
       onSelect: () => {
         closeDailyDropdown()
@@ -1321,7 +1306,7 @@ function App() {
     {
       id: 'study',
       label: '学习',
-      icon: '学',
+      icon: <img src={menuIconStudy} alt="学习" />,
       accent: dropdownAccentColors[3],
       onSelect: () => {
         closeLifeDropdown()
@@ -1331,7 +1316,7 @@ function App() {
     {
       id: 'work',
       label: '打工',
-      icon: '工',
+      icon: <img src={menuIconWork} alt="打工" />,
       accent: dropdownAccentColors[4],
       onSelect: () => {
         closeLifeDropdown()
@@ -1341,7 +1326,7 @@ function App() {
     {
       id: 'travel',
       label: '旅行',
-      icon: '行',
+      icon: <img src={menuIconTravel} alt="旅行" />,
       accent: dropdownAccentColors[5],
       onSelect: () => {
         closeLifeDropdown()
@@ -1640,7 +1625,7 @@ function App() {
                   </button>
                   <button
                     className="action-btn action-btn--qq action-btn--image"
-                    onClick={handleToggleAnimDropdown}
+                    onMouseEnter={handleToggleAnimDropdown}
                     title="动画"
                   >
                     <span className="action-btn__ai-icon" aria-hidden="true">素</span>
@@ -1648,7 +1633,7 @@ function App() {
                   <button
                     ref={dailyButtonRef}
                     className="action-btn action-btn--qq action-btn--image"
-                    onClick={handleToggleDailyDropdown}
+                    onMouseEnter={handleToggleDailyDropdown}
                     title="日常"
                   >
                     <img className="action-btn__group-image" src={richangIcon} alt="" aria-hidden="true" />
@@ -1656,7 +1641,7 @@ function App() {
                   <button
                     ref={lifeButtonRef}
                     className="action-btn action-btn--qq action-btn--image"
-                    onClick={handleToggleLifeDropdown}
+                    onMouseEnter={handleToggleLifeDropdown}
                     title="互动"
                   >
                     <img className="action-btn__group-image" src={chongwuIcon} alt="" aria-hidden="true" />
@@ -1664,7 +1649,7 @@ function App() {
                   <button
                     ref={taskButtonRef}
                     className="action-btn action-btn--qq action-btn--image"
-                    onClick={handleToggleTaskDropdown}
+                    onMouseEnter={handleToggleTaskDropdown}
                     title="任务"
                   >
                     <img className="action-btn__group-image" src={gonggaoIcon} alt="" aria-hidden="true" />
