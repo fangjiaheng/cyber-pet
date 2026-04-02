@@ -41,8 +41,7 @@ import {
 import { swfCategories } from './swfData'
 import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist } from './utils/swfPlaylist'
 import { getGrowthStage, getMoodAppearance } from './stores/growthConfig'
-// stageSwfResolver 的直接引用将在后续 Phase 中启用
-// import { getActionSwfPath, toPlaylistPath } from './utils/stageSwfResolver'
+import { getRandomPlaySwfPath } from './utils/stageSwfResolver'
 import {
   countClaimedTaskGifts,
   countReadyTaskGifts,
@@ -388,6 +387,7 @@ function App() {
   const hideActionsTimer = useRef<number | null>(null)
   const actionResetTimer = useRef<number | null>(null)
   const actionSequence = useRef(0)
+  const idlePlayTimer = useRef<number | null>(null)
   const chatHeaderRef = useRef<HTMLDivElement | null>(null)
   const penguinWrapperRef = useRef<HTMLDivElement | null>(null)
   const actionBarRef = useRef<HTMLDivElement | null>(null)
@@ -1459,6 +1459,34 @@ function App() {
         setPenguinAction('idle')
     }
   }, [currentEmotion, energy, hunger, penguinAction])
+
+  // 站立状态下定时播放随机玩耍动画
+  useEffect(() => {
+    if (idlePlayTimer.current) {
+      window.clearTimeout(idlePlayTimer.current)
+      idlePlayTimer.current = null
+    }
+
+    if (penguinAction !== 'idle') return
+
+    // 随机间隔 60~90 秒播放一次，避免过度打扰用户
+    const delay = 60_000 + Math.random() * 30_000
+    idlePlayTimer.current = window.setTimeout(() => {
+      idlePlayTimer.current = null
+      // 再次确认仍在 idle 状态
+      if (penguinAction !== 'idle') return
+      const playPath = getRandomPlaySwfPath(growthStage, moodAppearance)
+      playSwfPath(playPath)
+      scheduleReturnToIdle(3000)
+    }, delay)
+
+    return () => {
+      if (idlePlayTimer.current) {
+        window.clearTimeout(idlePlayTimer.current)
+        idlePlayTimer.current = null
+      }
+    }
+  }, [penguinAction, growthStage, moodAppearance, playSwfPath, scheduleReturnToIdle])
 
   useEffect(() => {
     if (!isActionDropdownOpen) return

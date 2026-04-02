@@ -115,6 +115,33 @@ export function getEndingSwfPaths(stage: GrowthStage): Set<string> {
 }
 
 /**
+ * 各阶段/心情对应的 play 动画数量
+ */
+const PLAY_ANIMATION_COUNTS: Record<string, number> = {
+  egg: 29,
+  kid: 112,
+  'adult/happy': 47,
+  'adult/peaceful': 100,
+  'adult/upset': 23,
+  'adult/sad': 22,
+}
+
+/**
+ * 获取随机玩耍动画路径（用于站立时的随机小动作）
+ */
+export function getRandomPlaySwfPath(stage: GrowthStage, moodAppearance: MoodAppearance): string {
+  const base = BASE_PATHS[stage]
+  const key = stage === 'adult' ? `adult/${moodAppearance}` : stage
+  const count = PLAY_ANIMATION_COUNTS[key] ?? 1
+  const index = Math.floor(Math.random() * count) + 1
+
+  if (stage === 'adult') {
+    return `${base}${moodAppearance}/play/P${index}.swf`
+  }
+  return `${base}play/P${index}.swf`
+}
+
+/**
  * 将带 / 前缀的路径标准化为不带 / 的格式（匹配现有 playlist 格式）
  */
 export function toPlaylistPath(absolutePath: string): string {

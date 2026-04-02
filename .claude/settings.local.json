@@ -12,7 +12,8 @@
       "Bash(grep -E \"\\\\.tsx$\")",
       "Bash(python3:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(xxd public/assets/1.2.4source/Communication/Enter/1.txt)"
     ]
   }
 }
