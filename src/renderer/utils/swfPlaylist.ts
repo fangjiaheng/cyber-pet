@@ -1,4 +1,12 @@
 import { PENGUIN_102_SPECIAL_PLAYLIST_BY_ID } from './penguin102OriginalPlaylists'
+import {
+  getIdleSwfPath,
+  getExitSwfPath,
+  getEnterPlaylist,
+  getEndingSwfPaths,
+  toPlaylistPath,
+} from './stageSwfResolver'
+import type { GrowthStage, MoodAppearance } from '../stores/growthConfig'
 
 const LEGACY_SWF_BASE_PATH = '/assets/swf_original/'
 const ABSOLUTE_ANIME_BASE_PATH = '/anime/'
@@ -6,19 +14,35 @@ const ABSOLUTE_ANIME_BASE_PATH = '/anime/'
 const NEW_ASSETS_BASE_PATH = '/assets/1.2.4source/'
 
 // ============================================================
-// 使用新版素材 (1.2.4source) - 独立 SWF 文件，直接加载
+// 默认路径（成年+平静，兼容旧引用）
 // ============================================================
-export const IDLE_SWF_PATH = 'assets/1.2.4source/Action/GG/Adult/peaceful/Stand.swf'
-export const END_SWF_PATH = 'assets/1.2.4source/Action/GG/Adult/Exit1.swf'
-export const ENTER_PLAYLIST = `assets/1.2.4source/Action/GG/Adult/Enter1.swf,${IDLE_SWF_PATH}`
+export const IDLE_SWF_PATH = toPlaylistPath(getIdleSwfPath('adult', 'peaceful'))
+export const END_SWF_PATH = toPlaylistPath(getExitSwfPath('adult'))
+export const ENTER_PLAYLIST = getEnterPlaylist('adult', 'peaceful')
 
-const ENDING_SWF_PATHS = new Set([
-  'anime/102/1020120141.swf',
-  'assets/1.2.4source/Action/GG/Adult/Exit1.swf',
-  'assets/1.2.4source/Action/GG/Adult/Exit2.swf',
-  'assets/1.2.4source/Action/GG/Adult/Exit3.swf',
-  'assets/1.2.4source/Action/GG/Adult/Exit4.swf',
-])
+// 默认结束路径集合
+const DEFAULT_ENDING_SWF_PATHS = getEndingSwfPaths('adult')
+
+/**
+ * 获取阶段感知的待机路径
+ */
+export function getStageIdlePath(stage: GrowthStage, mood: MoodAppearance): string {
+  return toPlaylistPath(getIdleSwfPath(stage, mood))
+}
+
+/**
+ * 获取阶段感知的退场路径
+ */
+export function getStageEndPath(stage: GrowthStage): string {
+  return toPlaylistPath(getExitSwfPath(stage))
+}
+
+/**
+ * 获取阶段感知的入场播放列表
+ */
+export function getStageEnterPlaylist(stage: GrowthStage, mood: MoodAppearance): string {
+  return getEnterPlaylist(stage, mood)
+}
 
 export function normalizeLoadlistsPath(path: string): string {
   const trimmedPath = path.trim()
@@ -62,9 +86,13 @@ export function buildLoadlistsPlaylist(
   options?: {
     appendIdle?: boolean
     animationId?: string
+    idlePath?: string
+    endPath?: string
   },
 ): string {
   const normalizedPath = normalizeLoadlistsPath(path)
+  const idlePath = options?.idlePath ?? IDLE_SWF_PATH
+  const endPath = options?.endPath ?? END_SWF_PATH
 
   if (normalizedPath.includes(',')) {
     return normalizedPath
@@ -80,7 +108,7 @@ export function buildLoadlistsPlaylist(
     }
   }
 
-  if (normalizedPath === IDLE_SWF_PATH || normalizedPath === END_SWF_PATH) {
+  if (normalizedPath === idlePath || normalizedPath === endPath) {
     return normalizedPath
   }
 
@@ -88,9 +116,9 @@ export function buildLoadlistsPlaylist(
     return normalizedPath
   }
 
-  if (ENDING_SWF_PATHS.has(normalizedPath)) {
-    return `${normalizedPath},${END_SWF_PATH}`
+  if (DEFAULT_ENDING_SWF_PATHS.has(normalizedPath)) {
+    return `${normalizedPath},${endPath}`
   }
 
-  return `${normalizedPath},${IDLE_SWF_PATH}`
+  return `${normalizedPath},${idlePath}`
 }

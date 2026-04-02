@@ -8,6 +8,25 @@ import {
   type TaskGiftReward,
   type TaskGiftState,
 } from '../../shared/taskGift'
+import {
+  levelForExperience,
+  getHungerMax,
+  getCleanlinessMax,
+  MOOD_MAX,
+  HEALTH_MAX,
+  ENERGY_MAX,
+  SAVE_VERSION,
+} from './growthConfig'
+import { needsMigration, backupOldSave, migrateState } from './migration'
+import { calculateGrowthPerTick, calculateDecay } from './growthEngine'
+import {
+  type DiseaseState,
+  createInitialDiseaseState,
+  checkDiscomfort,
+  tickDiscomfort,
+  progressDisease,
+  healthFromDisease,
+} from './diseaseSystem'
 
 export type AnimationAction = 'idle' | 'walk' | 'run' | 'sit' | 'sleep' | 'working' | 'eating' | 'bathing' | 'playing'
 export type Emotion = 'happy' | 'sad' | 'angry' | 'tired' | 'hungry' | 'neutral'
@@ -45,6 +64,7 @@ export interface PetState {
   cleanliness: number
   mood: number
   energy: number
+  health: number
   level: number
   experience: number
   coins: number
@@ -61,6 +81,8 @@ export interface PetState {
   createdAt: number
   lastFed: number
   lastCleaned: number
+  saveVersion: number
+  diseaseState: DiseaseState
 }
 
 interface PetActions {
@@ -94,12 +116,14 @@ interface PetActions {
   reset: () => void
 }
 
-const LEVEL_EXP = 200
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 const saveTimerKey = '__petStateSaveTimer'
-export const HUNGER_MAX = 3500
-export const CLEANLINESS_MAX = 3500
-export const DEFAULT_STATUS_MAX = 100
+
+// 导出动态上限供外部使用（兼容旧引用）
+export { getHungerMax as HUNGER_MAX_FN, getCleanlinessMax as CLEANLINESS_MAX_FN, MOOD_MAX, ENERGY_MAX }
+// 保留旧名称的导出用于向后兼容（使用 level=1 时的默认值）
+export const HUNGER_MAX = getHungerMax(1)
+export const CLEANLINESS_MAX = getCleanlinessMax(1)
 
 type WindowWithPetSaveTimer = Window & {
   __petStateSaveTimer?: number
@@ -117,10 +141,11 @@ const INITIAL_PROFILE: PetProfile = {
 const INITIAL_STATE: PetState = {
   id: 'cyber-mate-1',
   name: 'Cyber Mate',
-  hunger: 80,
-  cleanliness: 80,
-  mood: 80,
-  energy: 80,
+  hunger: getHungerMax(1) * 0.8,    // 80% 满值
+  cleanliness: getCleanlinessMax(1) * 0.8,
+  mood: MOOD_MAX * 0.8,              // 800
+  energy: ENERGY_MAX * 0.8,          // 80
+  health: HEALTH_MAX,                // 5 = 健康
   level: 1,
   experience: 0,
   coins: 0,
@@ -137,18 +162,32 @@ const INITIAL_STATE: PetState = {
   createdAt: Date.now(),
   lastFed: Date.now(),
   lastCleaned: Date.now(),
+  saveVersion: SAVE_VERSION,
+  diseaseState: createInitialDiseaseState(),
 }
 
-function clampStatus(value: number, max = DEFAULT_STATUS_MAX) {
+function clampStatus(value: number, max: number) {
   return Math.max(0, Math.min(max, value))
 }
 
-function clampHunger(value: number) {
-  return clampStatus(value, HUNGER_MAX)
+function clampHunger(value: number, level: number) {
+  return clampStatus(value, getHungerMax(level))
 }
 
-function clampCleanliness(value: number) {
-  return clampStatus(value, CLEANLINESS_MAX)
+function clampCleanliness(value: number, level: number) {
+  return clampStatus(value, getCleanlinessMax(level))
+}
+
+function clampMood(value: number) {
+  return clampStatus(value, MOOD_MAX)
+}
+
+function clampEnergy(value: number) {
+  return clampStatus(value, ENERGY_MAX)
+}
+
+function clampHealth(value: number) {
+  return clampStatus(value, HEALTH_MAX)
 }
 
 function startOfDay(timestamp: number) {
@@ -178,7 +217,7 @@ function resolveEducation(intelligence: number) {
 
 function applyExperienceProgress(state: PetState, amount: number) {
   const nextExperience = Math.max(0, state.experience + amount)
-  const nextLevel = Math.max(1, Math.floor(nextExperience / LEVEL_EXP) + 1)
+  const nextLevel = levelForExperience(nextExperience)
 
   return {
     experience: nextExperience,
@@ -193,6 +232,7 @@ function buildPersistedState(state: PetState) {
     cleanliness: state.cleanliness,
     mood: state.mood,
     energy: state.energy,
+    health: state.health,
     level: state.level,
     experience: state.experience,
     coins: state.coins,
@@ -201,6 +241,8 @@ function buildPersistedState(state: PetState) {
     onlineDataTime: state.onlineDataTime,
     taskGifts: state.taskGifts,
     profile: state.profile,
+    diseaseState: state.diseaseState,
+    saveVersion: SAVE_VERSION,
     lastUpdateTime: Date.now(),
   }
 }
@@ -208,27 +250,41 @@ function buildPersistedState(state: PetState) {
 function normalizeLoadedState(savedState: Partial<PetState> | null | undefined): Partial<PetState> {
   if (!savedState) return {}
 
-  const profile = {
-    ...INITIAL_PROFILE,
-    ...(savedState.profile ?? {}),
+  // 检查是否需要从旧版迁移
+  let stateData = savedState as Record<string, unknown>
+  if (needsMigration(stateData)) {
+    backupOldSave(stateData)
+    stateData = migrateState(stateData)
+    console.log('📦 存档已从旧版迁移到 v' + SAVE_VERSION)
   }
 
+  const migrated = stateData as Partial<PetState>
+
+  const profile = {
+    ...INITIAL_PROFILE,
+    ...(migrated.profile ?? {}),
+  }
+
+  const level = Math.max(1, migrated.level ?? INITIAL_STATE.level)
   const education = profile.education || resolveEducation(profile.intelligence)
-  const onlineDataTime = Math.max(0, Number(savedState.onlineDataTime ?? 0))
-  const taskGifts = refreshTaskGiftState(savedState.taskGifts ?? null, Date.now(), onlineDataTime)
+  const onlineDataTime = Math.max(0, Number(migrated.onlineDataTime ?? 0))
+  const taskGifts = refreshTaskGiftState(migrated.taskGifts ?? null, Date.now(), onlineDataTime)
 
   return {
-    hunger: clampHunger(savedState.hunger ?? INITIAL_STATE.hunger),
-    cleanliness: clampCleanliness(savedState.cleanliness ?? INITIAL_STATE.cleanliness),
-    mood: clampStatus(savedState.mood ?? INITIAL_STATE.mood),
-    energy: clampStatus(savedState.energy ?? INITIAL_STATE.energy),
-    level: Math.max(1, savedState.level ?? INITIAL_STATE.level),
-    experience: Math.max(0, savedState.experience ?? INITIAL_STATE.experience),
-    coins: Math.max(0, savedState.coins ?? 0),
-    lastCheckIn: savedState.lastCheckIn ?? null,
-    checkInStreak: Math.max(0, savedState.checkInStreak ?? 0),
+    hunger: clampHunger(migrated.hunger ?? INITIAL_STATE.hunger, level),
+    cleanliness: clampCleanliness(migrated.cleanliness ?? INITIAL_STATE.cleanliness, level),
+    mood: clampMood(migrated.mood ?? INITIAL_STATE.mood),
+    energy: clampEnergy(migrated.energy ?? INITIAL_STATE.energy),
+    health: clampHealth(migrated.health ?? HEALTH_MAX),
+    level,
+    experience: Math.max(0, migrated.experience ?? INITIAL_STATE.experience),
+    coins: Math.max(0, migrated.coins ?? 0),
+    lastCheckIn: migrated.lastCheckIn ?? null,
+    checkInStreak: Math.max(0, migrated.checkInStreak ?? 0),
     onlineDataTime,
     taskGifts,
+    saveVersion: SAVE_VERSION,
+    diseaseState: (migrated.diseaseState as DiseaseState) ?? createInitialDiseaseState(),
     profile: {
       ...profile,
       education,
@@ -239,10 +295,10 @@ function normalizeLoadedState(savedState: Partial<PetState> | null | undefined):
 export const usePetStore = create<PetState & PetActions>((set, get) => ({
   ...INITIAL_STATE,
 
-  updateHunger: (value) => set({ hunger: clampHunger(value) }),
-  updateCleanliness: (value) => set({ cleanliness: clampCleanliness(value) }),
-  updateMood: (value) => set({ mood: clampStatus(value) }),
-  updateEnergy: (value) => set({ energy: clampStatus(value) }),
+  updateHunger: (value) => set((s) => ({ hunger: clampHunger(value, s.level) })),
+  updateCleanliness: (value) => set((s) => ({ cleanliness: clampCleanliness(value, s.level) })),
+  updateMood: (value) => set({ mood: clampMood(value) }),
+  updateEnergy: (value) => set({ energy: clampEnergy(value) }),
   setAction: (action) => set({ currentAction: action }),
   setEmotion: (emotion) => set({ currentEmotion: emotion }),
   setPosition: (x, y) => set({ position: { x, y } }),
@@ -282,8 +338,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   feed: () => set((state) => {
     const progress = applyExperienceProgress(state, 6)
     return {
-      hunger: clampHunger(state.hunger + 30),
-      mood: clampStatus(state.mood + 10),
+      hunger: clampHunger(state.hunger + 300, state.level),
+      mood: clampMood(state.mood + 100),
       lastFed: Date.now(),
       currentAction: 'eating',
       currentEmotion: 'happy',
@@ -295,8 +351,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   clean: () => set((state) => {
     const progress = applyExperienceProgress(state, 6)
     return {
-      cleanliness: clampCleanliness(state.cleanliness + 40),
-      mood: clampStatus(state.mood + 15),
+      cleanliness: clampCleanliness(state.cleanliness + 400, state.level),
+      mood: clampMood(state.mood + 150),
       lastCleaned: Date.now(),
       currentAction: 'bathing',
       currentEmotion: 'happy',
@@ -308,9 +364,9 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   play: () => set((state) => {
     const progress = applyExperienceProgress(state, 8)
     return {
-      mood: clampStatus(state.mood + 20),
-      energy: clampStatus(state.energy - 10),
-      hunger: clampHunger(state.hunger - 5),
+      mood: clampMood(state.mood + 200),
+      energy: clampEnergy(state.energy - 10),
+      hunger: clampHunger(state.hunger - 50, state.level),
       currentAction: 'playing',
       currentEmotion: 'happy',
       experience: progress.experience,
@@ -323,7 +379,7 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   }),
 
   rest: () => set((state) => ({
-    energy: clampStatus(state.energy + 30),
+    energy: clampEnergy(state.energy + 30),
     currentAction: 'sleep',
     currentEmotion: state.energy < 40 ? 'tired' : state.currentEmotion,
   })),
@@ -331,8 +387,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   heal: () => set((state) => {
     const progress = applyExperienceProgress(state, 4)
     return {
-      mood: clampStatus(state.mood + 20),
-      energy: clampStatus(state.energy + 15),
+      mood: clampMood(state.mood + 200),
+      energy: clampEnergy(state.energy + 15),
       currentAction: 'idle',
       currentEmotion: 'happy',
       experience: progress.experience,
@@ -344,8 +400,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     const progress = applyExperienceProgress(state, 10)
     const intelligence = state.profile.intelligence + 2
     return {
-      energy: clampStatus(state.energy - 15),
-      mood: clampStatus(state.mood + 5),
+      energy: clampEnergy(state.energy - 15),
+      mood: clampMood(state.mood + 50),
       currentAction: 'idle',
       currentEmotion: 'neutral',
       experience: progress.experience,
@@ -362,9 +418,9 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   work: () => set((state) => {
     const progress = applyExperienceProgress(state, 5)
     return {
-      energy: clampStatus(state.energy - 20),
-      hunger: clampHunger(state.hunger - 10),
-      mood: clampStatus(state.mood - 5),
+      energy: clampEnergy(state.energy - 20),
+      hunger: clampHunger(state.hunger - 100, state.level),
+      mood: clampMood(state.mood - 50),
       currentAction: 'working',
       currentEmotion: 'neutral',
       experience: progress.experience,
@@ -381,9 +437,9 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   travel: () => set((state) => {
     const progress = applyExperienceProgress(state, 6)
     return {
-      energy: clampStatus(state.energy - 15),
-      mood: clampStatus(state.mood + 25),
-      hunger: clampHunger(state.hunger - 10),
+      energy: clampEnergy(state.energy - 15),
+      mood: clampMood(state.mood + 250),
+      hunger: clampHunger(state.hunger - 100, state.level),
       currentAction: 'idle',
       currentEmotion: 'happy',
       experience: progress.experience,
@@ -430,10 +486,10 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     const progress = applyExperienceProgress(state, reward.experience)
 
     set({
-      hunger: clampHunger(state.hunger + reward.hunger),
-      cleanliness: clampCleanliness(state.cleanliness + reward.cleanliness),
-      mood: clampStatus(state.mood + reward.mood),
-      energy: clampStatus(state.energy + reward.energy),
+      hunger: clampHunger(state.hunger + reward.hunger, state.level),
+      cleanliness: clampCleanliness(state.cleanliness + reward.cleanliness, state.level),
+      mood: clampMood(state.mood + reward.mood),
+      energy: clampEnergy(state.energy + reward.energy),
       experience: progress.experience,
       level: progress.level,
       coins: Math.max(0, state.coins + reward.coins),
@@ -505,9 +561,9 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     return {
       tasksCompleted: state.tasksCompleted + 1,
       totalWorkTime: state.totalWorkTime + workTimeMinutes,
-      energy: clampStatus(state.energy - workTimeMinutes * 2),
-      hunger: clampHunger(state.hunger - workTimeMinutes),
-      mood: state.mood > 50 ? clampStatus(state.mood - 5) : state.mood,
+      energy: clampEnergy(state.energy - workTimeMinutes * 2),
+      hunger: clampHunger(state.hunger - workTimeMinutes, state.level),
+      mood: state.mood > 500 ? clampMood(state.mood - 50) : state.mood,
       currentAction: 'idle',
       currentEmotion: state.energy < 30 ? 'tired' : 'neutral',
       experience: progress.experience,
@@ -517,32 +573,53 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
   }),
 
   decay: () => set((state) => {
-    const hunger = clampHunger(state.hunger - 0.5)
-    const cleanliness = clampCleanliness(state.cleanliness - 0.3)
-    const energy = state.currentAction === 'sleep'
-      ? clampStatus(state.energy + 1)
-      : clampStatus(state.energy - 0.2)
+    const now = Date.now()
+    const isSleeping = state.currentAction === 'sleep'
+    const decay = calculateDecay(state.mood, isSleeping)
+
+    const hunger = clampHunger(state.hunger + decay.hungerDelta, state.level)
+    const cleanliness = clampCleanliness(state.cleanliness + decay.cleanlinessDelta, state.level)
+    const mood = clampMood(state.mood + decay.moodDelta)
+    const energy = clampEnergy(state.energy + decay.energyDelta)
     const onlineDataTime = Math.max(0, state.onlineDataTime + 1)
 
+    // 疾病系统：检测不适 → 更新计数器 → 可能恶化
+    const hungerMax = getHungerMax(state.level)
+    const discomforts = checkDiscomfort(hunger, cleanliness, hungerMax)
+    let diseaseState = tickDiscomfort(state.diseaseState, discomforts)
+    diseaseState = progressDisease(diseaseState, now)
+    const health = healthFromDisease(diseaseState)
+
+    // 每分钟成长值
+    const growth = calculateGrowthPerTick(mood, health, hunger, cleanliness)
+    const nextExperience = Math.max(0, state.experience + growth)
+    const nextLevel = levelForExperience(nextExperience)
+
+    // 情绪判断（基于新的属性范围）
+    const nextHungerMax = getHungerMax(nextLevel)
+    const cleanMax = getCleanlinessMax(nextLevel)
+    const hungerRatio = hunger / nextHungerMax
+    const cleanRatio = cleanliness / cleanMax
+
     let nextEmotion: Emotion = state.currentEmotion
-    if (hunger < 30) nextEmotion = 'hungry'
+    if (health < 3) nextEmotion = 'sad'
+    else if (hungerRatio < 0.1) nextEmotion = 'hungry'
     else if (energy < 30) nextEmotion = 'tired'
-    else if (cleanliness < 30) nextEmotion = 'sad'
-    else if (state.mood > 70) nextEmotion = 'happy'
+    else if (cleanRatio < 0.1) nextEmotion = 'sad'
+    else if (mood > 700) nextEmotion = 'happy'
     else nextEmotion = 'neutral'
 
-    let mood = state.mood
-    if (hunger < 30 || cleanliness < 30 || energy < 30) {
-      mood = clampStatus(mood - 0.5)
-    }
-
-    const taskGifts = refreshTaskGiftState(state.taskGifts, Date.now(), onlineDataTime)
+    const taskGifts = refreshTaskGiftState(state.taskGifts, now, onlineDataTime)
 
     return {
       hunger,
       cleanliness,
-      energy,
       mood,
+      energy,
+      health,
+      diseaseState,
+      experience: nextExperience,
+      level: nextLevel,
       onlineDataTime,
       taskGifts,
       checkInStreak: countClaimedTaskGifts(taskGifts.sign),
@@ -579,6 +656,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     lastFed: Date.now(),
     lastCleaned: Date.now(),
     taskGifts: createInitialTaskGiftState(Date.now()),
+    diseaseState: createInitialDiseaseState(),
+    saveVersion: SAVE_VERSION,
   }),
 }))
 

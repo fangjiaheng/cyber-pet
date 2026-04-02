@@ -207,13 +207,14 @@ export function getTaskGiftReward(kind: TaskGiftKind, slot: TaskGiftSlot): TaskG
   const scale = slot.order - 1
   const isSign = kind === 'sign'
 
+  // 数值适配新属性范围：hunger/cleanliness 上限 3000-6000，mood 上限 1000
   if (category === 'food') {
     return {
       experience: (isSign ? 14 : 8) + scale * 2,
       coins: (isSign ? 22 : 10) + scale * 3,
-      hunger: (isSign ? 24 : 16) + scale,
+      hunger: ((isSign ? 24 : 16) + scale) * 10,
       cleanliness: 0,
-      mood: (isSign ? 8 : 5) + Math.floor(scale / 2),
+      mood: ((isSign ? 8 : 5) + Math.floor(scale / 2)) * 10,
       energy: isSign ? 4 : 2,
     }
   }
@@ -223,8 +224,8 @@ export function getTaskGiftReward(kind: TaskGiftKind, slot: TaskGiftSlot): TaskG
       experience: (isSign ? 12 : 7) + scale * 2,
       coins: (isSign ? 26 : 12) + scale * 3,
       hunger: 0,
-      cleanliness: (isSign ? 16 : 10) + scale,
-      mood: (isSign ? 10 : 6) + Math.floor(scale / 2),
+      cleanliness: ((isSign ? 16 : 10) + scale) * 10,
+      mood: ((isSign ? 10 : 6) + Math.floor(scale / 2)) * 10,
       energy: isSign ? 5 : 3,
     }
   }
@@ -234,7 +235,7 @@ export function getTaskGiftReward(kind: TaskGiftKind, slot: TaskGiftSlot): TaskG
     coins: (isSign ? 18 : 8) + scale * 2,
     hunger: 0,
     cleanliness: 0,
-    mood: (isSign ? 12 : 8) + Math.floor(scale / 2),
+    mood: ((isSign ? 12 : 8) + Math.floor(scale / 2)) * 10,
     energy: (isSign ? 18 : 12) + scale,
   }
 }

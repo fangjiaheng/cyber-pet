@@ -12,7 +12,7 @@ import menuIconWork from '/assets/1.2.4source/control/icons/dagong.png'
 import menuIconTravel from '/assets/1.2.4source/control/icons/lvyou.png'
 import menuIconTask from '/assets/1.2.4source/control/icons/renwu.png'
 import { usePetStore } from './stores/petStore'
-import { HUNGER_MAX, CLEANLINESS_MAX } from './stores/petStore'
+import { getHungerMax, getCleanlinessMax, MOOD_MAX } from './stores/growthConfig'
 import { useShallow } from 'zustand/react/shallow'
 import { usePetDecay } from './hooks/usePetDecay'
 import { ActionDropdownMenu, ActionDropdownMenuItem } from './components/ActionDropdownMenu'
@@ -39,7 +39,10 @@ import {
   SETTINGS_WINDOW_WIDTH,
 } from '@shared/windowSizes'
 import { swfCategories } from './swfData'
-import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH } from './utils/swfPlaylist'
+import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist } from './utils/swfPlaylist'
+import { getGrowthStage, getMoodAppearance } from './stores/growthConfig'
+// stageSwfResolver 的直接引用将在后续 Phase 中启用
+// import { getActionSwfPath, toPlaylistPath } from './utils/stageSwfResolver'
 import {
   countClaimedTaskGifts,
   countReadyTaskGifts,
@@ -331,6 +334,7 @@ function App() {
     cleanliness,
     energy,
     mood,
+    level,
     profile,
     coins,
     currentEmotion,
@@ -352,6 +356,7 @@ function App() {
     cleanliness: state.cleanliness,
     energy: state.energy,
     mood: state.mood,
+    level: state.level,
     profile: state.profile,
     coins: state.coins,
     currentEmotion: state.currentEmotion,
@@ -371,6 +376,12 @@ function App() {
   })))
 
   usePetDecay()
+
+  // 成长阶段和心情外观
+  const growthStage = getGrowthStage(level)
+  const moodAppearance = getMoodAppearance(mood)
+  const currentIdlePath = getStageIdlePath(growthStage, moodAppearance)
+  const currentEnterPlaylist = getStageEnterPlaylist(growthStage, moodAppearance)
 
   const isDragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
@@ -500,9 +511,9 @@ function App() {
     cancelCurrentAction()
     setPenguinAction('idle')
     if (stopPlayback) {
-      playPlaylist(IDLE_SWF_PATH)
+      playPlaylist(currentIdlePath)
     }
-  }, [cancelCurrentAction, clearActionResetTimer, playPlaylist])
+  }, [cancelCurrentAction, clearActionResetTimer, currentIdlePath, playPlaylist])
 
   const scheduleReturnToIdle = useCallback((baseDuration: number) => {
     clearActionResetTimer()
@@ -528,15 +539,21 @@ function App() {
     scheduleReturnToIdle(options.baseDuration)
   }, [clearActionResetTimer, playSwfPath, scheduleReturnToIdle])
 
+  // 入场动画只在 mount 时播放一次，用当时的阶段
+  const hasPlayedEnter = useRef(false)
   useEffect(() => {
+    if (hasPlayedEnter.current) return
+    hasPlayedEnter.current = true
+
     const enterTimer = window.setTimeout(() => {
-      playPlaylist(ENTER_PLAYLIST)
+      playPlaylist(currentEnterPlaylist)
     }, 1500)
 
     return () => {
       window.clearTimeout(enterTimer)
     }
-  }, [playPlaylist])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useWindowDrag(chatHeaderRef, showChat)
 
@@ -1639,6 +1656,7 @@ function App() {
                   </button>
                   <button
                     className="action-btn action-btn--qq action-btn--image"
+                    onClick={handleToggleAnimDropdown}
                     onMouseEnter={handleToggleAnimDropdown}
                     title="动画"
                   >
@@ -1647,6 +1665,7 @@ function App() {
                   <button
                     ref={dailyButtonRef}
                     className="action-btn action-btn--qq action-btn--image"
+                    onClick={handleToggleDailyDropdown}
                     onMouseEnter={handleToggleDailyDropdown}
                     title="日常"
                   >
@@ -1655,6 +1674,7 @@ function App() {
                   <button
                     ref={lifeButtonRef}
                     className="action-btn action-btn--qq action-btn--image"
+                    onClick={handleToggleLifeDropdown}
                     onMouseEnter={handleToggleLifeDropdown}
                     title="互动"
                   >
@@ -1663,6 +1683,7 @@ function App() {
                   <button
                     ref={taskButtonRef}
                     className="action-btn action-btn--qq action-btn--image"
+                    onClick={handleToggleTaskDropdown}
                     onMouseEnter={handleToggleTaskDropdown}
                     title="任务"
                   >
@@ -1695,7 +1716,7 @@ function App() {
           meter={{
             label: '饥饿值',
             value: hunger,
-            max: HUNGER_MAX,
+            max: getHungerMax(level),
             hint: '食物会提升饥饿值。',
           }}
         />
@@ -1711,7 +1732,7 @@ function App() {
           meter={{
             label: '清洁值',
             value: cleanliness,
-            max: CLEANLINESS_MAX,
+            max: getCleanlinessMax(level),
             hint: '清洁会提升清洁值。',
           }}
         />
