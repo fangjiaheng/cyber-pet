@@ -62,7 +62,7 @@
       "defaultModel": "claude-opus-4-5-20251101"
     },
     "pet": {
-      "name": "Cyber Mate",
+      "name": "Q宠宝贝",
       "skin": "default",
       "roamingEnabled": false,
       "roamingSpeed": 1

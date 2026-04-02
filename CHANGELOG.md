@@ -4,6 +4,38 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
+## [0.8.0] - 2026-04-02
+
+### 新增
+
+- **P2 成长系统核心重构**
+  - 新增 `growthConfig.ts`：渐进 400 级经验表、动态属性上限、成长阶段判断、心情外观映射
+  - 新增 `growthEngine.ts`：每分钟成长值计算（基础 260 - 心情/健康/属性惩罚）、属性衰减计算
+  - 新增 `diseaseSystem.ts`：3 条疾病链（感冒/咳嗽/肠胃）、不适计数器、健康 0-5 级
+  - 新增 `migration.ts`：旧版存档自动缩放到新属性范围
+  - 新增 `stageSwfResolver.ts`：阶段感知 SWF 路径解析（蛋/幼年/成年）
+- 下拉菜单采用原版风格：小圆点 + 原版图标（richang/qingjie/zhibing/xuexi/dagong/lvyou）
+- 功能区菜单按钮支持 click 和 hover 双触发
+- `HorizontalScrollStrip` 组件支持 badge 叠加层（已领取/可领取标记）
+- 签到送礼任务条图标替换为原版物品 GIF 素材
+
+### 变更
+
+- `petStore.ts` 全面适配新成长系统：动态属性上限、渐进经验表、疾病状态集成
+- 属性状态栏使用 `getHungerMax(level)` / `getCleanlinessMax(level)` 动态最大值
+- 入场动画改为仅启动时播放一次，按当前等级播放对应形态动画
+- 任务送礼奖励数值适配新属性范围（×10）
+- 功能区按钮栏位置下移
+- 项目名称统一为"Q宠宝贝"，替换所有 "Cyber Mate" 残留
+
+### 修复
+
+- 修复入场动画重复播放多次的问题
+- 修复幼年体播放完入场动画后又播放成年体入场动画的问题
+- 修复下拉菜单展开二级菜单时整体往右偏移的问题
+- 清理 App.tsx 中 4 处历史乱码字符串（2 个 console.error + 2 个注释）
+- 清理 petStore.ts、storage.ts、index.ts 中的 "Cyber Mate" 占位名
+
 ## [0.7.0] - 2026-03-31
 
 ### 新增
@@ -117,4 +149,4 @@
 - AI 引擎适配层
 - 桌宠基础状态系统与交互骨架
 
-最后更新：2026-03-31
+最后更新：2026-04-02
