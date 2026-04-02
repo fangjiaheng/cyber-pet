@@ -8,7 +8,9 @@
       "Bash(claude plugins:*)",
       "Bash(npx tsc:*)",
       "Bash(grep -E \"\\\\.\\(png|jpg|gif|svg|ico\\)$\")",
-      "Bash(ls -la /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/control/icons/*.png)"
+      "Bash(ls -la /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/control/icons/*.png)",
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(python3:*)"
     ]
   }
 }

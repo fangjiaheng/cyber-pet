@@ -122,6 +122,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 4px 8px rgba(17, 8, 10, 0.22);
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-width 0.16s ease;
+  position: relative;
 }
 
 .scroll-strip__item:not(.disabled):hover .scroll-strip__circle {
@@ -145,6 +146,15 @@
   height: 34px;
   object-fit: contain;
   display: block;
+}
+
+.scroll-strip__badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
 }
 
 /* ── Label ── */

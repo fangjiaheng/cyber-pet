@@ -305,3 +305,8 @@ export function countReadyTaskGifts(group: TaskGiftGroup) {
 export function countClaimedTaskGifts(group: TaskGiftGroup) {
   return group.slots.filter((slot) => slot.isTake === 2).length
 }
+
+export function typeKeyToIconPath(typeKey: string): string {
+  const [category, itemId] = typeKey.split('*_')
+  return `assets/1.2.4source/img_res/${category}/${itemId}.gif`
+}

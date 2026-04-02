@@ -6,6 +6,8 @@ export interface ScrollStripItem {
   icon?: string
   imageSrc?: string
   imageAlt?: string
+  badgeSrc?: string
+  badgeAlt?: string
   label: string
   description?: string
   accent?: string
@@ -107,6 +109,13 @@ export default function HorizontalScrollStrip({ items, title, onClose, className
                   />
                 ) : (
                   item.icon
+                )}
+                {item.badgeSrc && (
+                  <img
+                    className="scroll-strip__badge"
+                    src={item.badgeSrc}
+                    alt={item.badgeAlt ?? ''}
+                  />
                 )}
               </div>
               <span className="scroll-strip__label">{item.label}</span>

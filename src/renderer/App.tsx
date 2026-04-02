@@ -10,6 +10,7 @@ import menuIconHeal from '/assets/1.2.4source/control/icons/zhibing.png'
 import menuIconStudy from '/assets/1.2.4source/control/icons/xuexi.png'
 import menuIconWork from '/assets/1.2.4source/control/icons/dagong.png'
 import menuIconTravel from '/assets/1.2.4source/control/icons/lvyou.png'
+import menuIconTask from '/assets/1.2.4source/control/icons/renwu.png'
 import { usePetStore } from './stores/petStore'
 import { HUNGER_MAX, CLEANLINESS_MAX } from './stores/petStore'
 import { useShallow } from 'zustand/react/shallow'
@@ -43,9 +44,13 @@ import {
   countClaimedTaskGifts,
   countReadyTaskGifts,
   getTaskGiftReward,
+  typeKeyToIconPath,
   type TaskGiftKind,
   type TaskGiftReward,
 } from '../shared/taskGift'
+
+const BADGE_CLAIMED = 'assets/1.2.4source/tip/gift/60.svg'
+const BADGE_CLAIMABLE = 'assets/1.2.4source/tip/gift/61.svg'
 
 type PenguinAction =
   | 'idle' | 'walk' | 'run' | 'sit' | 'sleep'
@@ -1213,9 +1218,18 @@ function App() {
           ? dropdownAccentColors[(index + 2) % dropdownAccentColors.length]
           : '#7d6a72'
 
+      const badgePath = slot.isTake === 2
+        ? BADGE_CLAIMED
+        : slot.isTake === 1
+          ? BADGE_CLAIMABLE
+          : undefined
+
       return {
         id: `${taskStripKind}-${slot.order}`,
-        icon: slot.isTake === 2 ? '领' : taskStripKind === 'sign' ? '登' : '在',
+        imageSrc: resolveRendererAssetUrl(typeKeyToIconPath(slot.typeKey)),
+        imageAlt: slot.typeKey,
+        badgeSrc: badgePath ? resolveRendererAssetUrl(badgePath) : undefined,
+        badgeAlt: status,
         label: taskStripKind === 'sign' ? ('第' + slot.order + '天') : ('在线' + slot.time + '分'),
         description: `${prefix}
 状态: ${status}
@@ -1255,14 +1269,14 @@ function App() {
       {
         id: 'task-sign',
         label: '登录送礼 ',
-        icon: '礼',
+        icon: <img src={menuIconTask} alt="登录送礼" />,
         accent: dropdownAccentColors[5],
         onSelect: () => window.setTimeout(() => openTaskStrip('sign'), 0),
       },
       {
         id: 'task-online',
         label: '在线送礼 ',
-        icon: '时',
+        icon: <img src={menuIconTask} alt="在线送礼" />,
         accent: dropdownAccentColors[6],
         onSelect: () => window.setTimeout(() => openTaskStrip('online'), 0),
       },
