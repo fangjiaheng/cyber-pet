@@ -10,6 +10,7 @@ import {
 
 let mainWindow: BrowserWindow | null = null
 let chatWindow: BrowserWindow | null = null
+let bubbleWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let isWindowHidden = false
 const minVisiblePixels = 50
@@ -233,6 +234,69 @@ app.whenReady().then(() => {
   ipcMain.on('chat:close', () => {
     if (chatWindow && !chatWindow.isDestroyed()) {
       chatWindow.close()
+    }
+  })
+
+  // 打开气泡对话框
+  ipcMain.on('bubble:show', (_, { text, duration }: { text: string; duration: number }) => {
+    if (!mainWindow) return
+
+    // 关闭旧的气泡窗口
+    if (bubbleWindow && !bubbleWindow.isDestroyed()) {
+      bubbleWindow.close()
+      bubbleWindow = null
+    }
+
+    const [petX, petY] = mainWindow.getPosition()
+    const [petW] = mainWindow.getSize()
+
+    // 气泡窗口尺寸
+    const bubbleW = 240
+    const bubbleH = 200
+    // 气泡显示在宠物上方居中
+    const bubbleX = Math.round(petX + petW / 2 - bubbleW / 2)
+    const bubbleY = Math.round(petY - bubbleH + 30)
+
+    bubbleWindow = new BrowserWindow({
+      width: bubbleW,
+      height: bubbleH,
+      x: bubbleX,
+      y: bubbleY,
+      frame: false,
+      transparent: true,
+      backgroundColor: '#00000000',
+      alwaysOnTop: true,
+      resizable: false,
+      skipTaskbar: true,
+      hasShadow: false,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, '../main/preload.js'),
+      },
+    })
+
+    // 加载气泡页面，通过 hash 传递参数
+    const encodedText = encodeURIComponent(text)
+    if (process.env.NODE_ENV === 'development') {
+      const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173'
+      bubbleWindow.loadURL(`${devServerUrl}#/bubble?text=${encodedText}&duration=${duration}`)
+    } else {
+      bubbleWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
+        hash: `/bubble?text=${encodedText}&duration=${duration}`,
+      })
+    }
+
+    bubbleWindow.on('closed', () => {
+      bubbleWindow = null
+    })
+  })
+
+  // 关闭气泡对话框
+  ipcMain.on('bubble:close', () => {
+    if (bubbleWindow && !bubbleWindow.isDestroyed()) {
+      bubbleWindow.close()
+      bubbleWindow = null
     }
   })
 

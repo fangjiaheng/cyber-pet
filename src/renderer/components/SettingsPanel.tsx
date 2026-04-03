@@ -4,6 +4,15 @@ import { useShallow } from 'zustand/react/shallow'
 import { getModelsForProvider } from '../../ai/providerCatalog'
 import { useWindowDrag } from '../hooks/useWindowDrag'
 import { usePetStore } from '../stores/petStore'
+import {
+  getGrowthStage,
+  getHungerMax,
+  getCleanlinessMax,
+  MOOD_MAX,
+  ENERGY_MAX,
+  HEALTH_MAX,
+  EXPERIENCE_TABLE,
+} from '../stores/growthConfig'
 import { AIConfig, AIConfigForm } from './AIConfigForm'
 import './SettingsPanel.css'
 
@@ -43,9 +52,9 @@ const SECTION_COPY: Record<SettingsSection, { eyebrow: string; title: string; su
     subtitle: 'Choose a provider, save credentials, and switch models without restarting the pet window.',
   },
   profile: {
-    eyebrow: 'PROFILE',
-    title: 'Pet Identity',
-    subtitle: 'Update the pet name, owner name, and education profile stored in local save data.',
+    eyebrow: '宠物资料',
+    title: '宠物档案',
+    subtitle: '查看宠物的成长状态、属性和基本信息。',
   },
   game: {
     eyebrow: 'GAME',
@@ -70,13 +79,23 @@ export function SettingsPanel({
   onGameSettingsSaved,
 }: SettingsPanelProps) {
   const headerRef = useRef<HTMLDivElement | null>(null)
-  const { profile, level, experience, coins, checkInStreak, updateProfile } = usePetStore(useShallow((state) => ({
+  const {
+    profile, level, experience, coins, checkInStreak, updateProfile,
+    hunger, cleanliness, mood, energy, health, createdAt, onlineDataTime,
+  } = usePetStore(useShallow((state) => ({
     profile: state.profile,
     level: state.level,
     experience: state.experience,
     coins: state.coins,
     checkInStreak: state.checkInStreak,
     updateProfile: state.updateProfile,
+    hunger: state.hunger,
+    cleanliness: state.cleanliness,
+    mood: state.mood,
+    energy: state.energy,
+    health: state.health,
+    createdAt: state.createdAt,
+    onlineDataTime: state.onlineDataTime,
   })))
 
   const [section, setSection] = useState<SettingsSection>(initialSection)
@@ -86,7 +105,6 @@ export function SettingsPanel({
   const [profileForm, setProfileForm] = useState({
     petName: profile.petName,
     ownerName: profile.ownerName,
-    education: profile.education,
   })
 
   useWindowDrag(headerRef)
@@ -99,9 +117,8 @@ export function SettingsPanel({
     setProfileForm({
       petName: profile.petName,
       ownerName: profile.ownerName,
-      education: profile.education,
     })
-  }, [profile.education, profile.ownerName, profile.petName])
+  }, [profile.ownerName, profile.petName])
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -133,8 +150,27 @@ export function SettingsPanel({
   }, [settings?.defaultModel, settings?.provider])
 
   const configured = Boolean(settings?.apiKey && settings?.baseUrl)
-  const levelProgress = experience % 200
   const currentSectionCopy = SECTION_COPY[section]
+
+  // 正确的经验进度计算
+  const tableIndex = Math.min(level - 1, EXPERIENCE_TABLE.length - 1)
+  const currentLevelExp = EXPERIENCE_TABLE[tableIndex]
+  const nextLevelExp = tableIndex + 1 < EXPERIENCE_TABLE.length
+    ? EXPERIENCE_TABLE[tableIndex + 1]
+    : currentLevelExp + 10000
+  const levelProgress = experience - currentLevelExp
+  const levelTotal = nextLevelExp - currentLevelExp
+
+  // 成长阶段中文
+  const growthStage = getGrowthStage(level)
+  const STAGE_LABELS: Record<string, string> = { egg: '蛋', kid: '幼年', adult: '成年' }
+
+  // 宠物年龄（天数）
+  const petAgeDays = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24))
+
+  // 属性上限
+  const hungerMax = getHungerMax(level)
+  const cleanlinessMax = getCleanlinessMax(level)
 
   const handleSaved = (config: AIConfig) => {
     setSettings({
@@ -150,9 +186,8 @@ export function SettingsPanel({
     updateProfile({
       petName: profileForm.petName.trim() || profile.petName,
       ownerName: profileForm.ownerName.trim() || profile.ownerName,
-      education: profileForm.education,
     })
-    onNotice?.('Profile saved.')
+    onNotice?.('资料已保存')
   }
 
   const handleGameSettingsSave = async () => {
@@ -192,7 +227,7 @@ export function SettingsPanel({
         <aside className="settings-sidebar">
           {([
             ['ai', 'AI Config', 'Provider and model'],
-            ['profile', 'Profile', 'Name and growth'],
+            ['profile', '资料', '成长与属性'],
             ['game', 'Game', 'Animation timing'],
             ['about', 'About', 'Status and limits'],
           ] as Array<[SettingsSection, string, string]>).map(([key, title, description]) => (
@@ -222,20 +257,20 @@ export function SettingsPanel({
 
             <div className="settings-status-grid">
               <div className="settings-status-item">
-                <span>Pet Name</span>
+                <span>宠物昵称</span>
                 <strong>{profile.petName}</strong>
               </div>
               <div className="settings-status-item">
-                <span>Owner Name</span>
+                <span>主人昵称</span>
                 <strong>{profile.ownerName}</strong>
               </div>
               <div className="settings-status-item">
-                <span>Level / Experience</span>
-                <strong>Lv.{level} / {levelProgress} / 200</strong>
+                <span>等级 / 经验</span>
+                <strong>Lv.{level} / {levelProgress} / {levelTotal}</strong>
               </div>
               <div className="settings-status-item">
-                <span>Coins / Streak</span>
-                <strong>{coins} / {checkInStreak} days</strong>
+                <span>金币 / 签到</span>
+                <strong>{coins} / {checkInStreak} 天</strong>
               </div>
             </div>
           </section>
@@ -306,17 +341,18 @@ export function SettingsPanel({
 
           {section === 'profile' && (
             <>
+              {/* Card 1 — 基本信息 */}
               <section className="settings-card">
                 <div className="settings-card-header">
                   <div>
-                    <span className="settings-card-kicker">IDENTITY</span>
-                    <h3>Name and Education</h3>
+                    <span className="settings-card-kicker">基本信息</span>
+                    <h3>宠物档案</h3>
                   </div>
                 </div>
 
                 <div className="settings-form-grid">
                   <label className="settings-field">
-                    <span>Pet Name</span>
+                    <span>宠物昵称</span>
                     <input
                       value={profileForm.petName}
                       onChange={(event) => setProfileForm((current) => ({ ...current, petName: event.target.value }))}
@@ -324,48 +360,68 @@ export function SettingsPanel({
                   </label>
 
                   <label className="settings-field">
-                    <span>Owner Name</span>
+                    <span>主人昵称</span>
                     <input
                       value={profileForm.ownerName}
                       onChange={(event) => setProfileForm((current) => ({ ...current, ownerName: event.target.value }))}
                     />
                   </label>
+                </div>
 
-                  <label className="settings-field settings-field--full">
-                    <span>Education</span>
-                    <select
-                      value={profileForm.education}
-                      onChange={(event) => setProfileForm((current) => ({ ...current, education: event.target.value }))}
-                    >
-                      {EDUCATION_OPTIONS.map((item) => (
-                        <option key={item} value={item}>{item}</option>
-                      ))}
-                    </select>
-                  </label>
+                <div className="profile-info-grid">
+                  <div className="profile-info-row">
+                    <span>等级</span>
+                    <strong>Lv.{level}</strong>
+                  </div>
+                  <div className="profile-info-row">
+                    <span>成长阶段</span>
+                    <strong>{STAGE_LABELS[growthStage] ?? growthStage}</strong>
+                  </div>
+                  <div className="profile-info-row">
+                    <span>学历</span>
+                    <strong>{profile.education}</strong>
+                  </div>
+                  <div className="profile-info-row">
+                    <span>宠物年龄</span>
+                    <strong>{petAgeDays} 天</strong>
+                  </div>
+                </div>
+
+                <div className="settings-progress-card">
+                  <div className="settings-progress-header">
+                    <span>经验进度</span>
+                    <strong>{levelProgress} / {levelTotal}</strong>
+                  </div>
+                  <div className="settings-progress-track">
+                    <div className="settings-progress-fill" style={{ width: `${Math.min(100, (levelProgress / levelTotal) * 100)}%` }} />
+                  </div>
                 </div>
 
                 <div className="settings-tip-actions">
                   <button className="settings-primary-btn" onClick={handleProfileSave}>
-                    Save Profile
+                    保存资料
                   </button>
                 </div>
               </section>
 
+              {/* Card 2 — 成长属性 */}
               <section className="settings-card">
                 <div className="settings-card-header">
                   <div>
-                    <span className="settings-card-kicker">STATS</span>
-                    <h3>Growth Snapshot</h3>
+                    <span className="settings-card-kicker">属性面板</span>
+                    <h3>成长属性</h3>
                   </div>
                 </div>
 
-                <div className="settings-stat-grid">
-                  {[
-                    ['Intelligence', profile.intelligence],
-                    ['Strength', profile.strength],
-                    ['Charm', profile.charm],
-                    ['Coins', coins],
-                  ].map(([label, value]) => (
+                <div className="profile-stat-grid">
+                  {([
+                    ['智力', profile.intelligence],
+                    ['力量', profile.strength],
+                    ['魅力', profile.charm],
+                    ['金币', coins],
+                    ['签到', `${checkInStreak} 天`],
+                    ['在线', `${Math.floor(onlineDataTime / 60)}小时${onlineDataTime % 60}分`],
+                  ] as Array<[string, string | number]>).map(([label, value]) => (
                     <div key={label} className="settings-stat-card">
                       <span>{label}</span>
                       <strong>{value}</strong>
@@ -373,15 +429,27 @@ export function SettingsPanel({
                   ))}
                 </div>
 
-                <div className="settings-progress-card">
-                  <div className="settings-progress-header">
-                    <span>Level Progress</span>
-                    <strong>Lv.{level}</strong>
-                  </div>
-                  <div className="settings-progress-track">
-                    <div className="settings-progress-fill" style={{ width: `${(levelProgress / 200) * 100}%` }} />
-                  </div>
-                  <p>Current EXP: {levelProgress} / 200. Check-in streak: {checkInStreak} days.</p>
+                <div className="profile-status-section">
+                  {([
+                    ['饱食度', hunger, hungerMax, 'green'],
+                    ['清洁度', cleanliness, cleanlinessMax, 'blue'],
+                    ['心情', mood, MOOD_MAX, 'purple'],
+                    ['能量', energy, ENERGY_MAX, 'orange'],
+                    ['健康', health, HEALTH_MAX, 'red'],
+                  ] as Array<[string, number, number, string]>).map(([label, current, max, color]) => (
+                    <div key={label} className="profile-status-row">
+                      <div className="profile-status-header">
+                        <span>{label}</span>
+                        <span>{current} / {max}</span>
+                      </div>
+                      <div className="profile-status-track">
+                        <div
+                          className={`profile-status-fill profile-status-fill--${color}`}
+                          style={{ width: `${Math.min(100, (current / max) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
             </>

@@ -50,9 +50,9 @@ import {
   SETTINGS_WINDOW_WIDTH,
 } from '@shared/windowSizes'
 import { swfCategories } from './swfData'
-import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist } from './utils/swfPlaylist'
+import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist, getStageHidePath } from './utils/swfPlaylist'
 import { getGrowthStage, getMoodAppearance, type GrowthStage } from './stores/growthConfig'
-import { getTransitionSwfPath } from './utils/stageSwfResolver'
+import { getTransitionSwfPath, getRandomPlaySwfPath } from './utils/stageSwfResolver'
 // stageSwfResolver 的直接引用将在后续 Phase 中启用
 // import { getActionSwfPath, toPlaylistPath } from './utils/stageSwfResolver'
 import {
@@ -417,6 +417,7 @@ function App() {
   const hideActionsTimer = useRef<number | null>(null)
   const actionResetTimer = useRef<number | null>(null)
   const actionSequence = useRef(0)
+  const idlePlayTimer = useRef<number | null>(null)
   const chatHeaderRef = useRef<HTMLDivElement | null>(null)
   const penguinWrapperRef = useRef<HTMLDivElement | null>(null)
   const actionBarRef = useRef<HTMLDivElement | null>(null)
@@ -511,8 +512,11 @@ function App() {
   }, [])
 
   const playSwfPath = useCallback((swfPath: string, options?: PlaySwfOptions) => {
-    playPlaylist(buildLoadlistsPlaylist(swfPath, options))
-  }, [playPlaylist])
+    playPlaylist(buildLoadlistsPlaylist(swfPath, {
+      ...options,
+      idlePath: options?.idlePath ?? currentIdlePath,
+    }))
+  }, [currentIdlePath, playPlaylist])
 
   const clearHideActionsTimer = useCallback(() => {
     if (hideActionsTimer.current) {
@@ -570,14 +574,18 @@ function App() {
     scheduleReturnToIdle(options.baseDuration)
   }, [clearActionResetTimer, playSwfPath, scheduleReturnToIdle])
 
-  // 入场动画只在 mount 时播放一次，用当时的阶段
+  // 入场动画：数据加载后播放对应阶段的入场动画
   const hasPlayedEnter = useRef(false)
+  const enterPlaylistRef = useRef(currentEnterPlaylist)
+  enterPlaylistRef.current = currentEnterPlaylist
   useEffect(() => {
     if (hasPlayedEnter.current) return
-    hasPlayedEnter.current = true
 
+    // 延迟播放，确保 storage 数据已加载并更新了 enterPlaylistRef
     const enterTimer = window.setTimeout(() => {
-      playPlaylist(currentEnterPlaylist)
+      if (hasPlayedEnter.current) return
+      hasPlayedEnter.current = true
+      playPlaylist(enterPlaylistRef.current)
     }, 1500)
 
     return () => {
@@ -1019,12 +1027,22 @@ function App() {
   }, [openPanel])
 
   const handleHideToTray = useCallback(() => {
-    window.electronAPI?.hideToTray?.()
-  }, [])
+    // 播放对应阶段的隐藏动画，动画结束后再隐藏到托盘
+    const hidePath = getStageHidePath(growthStage, moodAppearance)
+    playPlaylist(hidePath)
+    window.setTimeout(() => {
+      window.electronAPI?.hideToTray?.()
+    }, 2500)
+  }, [growthStage, moodAppearance, playPlaylist])
 
   const handleQuit = useCallback(() => {
-    window.electronAPI?.closeWindow?.()
-  }, [])
+    // 播放对应阶段的隐藏动画，动画结束后再关闭窗口
+    const hidePath = getStageHidePath(growthStage, moodAppearance)
+    playPlaylist(hidePath)
+    window.setTimeout(() => {
+      window.electronAPI?.closeWindow?.()
+    }, 2500)
+  }, [growthStage, moodAppearance, playPlaylist])
 
   const handlePlaySwf = useCallback((swfUrl: string, animationId?: string) => {
     clearActionResetTimer()
@@ -1575,6 +1593,34 @@ function App() {
     }
   }, [currentEmotion, energy, hunger, penguinAction])
 
+  // 站立状态下定时播放随机玩耍动画
+  useEffect(() => {
+    if (idlePlayTimer.current) {
+      window.clearTimeout(idlePlayTimer.current)
+      idlePlayTimer.current = null
+    }
+
+    if (penguinAction !== 'idle') return
+
+    // 随机间隔 60~90 秒播放一次，避免过度打扰用户
+    const delay = 60_000 + Math.random() * 30_000
+    idlePlayTimer.current = window.setTimeout(() => {
+      idlePlayTimer.current = null
+      // 再次确认仍在 idle 状态
+      if (penguinAction !== 'idle') return
+      const playPath = getRandomPlaySwfPath(growthStage, moodAppearance)
+      playSwfPath(playPath)
+      scheduleReturnToIdle(3000)
+    }, delay)
+
+    return () => {
+      if (idlePlayTimer.current) {
+        window.clearTimeout(idlePlayTimer.current)
+        idlePlayTimer.current = null
+      }
+    }
+  }, [penguinAction, growthStage, moodAppearance, playSwfPath, scheduleReturnToIdle])
+
   useEffect(() => {
     if (!isActionDropdownOpen) return
     clearHideActionsTimer()
@@ -1672,6 +1718,12 @@ function App() {
 
     if (isBubbleOpen) {
       resizeWindowForMode('bubble')
+      return
+    }
+
+    // 气泡关闭时不需要重新调整窗口，避免位置偏移
+    if (windowLayoutModeRef.current === 'bubble') {
+      windowLayoutModeRef.current = 'pet'
       return
     }
 

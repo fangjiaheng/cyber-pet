@@ -2,6 +2,7 @@ import { PENGUIN_102_SPECIAL_PLAYLIST_BY_ID } from './penguin102OriginalPlaylist
 import {
   getIdleSwfPath,
   getExitSwfPath,
+  getHideSwfPath,
   getEnterPlaylist,
   getEndingSwfPaths,
   toPlaylistPath,
@@ -35,6 +36,13 @@ export function getStageIdlePath(stage: GrowthStage, mood: MoodAppearance): stri
  */
 export function getStageEndPath(stage: GrowthStage): string {
   return toPlaylistPath(getExitSwfPath(stage))
+}
+
+/**
+ * 获取阶段感知的隐藏动画路径
+ */
+export function getStageHidePath(stage: GrowthStage, mood: MoodAppearance): string {
+  return toPlaylistPath(getHideSwfPath(stage, mood))
 }
 
 /**

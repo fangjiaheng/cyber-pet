@@ -51,8 +51,12 @@ export function PetBubble({
     <div className={`pet-bubble pet-bubble--${placement} ${isVisible ? 'visible' : ''}`}>
       <div className="bubble-content">
         <p>{text}</p>
-        <button className="bubble-close-btn" onClick={handleClose}>
-          Close
+        <button className="bubble-ok-btn" onClick={handleClose}>
+          <img
+            src="/assets/1.2.4source/tip/alert/btnok_00.png"
+            alt="确定"
+            draggable={false}
+          />
         </button>
       </div>
     </div>

@@ -97,6 +97,32 @@ function callSwfCallback(
   throw new Error(`未找到可用的 ${callbackName} 调用桥`)
 }
 
+/**
+ * 等待独立 SWF 播放完毕（通过轮询 isPlaying / currentFrame 判断）
+ * 超时后自动放行，避免永远卡住
+ */
+async function waitForSwfComplete(player: any, timeoutMs = 10_000): Promise<void> {
+  if (!player) return
+
+  const start = Date.now()
+  // 先等一小段时间让动画开始
+  await wait(500)
+
+  while (Date.now() - start < timeoutMs) {
+    try {
+      // Ruffle player 暴露 isPlaying 属性
+      if (player.isPlaying === false) return
+      // 备用：检查是否到达最后一帧
+      const current = player.currentFrame
+      const total = player.totalFrames
+      if (current != null && total != null && total > 0 && current >= total) return
+    } catch {
+      // 属性不可用时跳过
+    }
+    await wait(200)
+  }
+}
+
 export const RufflePlayer: React.FC<RufflePlayerProps> = ({
   playlist,
   playToken = 0,
@@ -298,10 +324,17 @@ export const RufflePlayer: React.FC<RufflePlayerProps> = ({
     const play = async () => {
       // 检测是否为新版独立 SWF 素材
       if (isStandaloneSwf(playlist)) {
-        // 新版素材：直接加载 SWF 文件
-        // 如果是播放列表（逗号分隔），只播放第一个
-        const firstSwf = playlist.split(',')[0].trim()
-        await playStandaloneSwf(firstSwf)
+        const swfList = playlist.split(',').map(s => s.trim()).filter(Boolean)
+
+        for (let i = 0; i < swfList.length; i++) {
+          if (!mountedRef.current) return
+          await playStandaloneSwf(swfList[i])
+
+          // 非最后一个 SWF 时，等待动画播放完毕再播下一个
+          if (i < swfList.length - 1) {
+            await waitForSwfComplete(playerRef.current)
+          }
+        }
         return
       }
 

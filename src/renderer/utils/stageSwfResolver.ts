@@ -32,6 +32,19 @@ export function getIdleSwfPath(stage: GrowthStage, moodAppearance: MoodAppearanc
 }
 
 /**
+ * 获取隐藏动画路径
+ * - 蛋/幼年：直接 Hide.swf
+ * - 成年：{mood}/Hide.swf
+ */
+export function getHideSwfPath(stage: GrowthStage, moodAppearance: MoodAppearance): string {
+  const base = BASE_PATHS[stage]
+  if (stage === 'adult') {
+    return `${base}${moodAppearance}/Hide.swf`
+  }
+  return `${base}Hide.swf`
+}
+
+/**
  * 获取入场动画路径
  */
 export function getEnterSwfPath(stage: GrowthStage): string {

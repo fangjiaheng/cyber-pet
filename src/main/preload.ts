@@ -39,6 +39,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openChatWindow: () => ipcRenderer.send('chat:open'),
   closeChatWindow: () => ipcRenderer.send('chat:close'),
 
+  // 气泡对话框
+  showBubble: (text: string, duration: number) => ipcRenderer.send('bubble:show', { text, duration }),
+  closeBubble: () => ipcRenderer.send('bubble:close'),
+
   // 环境变量
   env: {
     OPENCLAW_TOKEN: process.env.OPENCLAW_TOKEN,

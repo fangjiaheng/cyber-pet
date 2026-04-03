@@ -404,6 +404,96 @@
   transform: translateY(-1px);
 }
 
+/* ========== 资料页 profile 专用样式 ========== */
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(14, 16, 23, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.profile-info-row span {
+  font-size: 12px;
+  color: rgba(245, 247, 255, 0.62);
+}
+
+.profile-info-row strong {
+  font-size: 14px;
+  color: #f5f7ff;
+}
+
+.profile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.profile-status-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.profile-status-row {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(14, 16, 23, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.profile-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(245, 247, 255, 0.82);
+}
+
+.profile-status-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.profile-status-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.profile-status-fill--green {
+  background: linear-gradient(90deg, #4edd81, #83f2a9);
+}
+
+.profile-status-fill--blue {
+  background: linear-gradient(90deg, #4ea8de, #83c5f2);
+}
+
+.profile-status-fill--purple {
+  background: linear-gradient(90deg, #7b8dff, #b68dff);
+}
+
+.profile-status-fill--orange {
+  background: linear-gradient(90deg, #f0a030, #ffc864);
+}
+
+.profile-status-fill--red {
+  background: linear-gradient(90deg, #e85d5d, #f2a0a0);
+}
+
 @media (max-width: 800px) {
   .settings-panel {
     width: calc(100vw - 24px);
