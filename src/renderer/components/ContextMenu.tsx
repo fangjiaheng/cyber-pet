@@ -3,7 +3,6 @@ import './ContextMenu.css'
 
 export interface MenuItem {
   label: string
-  icon?: string
   onClick: () => void
   divider?: boolean
   disabled?: boolean
@@ -56,22 +55,6 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
 
   const activeItem = items.find((item) => item.label === activeItemLabel && item.children?.length)
 
-  const resolveIcon = (item: MenuItem) => {
-    const normalizedLabel = item.label.toLowerCase()
-
-    if (normalizedLabel.includes('ai')) return 'AI'
-    if (normalizedLabel.includes('chat') || item.label.includes('聊天')) return 'CH'
-    if (
-      normalizedLabel.includes('setting')
-      || item.label.includes('配置')
-      || item.label.includes('设置')
-    ) {
-      return 'CF'
-    }
-
-    return item.icon
-  }
-
   const handleItemClick = (item: MenuItem) => {
     if (item.disabled) return
 
@@ -105,7 +88,7 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
               ) : (
                 <div
                   key={index}
-                  className={`context-menu-item ${item.disabled ? 'disabled' : ''} ${item.icon ? 'has-icon' : 'text-only'} ${activeItemLabel === item.label ? 'active' : ''}`}
+                  className={`context-menu-item ${item.disabled ? 'disabled' : ''} ${activeItemLabel === item.label ? 'active' : ''}`}
                   onClick={() => handleItemClick(item)}
                   onMouseEnter={() => {
                     if (item.children?.length && !item.disabled) {
@@ -113,7 +96,6 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
                     }
                   }}
                 >
-                  {item.icon && <span className="context-menu-icon">{resolveIcon(item)}</span>}
                   <span className="context-menu-label">{item.label}</span>
                   {item.children?.length ? <span className="context-menu-chevron">&gt;</span> : null}
                 </div>
@@ -129,10 +111,9 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
                 ) : (
                   <div
                     key={index}
-                    className={`context-menu-item ${item.disabled ? 'disabled' : ''} ${item.icon ? 'has-icon' : 'text-only'}`}
+                    className={`context-menu-item ${item.disabled ? 'disabled' : ''}`}
                     onClick={() => handleItemClick(item)}
                   >
-                    {item.icon && <span className="context-menu-icon">{resolveIcon(item)}</span>}
                     <span className="context-menu-label">{item.label}</span>
                   </div>
                 )

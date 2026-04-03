@@ -1493,35 +1493,30 @@ function App() {
   const menuItems: MenuItem[] = useMemo(() => ([
     {
       label: 'AI 助手',
-      icon: 'AI',
       onClick: () => { },
       children: [
-        { label: '打开聊天', icon: 'CH', onClick: () => handleOpenChat() },
-        { label: 'AI 设置', icon: 'CF', onClick: () => openSettingsSection('ai') },
+        { label: '打开聊天', onClick: () => handleOpenChat() },
+        { label: 'AI 设置', onClick: () => openSettingsSection('ai') },
       ],
     },
     {
       label: '宠物互动',
-      icon: '宠',
       onClick: () => { },
       children: [
-        { label: '食物', icon: '食', onClick: () => handleFeed() },
-        { label: '清洁', icon: '洁', onClick: () => handleClean() },
-        { label: '玩耍', icon: '玩', onClick: () => handlePlay() },
-        { label: '休息', icon: '休', onClick: handleRest },
+        { label: '食物', onClick: () => handleFeed() },
+        { label: '清洁', onClick: () => handleClean() },
+        { label: '玩耍', onClick: () => handlePlay() },
+        { label: '休息', onClick: handleRest },
         {
           label: '任务',
-          icon: '礼',
           onClick: () => { },
           children: [
             {
               label: '登录送礼' + (countReadyTaskGifts(taskGifts.sign) > 0 ? ' 可领' : ''),
-              icon: '登',
               onClick: () => openTaskStrip('sign'),
             },
             {
               label: '在线送礼' + (countReadyTaskGifts(taskGifts.online) > 0 ? ' 可领' : ''),
-              icon: '在',
               onClick: () => openTaskStrip('online'),
             },
           ],
@@ -1530,38 +1525,33 @@ function App() {
     },
     {
       label: '商城',
-      icon: '商',
       onClick: () => openPanel('shop'),
     },
     {
       label: '宠物信息',
-      icon: '档',
       onClick: () => { },
       children: [
-        { label: '宠物资料', icon: '资', onClick: () => openPanel('info') },
-        { label: '宠物状态', icon: '态', onClick: () => openPanel('state') },
-        { label: '背包', icon: '包', onClick: () => openPanel('inventory') },
+        { label: '宠物资料', onClick: () => openPanel('info') },
+        { label: '宠物状态', onClick: () => openPanel('state') },
+        { label: '背包', onClick: () => openPanel('inventory') },
       ],
     },
     {
       label: '选项',
-      icon: '设',
       onClick: () => { },
       children: [
-        { label: '设置', icon: '设', onClick: () => openSettingsSection('game') },
-        { label: '停止动画', icon: '停', onClick: handleStopSwf },
-        { label: '关于', icon: '关', onClick: () => openSettingsSection('about') },
+        { label: '设置', onClick: () => openSettingsSection('game') },
+        { label: '停止动画', onClick: handleStopSwf },
+        { label: '关于', onClick: () => openSettingsSection('about') },
       ],
     },
     { divider: true, label: '', onClick: () => { } },
     {
       label: '隐藏宠物',
-      icon: '隐',
       onClick: handleHideToTray,
     },
     {
       label: '退出宠物',
-      icon: '退',
       onClick: handleQuit,
     },
   ]), [handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openPanel, openSettingsSection, openTaskStrip, taskGifts])

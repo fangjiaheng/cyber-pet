@@ -17,7 +17,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     0 6px 18px rgba(67, 101, 122, 0.22);
   padding: 4px 0;
-  min-width: 142px;
+  min-width: 124px;
   z-index: 10000;
   animation: menuFadeIn 0.12s ease-out;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -29,7 +29,7 @@
 }
 
 .context-menu__column {
-  min-width: 142px;
+  min-width: 124px;
 }
 
 .context-menu__column--submenu {
@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   min-height: 30px;
-  padding: 5px 14px;
+  padding: 5px 16px;
   cursor: pointer;
   transition: background-color 0.12s ease, color 0.12s ease;
   user-select: none;
@@ -79,18 +79,8 @@
   cursor: not-allowed;
 }
 
-.context-menu-item.text-only {
-  padding-left: 16px;
-}
-
-.context-menu-icon {
-  font-size: 14px;
-  margin-right: 8px;
-  width: 16px;
-  text-align: center;
-}
-
 .context-menu-label {
+  flex: 1;
   font-size: 13px;
   line-height: 1;
   color: #263946;
@@ -99,7 +89,8 @@
 }
 
 .context-menu-chevron {
-  margin-left: 12px;
+  margin-left: auto;
+  padding-left: 12px;
   color: rgba(38, 57, 70, 0.72);
   font-size: 15px;
 }
