@@ -14,6 +14,7 @@ export interface ElectronAPI {
   resizeWindow: (width: number, height: number, options?: ResizeWindowOptions) => void
   hideToTray: () => void
   showFromTray: () => void
+  updateTrayIcon: (state: string) => void
   onNearEdge: (callback: (edge: string) => void) => () => void
   onOpenChat: (callback: () => void) => () => void
   onOpenSettings: (callback: () => void) => () => void

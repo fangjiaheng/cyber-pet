@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 托盘相关
   hideToTray: () => ipcRenderer.send('window:hide-to-tray'),
   showFromTray: () => ipcRenderer.send('window:show-from-tray'),
+  updateTrayIcon: (state: string) => ipcRenderer.send('tray:update-icon', state),
 
   // 监听边缘事件
   onNearEdge: (callback: (edge: string) => void) => {

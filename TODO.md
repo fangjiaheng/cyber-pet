@@ -1,6 +1,6 @@
 ﻿# 待办事项
 
-更新时间：2026-04-02
+更新时间：2026-04-03
 
 ## P0
 
@@ -46,22 +46,56 @@
 - 评估学习和打工与元宝产出的关系，统一资源循环
 - 评估桌面通知、漫游、更多随机互动动画
 
-## P3 — 商城与资源循环
+## Phase 1 — 物品库存 + 商店（已完成 ✅）
 
-### 商城系统
-- 设计商城 UI 面板（食物、清洁用品、药品、道具等分类）
-- 实现元宝购买物品流程
-- 物品库存 / 背包系统
+- [x] 物品目录数据层 `src/shared/itemCatalog.ts`（食物50+、商品22+、药品22、背景17、学习36、打工18）
+- [x] 库存 Store `src/renderer/stores/inventoryStore.ts`（Zustand + 持久化）
+- [x] 重构喂食/清洁/治疗流程为库存消耗模式（App.tsx 中 feedWithItem/cleanWithItem/healWithItem）
+- [x] 商店面板 `src/renderer/components/ShopPanel.tsx`（4分类、分页、购买流程）
+- [x] 右键菜单"商城"入口已接通
 
-### 元宝体系
-- 明确元宝的获取途径（打工、签到、在线奖励等）和消费用途（商城购买）
-- 当前 coins 的产出与消耗是否平衡，需要数值验证
-- 评估是否需要区分元宝和金币两种货币
+## Phase 2 — 对话系统 + 疾病UI（已完成 ✅）
 
-### 学习/打工/旅行列表素材
-- 从 `1.2.4source` 中查找学习、打工、旅行的列表素材（图标和名称）
-- 替换当前占位文案，使用原版的课程/工作/旅行地点名称和图标
-- 每个选项对应不同的奖励数值和时长
+### 2a. 对话系统
+- [x] `src/shared/communication.ts` — 转录原版全部对话（enter/exit/eat/clean/levUp/smallTalk/state等 200+条）
+- [x] `src/renderer/hooks/usePetDialogue.ts` — 启动对话、定时闲聊（4分钟间隔）、状态提醒、事件触发
+- [x] 喂食/清洁后延迟触发对应对话
+
+### 2b. 疾病UI完善
+- [x] 修正 `diseaseSystem.ts` 药品ID（感冒链/咳嗽链/消化链对应原版State.js）
+- [x] 治疗条根据当前疾病动态展示对症药品（★对症标记 + 错误药品提示）
+- [x] 万能药品支持（百草丹治一级、还魂丹直接痊愈）
+- [x] 药品目录完整22种（itemCatalog.ts）
+
+## Phase 3 — 打工 + 学习系统（已完成 ✅）
+
+- [x] `src/renderer/stores/activitySystem.ts` — 统一活动管理（打工/学习互斥、计时、学时追踪）
+- [x] `src/renderer/components/WorkPanel.tsx` — 18种工作选择、等级/学历门槛过滤、计时、元宝收益
+- [x] `src/renderer/components/StudyPanel.tsx` — 9科目×4学校等级、学时进度条、前置学业检查
+- [x] 活动互斥：activityStore 管理 activeActivity，忙碌时按钮灰化
+- [x] 活动数据持久化（petStore → electron-store）
+
+## Phase 4 — 信息面板（已完成 ✅）
+
+- [x] `src/renderer/components/InfoCardPanel.tsx` — 宠物资料卡（名称可编辑/属性/学历/在线时长）
+- [x] `src/renderer/components/StateInfoPanel.tsx` — 状态进度条（饥饿/清洁/心情/体力/健康/经验/疾病）
+- [x] `src/renderer/components/InventoryPanel.tsx` — 背包浏览（4分类/分页/数量展示）
+- [x] 右键菜单新增"宠物信息"子菜单（资料/状态/背包）
+
+## Phase 5 — 阶段转变动画 + 托盘图标（已完成 ✅）
+
+- [x] 升级跨阶段时播放 Etoj.swf / Jtoc.swf（useEffect 监听 growthStage 变化）
+- [x] 系统托盘根据宠物状态切换图标（IPC tray:update-icon + 动画帧循环）
+- [x] 状态映射：normal/hungry/dirty/ill/dead/study/work/travel
+
+## Phase 6 — 旅行 + 粉钻 + 背景房间（已完成 ✅）
+
+- [x] 旅行系统（4个目的地：公园/海滩/登山/图书馆，使用 activityStore 计时）
+- [x] 粉钻VIP系统数据层 `src/renderer/stores/pinkDiamond.ts`（7级、购买/续费/过期/成长加成）
+- [ ] 粉钻面板UI（待后续需要时接入）
+- [ ] 背景房间UI（素材 17 张已就绪，待后续接入渲染层）
+
+## 其他待办
 
 ### 动画对应问题
 - 排查当前各动作（喂食、清洁、治疗、学习、打工、旅行）播放的 SWF 是否与实际动作匹配

@@ -12,9 +12,14 @@ import menuIconWork from '/assets/1.2.4source/control/icons/dagong.png'
 import menuIconTravel from '/assets/1.2.4source/control/icons/lvyou.png'
 import menuIconTask from '/assets/1.2.4source/control/icons/renwu.png'
 import { usePetStore } from './stores/petStore'
+import { useInventoryStore } from './stores/inventoryStore'
+import { useActivityStore } from './stores/activitySystem'
+import { getItemById, UNIVERSAL_MEDICINES } from '../shared/itemCatalog'
+import { getCurrentDiseaseInfo, applyMedicine } from './stores/diseaseSystem'
 import { getHungerMax, getCleanlinessMax, MOOD_MAX } from './stores/growthConfig'
 import { useShallow } from 'zustand/react/shallow'
 import { usePetDecay } from './hooks/usePetDecay'
+import { usePetDialogue } from './hooks/usePetDialogue'
 import { ActionDropdownMenu, ActionDropdownMenuItem } from './components/ActionDropdownMenu'
 import HorizontalScrollStrip, { ScrollStripItem } from './components/HorizontalScrollStrip'
 import { ContextMenu, MenuItem } from './components/ContextMenu'
@@ -24,6 +29,12 @@ import { RufflePlayer } from './components/RufflePlayer'
 import { PlayerSwfProbePanel } from './components/PlayerSwfProbePanel'
 import { ChatWindow } from '../components/ChatWindow'
 import { SettingsPanel } from './components/SettingsPanel'
+import { ShopPanel } from './components/ShopPanel'
+import { WorkPanel } from './components/WorkPanel'
+import { StudyPanel } from './components/StudyPanel'
+import { InfoCardPanel } from './components/InfoCardPanel'
+import { StateInfoPanel } from './components/StateInfoPanel'
+import { InventoryPanel } from './components/InventoryPanel'
 import { initializeAI } from './aiInit'
 import { useWindowDrag } from './hooks/useWindowDrag'
 import {
@@ -40,7 +51,8 @@ import {
 } from '@shared/windowSizes'
 import { swfCategories } from './swfData'
 import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist } from './utils/swfPlaylist'
-import { getGrowthStage, getMoodAppearance } from './stores/growthConfig'
+import { getGrowthStage, getMoodAppearance, type GrowthStage } from './stores/growthConfig'
+import { getTransitionSwfPath } from './utils/stageSwfResolver'
 // stageSwfResolver 的直接引用将在后续 Phase 中启用
 // import { getActionSwfPath, toPlaylistPath } from './utils/stageSwfResolver'
 import {
@@ -60,9 +72,9 @@ type PenguinAction =
   | 'eat' | 'bathe' | 'play' | 'work'
   | 'happy' | 'sad' | 'angry'
 
-type ActivePanel = 'chat' | 'settings' | 'probe' | null
+type ActivePanel = 'chat' | 'settings' | 'probe' | 'shop' | 'work' | 'study' | 'info' | 'state' | 'inventory' | null
 type SettingsSection = 'ai' | 'profile' | 'game' | 'about'
-type WindowMode = 'pet' | 'chat' | 'settings' | 'probe' | 'context-menu' | 'action-dropdown' | 'bubble'
+type WindowMode = 'pet' | 'chat' | 'settings' | 'probe' | 'shop' | 'work' | 'study' | 'info' | 'state' | 'inventory' | 'context-menu' | 'action-dropdown' | 'bubble'
 type PlayerCommand = {
   playlist: string
   token: number
@@ -340,42 +352,59 @@ function App() {
     currentEmotion,
     onlineDataTime,
     taskGifts,
-    feed,
-    clean,
     play,
     rest,
-    heal,
-    study,
-    work: petWork,
     travel,
+    feedWithItem,
+    cleanWithItem,
+    healWithItem,
     claimTaskGift,
     ensureTaskGiftState,
+    health,
+    diseaseState,
     cancelCurrentAction,
   } = usePetStore(useShallow((state) => ({
     hunger: state.hunger,
     cleanliness: state.cleanliness,
     energy: state.energy,
     mood: state.mood,
+    health: state.health,
     level: state.level,
     profile: state.profile,
     coins: state.coins,
     currentEmotion: state.currentEmotion,
     onlineDataTime: state.onlineDataTime,
     taskGifts: state.taskGifts,
-    feed: state.feed,
-    clean: state.clean,
     play: state.play,
     rest: state.rest,
-    heal: state.heal,
-    study: state.study,
-    work: state.work,
     travel: state.travel,
+    feedWithItem: state.feedWithItem,
+    cleanWithItem: state.cleanWithItem,
+    healWithItem: state.healWithItem,
+    diseaseState: state.diseaseState,
     claimTaskGift: state.claimTaskGift,
     ensureTaskGiftState: state.ensureTaskGiftState,
     cancelCurrentAction: state.cancelCurrentAction,
   })))
 
+  const { removeItem, getItemCount } = useInventoryStore()
+
   usePetDecay()
+
+  // 托盘图标状态同步
+  useEffect(() => {
+    if (!window.electronAPI?.updateTrayIcon) return
+    const active = useActivityStore.getState().active
+    let trayState = 'normal'
+    if (health === 0) trayState = 'dead'
+    else if (diseaseState.activeDisease) trayState = 'ill'
+    else if (active?.type === 'work') trayState = 'work'
+    else if (active?.type === 'study') trayState = 'study'
+    else if (active?.type === 'travel') trayState = 'travel'
+    else if (hunger < 720) trayState = 'hungry'
+    else if (cleanliness < 1080) trayState = 'dirty'
+    window.electronAPI.updateTrayIcon(trayState)
+  }, [hunger, cleanliness, health, diseaseState])
 
   // 成长阶段和心情外观
   const growthStage = getGrowthStage(level)
@@ -404,6 +433,7 @@ function App() {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>('ai')
   const [penguinAction, setPenguinAction] = useState<PenguinAction>('idle')
   const [bubbleText, setBubbleText] = useState<string | null>(null)
+  const { showFeedDialogue, showCleanDialogue } = usePetDialogue({ setBubbleText })
   const [showFeedStrip, setShowFeedStrip] = useState(false)
   const [showCleanStrip, setShowCleanStrip] = useState(false)
   const [showHealStrip, setShowHealStrip] = useState(false)
@@ -434,6 +464,7 @@ function App() {
   const showChat = activePanel === 'chat'
   const showSettingsPanel = activePanel === 'settings'
   const showPlayerSwfProbe = activePanel === 'probe'
+  const showShop = activePanel === 'shop'
   const isContextMenuOpen = contextMenu !== null
   const showTaskStrip = taskStripKind !== null
   const isActionDropdownOpen = showAnimDropdown || showDailyDropdown || showLifeDropdown || showTaskDropdown || showFeedStrip || showCleanStrip || showHealStrip || showStudyStrip || showWorkStrip || showTravelStrip || showTaskStrip
@@ -555,6 +586,23 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 阶段转变动画
+  const prevStageRef = useRef<GrowthStage>(growthStage)
+  useEffect(() => {
+    const prevStage = prevStageRef.current
+    if (prevStage !== growthStage) {
+      const transitionSwf = getTransitionSwfPath(prevStage, growthStage)
+      if (transitionSwf) {
+        playSwfPath(transitionSwf, { animationId: `transition-${prevStage}-${growthStage}` })
+        // 过渡动画播完后切到新阶段的待机
+        window.setTimeout(() => {
+          playPlaylist(currentIdlePath)
+        }, 3000)
+      }
+      prevStageRef.current = growthStage
+    }
+  }, [growthStage, currentIdlePath, playSwfPath, playPlaylist])
+
   useWindowDrag(chatHeaderRef, showChat)
 
   useEffect(() => {
@@ -668,7 +716,7 @@ function App() {
       return
     }
 
-    if (mode === 'settings') {
+    if (mode === 'settings' || mode === 'shop' || mode === 'work' || mode === 'study' || mode === 'info' || mode === 'state' || mode === 'inventory') {
       window.electronAPI.resizeWindow(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT, { fitToScreen: true })
       windowLayoutModeRef.current = mode
       return
@@ -1061,164 +1109,222 @@ function App() {
 
 
   const feedStripItems: ScrollStripItem[] = useMemo(() => (
-    ORIGINAL_FOOD_ITEMS.map((item, index) => ({
-      id: item.id,
-      imageSrc: resolveRendererAssetUrl(item.iconPath),
-      imageAlt: item.name,
-      label: item.name,
-      description: formatOriginalItemDescription(item),
-      accent: dropdownAccentColors[index % dropdownAccentColors.length],
-      onSelect: () => {
-        closeFeedStrip()
-        runTimedInteraction({
-          perform: feed,
-          swfPath: item.swfPath,
-          animationId: item.id,
-          penguinAction: 'eat',
-          baseDuration: 1400,
-        })
-      },
-    }))
-  ), [closeFeedStrip, feed, runTimedInteraction])
+    ORIGINAL_FOOD_ITEMS.map((item, index) => {
+      const catalogItem = getItemById(item.id)
+      const count = getItemCount(item.id)
+      return {
+        id: item.id,
+        imageSrc: resolveRendererAssetUrl(item.iconPath),
+        imageAlt: item.name,
+        label: `${item.name}${count > 0 ? ` ×${count}` : ''}`,
+        description: formatOriginalItemDescription(item),
+        accent: dropdownAccentColors[index % dropdownAccentColors.length],
+        disabled: count <= 0,
+        onSelect: () => {
+          if (!removeItem(item.id)) {
+            setBubbleText('没有这个物品了，去商店买吧~')
+            return
+          }
+          closeFeedStrip()
+          const effects = catalogItem || item
+          runTimedInteraction({
+            perform: () => feedWithItem({
+              starve: effects.starve || 0,
+              charm: effects.charm,
+              intel: effects.intel,
+              strong: effects.strong,
+            }),
+            swfPath: item.swfPath,
+            animationId: item.id,
+            penguinAction: 'eat',
+            baseDuration: 1400,
+          })
+          setTimeout(showFeedDialogue, 1800)
+        },
+      }
+    })
+  ), [closeFeedStrip, feedWithItem, runTimedInteraction, removeItem, getItemCount, showFeedDialogue])
 
   const cleanStripItems: ScrollStripItem[] = useMemo(() => (
-    ORIGINAL_CLEAN_ITEMS.map((item, index) => ({
-      id: item.id,
-      imageSrc: resolveRendererAssetUrl(item.iconPath),
-      imageAlt: item.name,
-      label: item.name,
-      description: formatOriginalItemDescription(item),
-      accent: dropdownAccentColors[(index + 1) % dropdownAccentColors.length],
-      onSelect: () => {
-        closeCleanStrip()
-        runTimedInteraction({
-          perform: clean,
-          swfPath: item.swfPath,
-          animationId: item.id,
-          penguinAction: 'bathe',
-          baseDuration: 1600,
-        })
-      },
-    }))
-  ), [clean, closeCleanStrip, runTimedInteraction])
+    ORIGINAL_CLEAN_ITEMS.map((item, index) => {
+      const catalogItem = getItemById(item.id)
+      const count = getItemCount(item.id)
+      return {
+        id: item.id,
+        imageSrc: resolveRendererAssetUrl(item.iconPath),
+        imageAlt: item.name,
+        label: `${item.name}${count > 0 ? ` ×${count}` : ''}`,
+        description: formatOriginalItemDescription(item),
+        accent: dropdownAccentColors[(index + 1) % dropdownAccentColors.length],
+        disabled: count <= 0,
+        onSelect: () => {
+          if (!removeItem(item.id)) {
+            setBubbleText('没有这个物品了，去商店买吧~')
+            return
+          }
+          closeCleanStrip()
+          const effects = catalogItem || item
+          runTimedInteraction({
+            perform: () => cleanWithItem({
+              clean: effects.clean || 0,
+              charm: effects.charm,
+              intel: effects.intel,
+              strong: effects.strong,
+            }),
+            swfPath: item.swfPath,
+            animationId: item.id,
+            penguinAction: 'bathe',
+            baseDuration: 1600,
+          })
+          setTimeout(showCleanDialogue, 2000)
+        },
+      }
+    })
+  ), [cleanWithItem, closeCleanStrip, runTimedInteraction, removeItem, getItemCount, showCleanDialogue])
 
-  const healStripItems: ScrollStripItem[] = useMemo(() => (
-    ORIGINAL_HEAL_ITEMS.map((item, index) => ({
-      id: item.id,
-      imageSrc: resolveRendererAssetUrl(item.iconPath),
-      imageAlt: item.name,
-      label: item.name,
-      description: formatOriginalItemDescription(item),
-      accent: dropdownAccentColors[(index + 2) % dropdownAccentColors.length],
-      onSelect: () => {
-        closeHealStrip()
-        runTimedInteraction({
-          perform: heal,
-          swfPath: item.swfPath,
-          animationId: item.id,
-          penguinAction: 'happy',
-          baseDuration: item.swfPath.includes('0241') ? 1600 : 1400,
-        })
-      },
-    }))
-  ), [closeHealStrip, heal, runTimedInteraction])
+  const healStripItems: ScrollStripItem[] = useMemo(() => {
+    const diseaseInfo = getCurrentDiseaseInfo(diseaseState)
+    const neededMedicineId = diseaseInfo?.medicineId ?? null
 
-  // 学习活动 strip 数据
+    return ORIGINAL_HEAL_ITEMS.map((item, index) => {
+      const catalogItem = getItemById(item.id)
+      const count = getItemCount(item.id)
+      const isNeeded = neededMedicineId === item.id
+      const isUniversal = UNIVERSAL_MEDICINES.includes(item.id)
+      const isUseful = !diseaseInfo || isNeeded || isUniversal
+
+      // 生病时标注对症药品
+      let label = item.name
+      if (count > 0) label += ` ×${count}`
+      if (isNeeded && diseaseInfo) label += ' ★对症'
+
+      return {
+        id: item.id,
+        imageSrc: resolveRendererAssetUrl(item.iconPath),
+        imageAlt: item.name,
+        label,
+        description: diseaseInfo && !isUseful
+          ? `当前需要：${getItemById(neededMedicineId!)?.name ?? '对症药品'}`
+          : formatOriginalItemDescription(item),
+        accent: isNeeded ? '#ff9ab6' : dropdownAccentColors[(index + 2) % dropdownAccentColors.length],
+        disabled: count <= 0,
+        onSelect: () => {
+          if (!removeItem(item.id)) {
+            setBubbleText('没有这个物品了，去商店买吧~')
+            return
+          }
+          closeHealStrip()
+
+          // 尝试治疗疾病
+          if (diseaseInfo) {
+            const result = applyMedicine(diseaseState, item.id)
+            if (result.wrongMedicine) {
+              setBubbleText(`这个药不对症，我需要的是${getItemById(neededMedicineId!)?.name ?? '对症药品'}~`)
+            } else if (result.cured) {
+              setBubbleText('我痊愈啦！谢谢主人~')
+              usePetStore.setState({ diseaseState: result.state, health: 5 })
+            } else {
+              const newInfo = getCurrentDiseaseInfo(result.state)
+              setBubbleText(newInfo ? `好了一些，但还有${newInfo.name}...` : '感觉好多了~')
+              usePetStore.setState({ diseaseState: result.state })
+            }
+          }
+
+          const effects = catalogItem || item
+          runTimedInteraction({
+            perform: () => healWithItem({
+              starve: effects.starve,
+              clean: effects.clean,
+              strong: effects.strong,
+            }),
+            swfPath: item.swfPath,
+            animationId: item.id,
+            penguinAction: 'happy',
+            baseDuration: item.swfPath.includes('0241') ? 1600 : 1400,
+          })
+        },
+      }
+    })
+  }, [closeHealStrip, healWithItem, runTimedInteraction, removeItem, getItemCount, diseaseState])
+
+  // 学习活动 strip 数据 — 现在打开学习面板
   const studyStripItems: ScrollStripItem[] = useMemo(() => ([
     {
-      id: 'study-61',
-      icon: '书',
-      label: '看书',
-      description: '智力+5',
+      id: 'study-panel',
+      icon: '学',
+      label: '进入学习',
+      description: '打开学习面板，选择科目和学校',
       accent: dropdownAccentColors[3],
       onSelect: () => {
         closeStudyStrip()
-        runTimedInteraction({
-          perform: study,
-          swfPath: NEW_SWF_BASE + 'peaceful/play/P1.swf',
-          animationId: '61',
-          penguinAction: 'happy',
-          baseDuration: 1800,
-        })
+        openPanel('study')
       },
     },
-    {
-      id: 'study-69',
-      icon: '记',
-      label: '记笔记',
-      description: '智力+5',
-      accent: dropdownAccentColors[3],
-      onSelect: () => {
-        closeStudyStrip()
-        runTimedInteraction({
-          perform: study,
-          swfPath: NEW_SWF_BASE + 'peaceful/play/P2.swf',
-          animationId: '69',
-          penguinAction: 'happy',
-          baseDuration: 1800,
-        })
-      },
-    },
-  ]), [closeStudyStrip, runTimedInteraction, study])
+  ]), [closeStudyStrip, openPanel])
 
-  // 打工活动 strip 数据
+  // 打工活动 strip 数据 — 现在打开打工面板
   const workStripItems: ScrollStripItem[] = useMemo(() => ([
     {
-      id: 'work-71',
-      icon: '办',
-      label: '办公',
-      description: '元宝+10',
+      id: 'work-panel',
+      icon: '工',
+      label: '进入打工',
+      description: '打开工作面板，选择工种',
       accent: dropdownAccentColors[4],
       onSelect: () => {
         closeWorkStrip()
-        runTimedInteraction({
-          perform: petWork,
-          swfPath: NEW_SWF_BASE + 'peaceful/play/P3.swf',
-          animationId: '71',
-          penguinAction: 'work',
-          baseDuration: 2000,
-        })
+        openPanel('work')
       },
     },
-    {
-      id: 'work-126',
-      icon: '手',
-      label: '做手工',
-      description: '元宝+10',
-      accent: dropdownAccentColors[4],
-      onSelect: () => {
-        closeWorkStrip()
-        runTimedInteraction({
-          perform: petWork,
-          swfPath: NEW_SWF_BASE + 'peaceful/play/P4.swf',
-          animationId: '126',
-          penguinAction: 'work',
-          baseDuration: 2000,
-        })
-      },
-    },
-  ]), [closeWorkStrip, petWork, runTimedInteraction])
+  ]), [closeWorkStrip, openPanel])
 
   // 旅行活动 strip 数据
-  const travelStripItems: ScrollStripItem[] = useMemo(() => ([
-    {
-      id: 'travel-23',
-      icon: '鱼',
-      label: '钓鱼',
-      description: '心情+10',
+  const travelStripItems: ScrollStripItem[] = useMemo(() => {
+    const isBusy = useActivityStore.getState().isActive()
+    const destinations = [
+      { id: 'travel-park', icon: '园', name: '公园', desc: '心情+150 魅力+5', time: 20, mood: 150, charm: 5, starve: 200, clean: 100 },
+      { id: 'travel-beach', icon: '海', name: '海滩', desc: '心情+200 魅力+10', time: 30, mood: 200, charm: 10, starve: 300, clean: 200 },
+      { id: 'travel-mountain', icon: '山', name: '登山', desc: '心情+250 武力+10', time: 45, mood: 250, strong: 10, starve: 400, clean: 300 },
+      { id: 'travel-library', icon: '馆', name: '图书馆', desc: '心情+100 智力+15', time: 25, mood: 100, intel: 15, starve: 150, clean: 50 },
+    ]
+    return destinations.map((dest) => ({
+      id: dest.id,
+      icon: dest.icon,
+      label: dest.name,
+      description: dest.desc + ` (${dest.time}分钟)`,
       accent: dropdownAccentColors[5],
+      disabled: isBusy,
       onSelect: () => {
         closeTravelStrip()
+        const actStore = useActivityStore.getState()
+        if (actStore.isActive()) {
+          setBubbleText('正在忙碌中，不能出发~')
+          return
+        }
+        const now = Date.now()
+        actStore.active = null // 确保清空
+        useActivityStore.setState({
+          active: {
+            type: 'travel',
+            id: dest.id,
+            name: `去${dest.name}旅行`,
+            startTime: now,
+            endTime: now + dest.time * 60 * 1000,
+            rewards: { charm: dest.charm || 0, intel: dest.intel || 0, strong: dest.strong || 0 },
+            costs: { starve: dest.starve, clean: dest.clean, mood: -(dest.mood) },
+          },
+        })
+        setBubbleText(`出发去${dest.name}啦~`)
+        // 播放离开动画
         runTimedInteraction({
           perform: travel,
           swfPath: NEW_SWF_BASE + 'peaceful/play/P5.swf',
-          animationId: '23',
+          animationId: dest.id,
           penguinAction: 'happy',
           baseDuration: 1800,
         })
       },
-    },
-  ]), [closeTravelStrip, runTimedInteraction, travel])
+    }))
+  }, [closeTravelStrip, runTimedInteraction, travel])
 
   const taskStripItems: ScrollStripItem[] = useMemo(() => {
     if (!taskStripKind) return []
@@ -1407,7 +1513,17 @@ function App() {
     {
       label: '商城',
       icon: '商',
-      onClick: () => setToastMessage('商城暂未开放。'),
+      onClick: () => openPanel('shop'),
+    },
+    {
+      label: '宠物信息',
+      icon: '档',
+      onClick: () => { },
+      children: [
+        { label: '宠物资料', icon: '资', onClick: () => openPanel('info') },
+        { label: '宠物状态', icon: '态', onClick: () => openPanel('state') },
+        { label: '背包', icon: '包', onClick: () => openPanel('inventory') },
+      ],
     },
     {
       label: '选项',
@@ -1415,7 +1531,6 @@ function App() {
       onClick: () => { },
       children: [
         { label: '设置', icon: '设', onClick: () => openSettingsSection('game') },
-        { label: '资料', icon: '资', onClick: () => openSettingsSection('profile') },
         { label: '停止动画', icon: '停', onClick: handleStopSwf },
         { label: '关于', icon: '关', onClick: () => openSettingsSection('about') },
       ],
@@ -1431,7 +1546,7 @@ function App() {
       icon: '退',
       onClick: handleQuit,
     },
-  ]), [handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openSettingsSection, openTaskStrip, taskGifts])
+  ]), [handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openPanel, openSettingsSection, openTaskStrip, taskGifts])
 
   useEffect(() => {
     if (['eat', 'bathe', 'play', 'sleep', 'happy', 'work'].includes(penguinAction)) {
@@ -1906,6 +2021,64 @@ function App() {
 
       {showPlayerSwfProbe && (
         <PlayerSwfProbePanel
+          onClose={() => {
+            setActivePanel(null)
+            resizeWindowForMode('pet')
+          }}
+        />
+      )}
+
+      {showShop && (
+        <ShopPanel
+          onClose={() => {
+            setActivePanel(null)
+            resizeWindowForMode('pet')
+          }}
+          onNotice={(message) => setToastMessage(message)}
+        />
+      )}
+
+      {activePanel === 'work' && (
+        <WorkPanel
+          onClose={() => {
+            setActivePanel(null)
+            resizeWindowForMode('pet')
+          }}
+          onNotice={(message) => setToastMessage(message)}
+        />
+      )}
+
+      {activePanel === 'study' && (
+        <StudyPanel
+          onClose={() => {
+            setActivePanel(null)
+            resizeWindowForMode('pet')
+          }}
+          onNotice={(message) => setToastMessage(message)}
+        />
+      )}
+
+      {activePanel === 'info' && (
+        <InfoCardPanel
+          onClose={() => {
+            setActivePanel(null)
+            resizeWindowForMode('pet')
+          }}
+          onNotice={(message) => setToastMessage(message)}
+        />
+      )}
+
+      {activePanel === 'state' && (
+        <StateInfoPanel
+          onClose={() => {
+            setActivePanel(null)
+            resizeWindowForMode('pet')
+          }}
+        />
+      )}
+
+      {activePanel === 'inventory' && (
+        <InventoryPanel
           onClose={() => {
             setActivePanel(null)
             resizeWindowForMode('pet')

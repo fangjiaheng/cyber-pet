@@ -1,0 +1,116 @@
+.work-panel {
+  width: 760px;
+  max-width: calc(100vw - 40px);
+  max-height: min(780px, calc(100vh - 32px));
+  background:
+    radial-gradient(circle at top left, rgba(162, 120, 75, 0.26), transparent 32%),
+    linear-gradient(160deg, rgba(11, 12, 18, 0.96), rgba(20, 22, 31, 0.94));
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+  color: #f5f7ff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.work-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: move;
+  user-select: none;
+}
+
+.work-eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffca7a;
+}
+
+.work-panel-header h2 { margin: 0; font-size: 26px; font-weight: 800; }
+.work-coins { margin: 6px 0 0; font-size: 14px; color: #ffd770; font-weight: 600; }
+
+.work-close-btn {
+  width: 36px; height: 36px; border: none; border-radius: 10px;
+  background: rgba(255,255,255,0.08); color: #fff; font-size: 16px;
+  cursor: pointer; flex-shrink: 0;
+}
+.work-close-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* Active activity */
+.work-active {
+  padding: 12px 24px;
+  background: rgba(255, 202, 122, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.work-active-info { display: flex; gap: 12px; align-items: center; }
+.work-active-name { font-size: 14px; font-weight: 600; }
+.work-active-time { font-size: 20px; font-weight: 700; color: #ffca7a; font-variant-numeric: tabular-nums; }
+
+.work-complete-btn {
+  padding: 6px 16px; border: none; border-radius: 8px;
+  background: rgba(158, 240, 165, 0.25); color: #9ef0a5;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.work-complete-btn:hover { background: rgba(158, 240, 165, 0.4); }
+
+.work-cancel-btn {
+  padding: 6px 16px; border: none; border-radius: 8px;
+  background: rgba(255, 100, 80, 0.15); color: #ff8a7a;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+
+/* Work list */
+.work-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.work-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.work-card:hover { background: rgba(255, 255, 255, 0.07); }
+.work-card.selected { background: rgba(255, 202, 122, 0.1); border: 1px solid rgba(255, 202, 122, 0.2); }
+.work-card.locked { opacity: 0.5; }
+
+.work-card-info { flex: 1; min-width: 0; }
+.work-card-name { font-size: 14px; font-weight: 600; }
+.work-card-desc { font-size: 11px; color: rgba(245,247,255,0.5); margin-top: 2px; }
+.work-card-meta { font-size: 11px; color: rgba(245,247,255,0.4); margin-top: 4px; display: flex; gap: 12px; }
+.work-card-edu { font-size: 10px; color: #ffca7a; margin-top: 2px; }
+.work-card-lock { font-size: 10px; color: #ff8a7a; margin-top: 2px; }
+
+.work-start-btn {
+  padding: 6px 16px; border: none; border-radius: 8px;
+  background: rgba(255, 202, 122, 0.25); color: #ffca7a;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.work-start-btn:hover:not(:disabled) { background: rgba(255, 202, 122, 0.4); }
+.work-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.work-list::-webkit-scrollbar { width: 4px; }
+.work-list::-webkit-scrollbar-track { background: transparent; }
+.work-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }

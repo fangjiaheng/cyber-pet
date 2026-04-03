@@ -8,6 +8,8 @@ import {
   type TaskGiftReward,
   type TaskGiftState,
 } from '../../shared/taskGift'
+import { useInventoryStore } from './inventoryStore'
+import { useActivityStore } from './activitySystem'
 import {
   levelForExperience,
   getHungerMax,
@@ -96,6 +98,13 @@ interface PetActions {
   gainExperience: (amount: number) => { levelUps: number; level: number; experience: number }
   earnCoins: (amount: number) => void
   updateProfile: (patch: Partial<PetProfile>) => void
+  /** 使用物品喂食。传入物品效果值，库存扣减由调用方负责 */
+  feedWithItem: (effects: { starve: number; charm?: number; intel?: number; strong?: number }) => void
+  /** 使用物品清洁。传入物品效果值，库存扣减由调用方负责 */
+  cleanWithItem: (effects: { clean: number; charm?: number; intel?: number; strong?: number }) => void
+  /** 使用药品治疗。传入物品效果值，库存扣减由调用方负责 */
+  healWithItem: (effects: { starve?: number; clean?: number; strong?: number }) => void
+  /** @deprecated 旧版固定值喂食，保留兼容 */
   feed: () => void
   clean: () => void
   play: () => void
@@ -240,6 +249,8 @@ function buildPersistedState(state: PetState) {
     checkInStreak: state.checkInStreak,
     onlineDataTime: state.onlineDataTime,
     taskGifts: state.taskGifts,
+    inventory: useInventoryStore.getState().getPersistedData(),
+    activity: useActivityStore.getState().getPersistedData(),
     profile: state.profile,
     diseaseState: state.diseaseState,
     saveVersion: SAVE_VERSION,
@@ -331,6 +342,62 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
         strength: Math.max(0, nextProfile.strength),
         charm: Math.max(0, nextProfile.charm),
         education: nextProfile.education || resolveEducation(nextProfile.intelligence),
+      },
+    }
+  }),
+
+  feedWithItem: (effects) => set((state) => {
+    const progress = applyExperienceProgress(state, 6)
+    return {
+      hunger: clampHunger(state.hunger + (effects.starve || 0), state.level),
+      mood: clampMood(state.mood + 100),
+      lastFed: Date.now(),
+      currentAction: 'eating',
+      currentEmotion: 'happy',
+      experience: progress.experience,
+      level: progress.level,
+      profile: {
+        ...state.profile,
+        charm: state.profile.charm + (effects.charm || 0),
+        intelligence: state.profile.intelligence + (effects.intel || 0),
+        strength: state.profile.strength + (effects.strong || 0),
+      },
+    }
+  }),
+
+  cleanWithItem: (effects) => set((state) => {
+    const progress = applyExperienceProgress(state, 6)
+    return {
+      cleanliness: clampCleanliness(state.cleanliness + (effects.clean || 0), state.level),
+      mood: clampMood(state.mood + 150),
+      lastCleaned: Date.now(),
+      currentAction: 'bathing',
+      currentEmotion: 'happy',
+      experience: progress.experience,
+      level: progress.level,
+      profile: {
+        ...state.profile,
+        charm: state.profile.charm + (effects.charm || 0),
+        intelligence: state.profile.intelligence + (effects.intel || 0),
+        strength: state.profile.strength + (effects.strong || 0),
+      },
+    }
+  }),
+
+  healWithItem: (effects) => set((state) => {
+    const progress = applyExperienceProgress(state, 4)
+    return {
+      hunger: effects.starve ? clampHunger(state.hunger + effects.starve, state.level) : state.hunger,
+      cleanliness: effects.clean ? clampCleanliness(state.cleanliness + effects.clean, state.level) : state.cleanliness,
+      mood: clampMood(state.mood + 200),
+      energy: clampEnergy(state.energy + 15),
+      currentAction: 'idle',
+      currentEmotion: 'happy',
+      experience: progress.experience,
+      level: progress.level,
+      profile: {
+        ...state.profile,
+        strength: state.profile.strength + (effects.strong || 0),
       },
     }
   }),
@@ -638,6 +705,10 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
           ...normalizedState,
           checkInStreak: countClaimedTaskGifts((normalizedState.taskGifts ?? createInitialTaskGiftState(Date.now())).sign),
         })
+        // 恢复库存
+        useInventoryStore.getState().loadFromSaved(savedState.inventory)
+        // 恢复活动和学习进度
+        useActivityStore.getState().loadFromSaved(savedState.activity)
         console.log('✅ 宠物状态已从存储恢复')
       }
     } catch (error) {
@@ -662,7 +733,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
 }))
 
 if (typeof window !== 'undefined' && window.electronAPI?.storage) {
-  usePetStore.subscribe((state) => {
+  const triggerSave = () => {
+    const state = usePetStore.getState()
     const saveDebounced = () => {
       window.electronAPI.storage.savePetState(buildPersistedState(state))
     }
@@ -674,5 +746,10 @@ if (typeof window !== 'undefined' && window.electronAPI?.storage) {
     }
 
     typedWindow[saveTimerKey] = window.setTimeout(saveDebounced, 1000)
-  })
+  }
+
+  usePetStore.subscribe(triggerSave)
+  // 库存和活动变化也触发保存
+  useInventoryStore.subscribe(triggerSave)
+  useActivityStore.subscribe(triggerSave)
 }

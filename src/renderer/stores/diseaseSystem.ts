@@ -36,26 +36,26 @@ export interface DiseaseInfo {
 
 /** 感冒链：饱食不适触发 */
 const COLD_CHAIN: DiseaseInfo[] = [
-  { chain: 'cold', stage: 1, name: '感冒', medicineId: '10001' },
-  { chain: 'cold', stage: 2, name: '发烧', medicineId: '10002' },
-  { chain: 'cold', stage: 3, name: '重感冒', medicineId: '10003' },
-  { chain: 'cold', stage: 4, name: '肺炎', medicineId: '10004' },
+  { chain: 'cold', stage: 1, name: '感冒', medicineId: '10001' },     // 板蓝根
+  { chain: 'cold', stage: 2, name: '发烧', medicineId: '30004' },     // 退烧药
+  { chain: 'cold', stage: 3, name: '重感冒', medicineId: '20001' },   // 银翘丸
+  { chain: 'cold', stage: 4, name: '肺炎', medicineId: '30001' },     // 金色消炎水
 ]
 
 /** 咳嗽链：脏乱不适触发 */
 const COUGH_CHAIN: DiseaseInfo[] = [
-  { chain: 'cough', stage: 1, name: '咳嗽', medicineId: '20001' },
-  { chain: 'cough', stage: 2, name: '支气管炎', medicineId: '20002' },
-  { chain: 'cough', stage: 3, name: '哮喘', medicineId: '20003' },
-  { chain: 'cough', stage: 4, name: '肺结核', medicineId: '20004' },
+  { chain: 'cough', stage: 1, name: '咳嗽', medicineId: '10003' },    // 枇杷糖浆
+  { chain: 'cough', stage: 2, name: '支气管炎', medicineId: '20003' }, // 甘草剂
+  { chain: 'cough', stage: 3, name: '哮喘', medicineId: '30003' },    // 定喘丸
+  { chain: 'cough', stage: 4, name: '肺结核', medicineId: '40003' },  // 通风散
 ]
 
 /** 肚子胀链：饥饿不适触发 */
 const STOMACH_CHAIN: DiseaseInfo[] = [
-  { chain: 'stomach', stage: 1, name: '肚子胀', medicineId: '30001' },
-  { chain: 'stomach', stage: 2, name: '胃炎', medicineId: '30002' },
-  { chain: 'stomach', stage: 3, name: '胃溃疡', medicineId: '30003' },
-  { chain: 'stomach', stage: 4, name: '胃癌', medicineId: '30004' },
+  { chain: 'stomach', stage: 1, name: '肚子胀', medicineId: '10002' }, // 消食片
+  { chain: 'stomach', stage: 2, name: '胃炎', medicineId: '20002' },   // 蓝色消炎水
+  { chain: 'stomach', stage: 3, name: '胃溃疡', medicineId: '30002' }, // 龙胆草
+  { chain: 'stomach', stage: 4, name: '胃癌', medicineId: '40002' },   // 仙人汤
 ]
 
 const DISEASE_CHAINS: Record<DiseaseChain, DiseaseInfo[]> = {
@@ -164,9 +164,14 @@ export function progressDisease(state: DiseaseState, now: number): DiseaseState 
   }
 }
 
+/** 万能药品：百草丹治愈一级，还魂丹直接痊愈 */
+const UNIVERSAL_CURE_ONE = '50001'  // 百草丹
+const UNIVERSAL_CURE_ALL = '60001'  // 还魂丹
+
 /**
  * 使用药品治疗
- * 正确药品：疾病阶段 -1（降到 0 则痊愈）
+ * 正确药品/百草丹：疾病阶段 -1（降到 0 则痊愈）
+ * 还魂丹：直接痊愈
  * 错误药品：无效果
  */
 export function applyMedicine(
@@ -178,10 +183,32 @@ export function applyMedicine(
   }
 
   const { chain, stage } = state.activeDisease
-  const chainDiseases = DISEASE_CHAINS[chain]
-  const currentDisease = chainDiseases[stage - 1]
+
+  // 还魂丹：直接痊愈
+  if (medicineId === UNIVERSAL_CURE_ALL) {
+    return {
+      state: { ...state, activeDisease: null },
+      cured: true,
+      wrongMedicine: false,
+    }
+  }
+
+  // 百草丹：治愈一级（等同对症药品）
+  if (medicineId === UNIVERSAL_CURE_ONE) {
+    const newStage = (stage - 1) as DiseaseStage
+    return {
+      state: {
+        ...state,
+        activeDisease: newStage === 0 ? null : { chain, stage: newStage },
+      },
+      cured: newStage === 0,
+      wrongMedicine: false,
+    }
+  }
 
   // 检查药品是否匹配当前疾病
+  const chainDiseases = DISEASE_CHAINS[chain]
+  const currentDisease = chainDiseases[stage - 1]
   if (currentDisease.medicineId !== medicineId) {
     return { state, cured: false, wrongMedicine: true }
   }
