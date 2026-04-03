@@ -4,6 +4,62 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
+## [0.9.0] - 2026-04-03
+
+### 新增
+
+- **物品库存系统**
+  - 新增 `src/shared/itemCatalog.ts`：完整物品目录（50+食物、22清洁、22药品、17背景、36学习、18打工）
+  - 新增 `src/renderer/stores/inventoryStore.ts`：Zustand 库存 Store，支持持久化
+  - 喂食/清洁/治疗改为库存消耗模式（`feedWithItem`/`cleanWithItem`/`healWithItem`）
+  - 新建存档自动发放入门物品
+
+- **商店系统**
+  - 新增 `src/renderer/components/ShopPanel.tsx`：4分类（食物/清洁/药品/背景）、分页浏览、元宝购买
+  - 右键菜单"商城"入口已接通
+
+- **对话系统**
+  - 新增 `src/shared/communication.ts`：200+条原版对话数据（进入/离开/吃饭/清洁/升级/闲聊/状态提醒等）
+  - 新增 `src/renderer/hooks/usePetDialogue.ts`：启动对话、4分钟定时闲聊、状态提醒、事件触发
+
+- **疾病UI完善**
+  - 修正 `diseaseSystem.ts` 药品ID（3条链×4级对应原版 State.js）
+  - 治疗条根据当前疾病动态展示对症药品（★对症标记 + 错误药品提示）
+  - 新增万能药品支持（百草丹治一级、还魂丹直接痊愈）
+
+- **打工 + 学习系统**
+  - 新增 `src/renderer/stores/activitySystem.ts`：统一活动管理（互斥、计时、学历追踪）
+  - 新增 `src/renderer/components/WorkPanel.tsx`：18种工作、等级/学历门槛、计时、元宝+属性奖励
+  - 新增 `src/renderer/components/StudyPanel.tsx`：9科目×4学校等级、学时进度条、前置学业检查
+  - 学历影响打工工种解锁
+
+- **旅行系统**
+  - 旅行条改为4个目的地（公园/海滩/登山/图书馆），使用 activityStore 计时
+
+- **信息面板**
+  - 新增 `src/renderer/components/InfoCardPanel.tsx`：宠物资料卡（名称可编辑、属性、学历、在线时长）
+  - 新增 `src/renderer/components/StateInfoPanel.tsx`：状态进度条（饥饿/清洁/心情/体力/健康/经验/疾病）
+  - 新增 `src/renderer/components/InventoryPanel.tsx`：背包浏览（4分类/分页/数量展示）
+  - 右键菜单新增"宠物信息"子菜单
+
+- **阶段转变动画**
+  - 升级跨阶段时自动播放 Etoj.swf / Jtoc.swf 过渡动画
+
+- **系统托盘图标**
+  - 新增 IPC `tray:update-icon`，根据宠物状态切换托盘图标动画
+  - 状态映射：normal/hungry/dirty/ill/dead/study/work/travel
+
+- **粉钻VIP数据层**
+  - 新增 `src/renderer/stores/pinkDiamond.ts`：7级、购买/续费/过期/成长加成
+
+### 变更
+
+- `petStore.ts` 新增 `feedWithItem`/`cleanWithItem`/`healWithItem` 方法
+- `petStore.ts` 持久化整合库存和活动数据
+- `storage.ts` Schema 新增 `inventory` 字段
+- 右键菜单结构重组：新增"宠物信息"子菜单（资料/状态/背包），"商城"直接打开商店面板
+- 学习/打工入口从简单 strip 改为完整面板
+
 ## [0.8.0] - 2026-04-02
 
 ### 新增
@@ -149,4 +205,4 @@
 - AI 引擎适配层
 - 桌宠基础状态系统与交互骨架
 
-最后更新：2026-04-02
+最后更新：2026-04-03

@@ -19,6 +19,7 @@ export interface PetStateData {
   checkInStreak: number;
   onlineDataTime: number;
   taskGifts: TaskGiftState;
+  inventory: Record<string, number>;
   profile: {
     petName: string;
     ownerName: string;
@@ -113,6 +114,7 @@ const defaultPetState: PetStateData = {
   checkInStreak: 0,
   onlineDataTime: 0,
   taskGifts: createInitialTaskGiftState(Date.now()),
+  inventory: {},
   profile: {
     petName: 'Q宠宝贝',
     ownerName: '主人',

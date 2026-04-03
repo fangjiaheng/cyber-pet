@@ -158,6 +158,11 @@ app.whenReady().then(() => {
     }
   })
 
+  // 托盘图标状态更新
+  ipcMain.on('tray:update-icon', (_event, petState: string) => {
+    updateTrayIcon(petState)
+  })
+
   // 监听设置鼠标穿透
   ipcMain.on('window:set-ignore-mouse-events', (_, ignore: boolean) => {
     if (mainWindow) {
@@ -407,6 +412,66 @@ function createTray() {
   })
 
   console.log('✅ 系统托盘已创建')
+}
+
+// 托盘图标状态映射
+const TRAY_STATE_DIRS: Record<string, string> = {
+  normal: 'normal',
+  hungry: 'hungry',
+  dirty: 'dirty',
+  ill: 'ill',
+  dead: 'dead',
+  study: 'study',
+  work: 'work',
+  travel: 'travel',
+  pause: 'pause',
+  game: 'game',
+  event: 'event',
+  feast: 'feast',
+}
+
+let currentTrayState = 'normal'
+let trayAnimFrame = 0
+let trayAnimTimer: NodeJS.Timeout | null = null
+
+function updateTrayIcon(petState: string) {
+  if (!tray) return
+  const stateDir = TRAY_STATE_DIRS[petState] || 'normal'
+
+  if (stateDir === currentTrayState) return
+  currentTrayState = stateDir
+
+  // 停止上一轮动画
+  if (trayAnimTimer) { clearInterval(trayAnimTimer); trayAnimTimer = null }
+  trayAnimFrame = 0
+
+  const setFrame = () => {
+    if (!tray) return
+    trayAnimFrame++
+    // 尝试加载 1.ico, 2.ico, ... 循环
+    const gender = 'Boy' // TODO: 根据宠物性别切换
+    const iconDir = path.join(app.getAppPath(), 'public', 'assets', '1.2.4source', 'img_res', 'Tray', gender, currentTrayState)
+    const iconFile = path.join(iconDir, `${((trayAnimFrame - 1) % 4) + 1}.ico`)
+
+    try {
+      const img = nativeImage.createFromPath(iconFile)
+      if (!img.isEmpty()) {
+        tray.setImage(img)
+      }
+    } catch {
+      // 文件不存在则用默认
+      const defaultIcon = path.join(app.getAppPath(), 'public', 'assets', '1.2.4source', 'img_res', 'Tray', gender, 'deafult.ico')
+      try {
+        const img = nativeImage.createFromPath(defaultIcon)
+        if (!img.isEmpty()) tray.setImage(img)
+      } catch { /* ignore */ }
+    }
+  }
+
+  // 立即设置第一帧
+  setFrame()
+  // 动画循环（每800ms切帧）
+  trayAnimTimer = setInterval(setFrame, 800)
 }
 
 // 创建 AI 对话窗口
