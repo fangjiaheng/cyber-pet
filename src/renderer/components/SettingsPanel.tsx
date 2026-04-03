@@ -16,7 +16,7 @@ import {
 import { AIConfig, AIConfigForm } from './AIConfigForm'
 import './SettingsPanel.css'
 
-type SettingsSection = 'ai' | 'profile' | 'game' | 'about'
+type SettingsSection = 'ai' | 'profile' | 'about'
 
 interface StoredAISettings {
   provider?: AIProvider
@@ -25,18 +25,12 @@ interface StoredAISettings {
   defaultModel?: string
 }
 
-interface PetGameSettings {
-  animationIntervalMs: number
-  roamingEnabled: boolean
-}
-
 interface SettingsPanelProps {
   onClose: () => void
   onSaved?: (config: AIConfig) => void
   onOpenChat?: () => void
   onNotice?: (message: string) => void
   initialSection?: SettingsSection
-  onGameSettingsSaved?: (settings: { animationIntervalMs: number; roamingEnabled: boolean }) => void
 }
 
 function maskApiKey(apiKey?: string) {
@@ -56,11 +50,6 @@ const SECTION_COPY: Record<SettingsSection, { eyebrow: string; title: string; su
     title: '宠物档案',
     subtitle: '查看宠物的成长状态、属性和基本信息。',
   },
-  game: {
-    eyebrow: '交互设置',
-    title: '动画与交互',
-    subtitle: '调整动画间隔，并预留后续漫游类玩法的开关设置。',
-  },
   about: {
     eyebrow: '关于项目',
     title: '当前状态',
@@ -74,17 +63,16 @@ export function SettingsPanel({
   onOpenChat,
   onNotice,
   initialSection = 'ai',
-  onGameSettingsSaved,
 }: SettingsPanelProps) {
   const headerRef = useRef<HTMLDivElement | null>(null)
   const {
-    profile, level, experience, coins, checkInStreak, updateProfile,
+    profile, level, experience, yuanbao, checkInStreak, updateProfile,
     hunger, cleanliness, mood, energy, health, createdAt, onlineDataTime,
   } = usePetStore(useShallow((state) => ({
     profile: state.profile,
     level: state.level,
     experience: state.experience,
-    coins: state.coins,
+    yuanbao: state.yuanbao,
     checkInStreak: state.checkInStreak,
     updateProfile: state.updateProfile,
     hunger: state.hunger,
@@ -98,7 +86,6 @@ export function SettingsPanel({
 
   const [section, setSection] = useState<SettingsSection>(initialSection)
   const [settings, setSettings] = useState<StoredAISettings | null>(null)
-  const [gameSettings, setGameSettings] = useState<PetGameSettings>({ animationIntervalMs: 2400, roamingEnabled: false })
   const [loading, setLoading] = useState(true)
   const [profileForm, setProfileForm] = useState({
     petName: profile.petName,
@@ -121,16 +108,8 @@ export function SettingsPanel({
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const [storedAI, storedSettings] = await Promise.all([
-          window.electronAPI?.storage?.getAISettings?.(),
-          window.electronAPI?.storage?.getSettings?.(),
-        ])
-
+        const storedAI = await window.electronAPI?.storage?.getAISettings?.()
         setSettings(storedAI ?? null)
-        setGameSettings({
-          animationIntervalMs: storedSettings?.pet?.animationIntervalMs ?? 2400,
-          roamingEnabled: storedSettings?.pet?.roamingEnabled ?? false,
-        })
       } catch (error) {
         console.error('Failed to load settings:', error)
         setSettings(null)
@@ -155,7 +134,6 @@ export function SettingsPanel({
     : [
       ['ai', 'AI 设置', '模型与连接'],
       ['profile', '资料', '成长与属性'],
-      ['game', '设置', '动画与交互'],
       ['about', '关于', '项目状态'],
     ]
 
@@ -195,21 +173,6 @@ export function SettingsPanel({
       ownerName: profileForm.ownerName.trim() || profile.ownerName,
     })
     onNotice?.('资料已保存')
-  }
-
-  const handleGameSettingsSave = async () => {
-    await window.electronAPI?.storage?.saveSettings?.({
-      pet: {
-        animationIntervalMs: gameSettings.animationIntervalMs,
-        roamingEnabled: gameSettings.roamingEnabled,
-      },
-    })
-
-    onGameSettingsSaved?.({
-      animationIntervalMs: gameSettings.animationIntervalMs,
-      roamingEnabled: gameSettings.roamingEnabled,
-    })
-    onNotice?.('交互设置已保存')
   }
 
   return (
@@ -272,8 +235,8 @@ export function SettingsPanel({
                   <strong>Lv.{level} / {levelProgress} / {levelTotal}</strong>
                 </div>
                 <div className="settings-status-item">
-                  <span>金币 / 签到</span>
-                  <strong>{coins} / {checkInStreak} 天</strong>
+                  <span>元宝 / 签到</span>
+                  <strong>{yuanbao} / {checkInStreak} 天</strong>
                 </div>
               </div>
             </section>
@@ -425,7 +388,7 @@ export function SettingsPanel({
                     ['智力', profile.intelligence],
                     ['力量', profile.strength],
                     ['魅力', profile.charm],
-                    ['金币', coins],
+                    ['元宝', yuanbao],
                     ['签到', `${checkInStreak} 天`],
                     ['在线', `${Math.floor(onlineDataTime / 60)}小时${onlineDataTime % 60}分`],
                   ] as Array<[string, string | number]>).map(([label, value]) => (
@@ -460,52 +423,6 @@ export function SettingsPanel({
                 </div>
               </section>
             </>
-          )}
-
-          {section === 'game' && (
-            <section className="settings-card">
-              <div className="settings-card-header">
-                <div>
-                  <span className="settings-card-kicker">INTERACTION</span>
-                  <h3>Animation and Roaming</h3>
-                </div>
-              </div>
-
-              <div className="settings-form-grid">
-                <label className="settings-field settings-field--full">
-                  <span>Animation cooldown</span>
-                  <input
-                    type="range"
-                    min={1200}
-                    max={5000}
-                    step={200}
-                    value={gameSettings.animationIntervalMs}
-                    onChange={(event) => {
-                      const value = Number(event.target.value)
-                      setGameSettings((current) => ({ ...current, animationIntervalMs: value }))
-                    }}
-                  />
-                  <small>{gameSettings.animationIntervalMs} ms</small>
-                </label>
-
-                <label className="settings-toggle">
-                  <input
-                    type="checkbox"
-                    checked={gameSettings.roamingEnabled}
-                    onChange={(event) => {
-                      setGameSettings((current) => ({ ...current, roamingEnabled: event.target.checked }))
-                    }}
-                  />
-                  <span>Keep roaming enabled in saved settings. This only stores the flag for now.</span>
-                </label>
-              </div>
-
-              <div className="settings-tip-actions">
-                <button className="settings-primary-btn" onClick={handleGameSettingsSave}>
-                  Save Interaction Settings
-                </button>
-              </div>
-            </section>
           )}
 
           {section === 'about' && (

@@ -220,9 +220,3 @@
   border-radius: inherit;
   background: linear-gradient(90deg, #ffcf8a, #ff9c6f);
 }
-
-.scroll-strip__meter-hint {
-  margin: 8px 0 0;
-  font-size: 11px;
-  color: rgba(255, 244, 229, 0.74);
-}

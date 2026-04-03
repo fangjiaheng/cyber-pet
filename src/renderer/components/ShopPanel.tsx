@@ -33,9 +33,9 @@ export function ShopPanel({ onClose, onNotice }: ShopPanelProps) {
   const headerRef = useRef<HTMLDivElement | null>(null)
   useWindowDrag(headerRef)
 
-  const { coins, earnCoins } = usePetStore(useShallow((state) => ({
-    coins: state.coins,
-    earnCoins: state.earnCoins,
+  const { yuanbao, earnYuanbao } = usePetStore(useShallow((state) => ({
+    yuanbao: state.yuanbao,
+    earnYuanbao: state.earnYuanbao,
   })))
 
   const { addItem, getItemCount } = useInventoryStore()
@@ -56,18 +56,18 @@ export function ShopPanel({ onClose, onNotice }: ShopPanelProps) {
   }, [])
 
   const handleBuy = useCallback((item: ShopItem) => {
-    if (coins < item.price) {
+    if (yuanbao < item.price) {
       setBuyFeedback('元宝不足！')
       setTimeout(() => setBuyFeedback(null), 1500)
       return
     }
-    // 扣除元宝（earnCoins 用负值）
-    earnCoins(-item.price)
+    // 扣除元宝
+    earnYuanbao(-item.price)
     addItem(item.id)
     setBuyFeedback(`成功购买 ${item.name}！`)
     onNotice?.(`购买了 ${item.name}`)
     setTimeout(() => setBuyFeedback(null), 1500)
-  }, [coins, earnCoins, addItem, onNotice])
+  }, [yuanbao, earnYuanbao, addItem, onNotice])
 
   const formatStats = (item: ShopItem) => {
     const parts: string[] = []
@@ -85,7 +85,7 @@ export function ShopPanel({ onClose, onNotice }: ShopPanelProps) {
         <div>
           <p className="shop-eyebrow">商店</p>
           <h2>Q宠百货</h2>
-          <p className="shop-coins">元宝: {coins}</p>
+          <p className="shop-yuanbao">元宝: {yuanbao}</p>
         </div>
         <button className="shop-close-btn" onClick={onClose}>✕</button>
       </div>
@@ -112,7 +112,7 @@ export function ShopPanel({ onClose, onNotice }: ShopPanelProps) {
       <div className="shop-items">
         {pageItems.map((item) => {
           const owned = getItemCount(item.id)
-          const canAfford = coins >= item.price
+          const canAfford = yuanbao >= item.price
           return (
             <div
               key={item.id}

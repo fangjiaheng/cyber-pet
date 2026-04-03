@@ -24,7 +24,7 @@ export interface TaskGiftState {
 
 export interface TaskGiftReward {
   experience: number
-  coins: number
+  yuanbao: number
   hunger: number
   cleanliness: number
   mood: number
@@ -211,7 +211,7 @@ export function getTaskGiftReward(kind: TaskGiftKind, slot: TaskGiftSlot): TaskG
   if (category === 'food') {
     return {
       experience: (isSign ? 14 : 8) + scale * 2,
-      coins: (isSign ? 22 : 10) + scale * 3,
+      yuanbao: (isSign ? 22 : 10) + scale * 3,
       hunger: ((isSign ? 24 : 16) + scale) * 10,
       cleanliness: 0,
       mood: ((isSign ? 8 : 5) + Math.floor(scale / 2)) * 10,
@@ -222,7 +222,7 @@ export function getTaskGiftReward(kind: TaskGiftKind, slot: TaskGiftSlot): TaskG
   if (category === 'commodity') {
     return {
       experience: (isSign ? 12 : 7) + scale * 2,
-      coins: (isSign ? 26 : 12) + scale * 3,
+      yuanbao: (isSign ? 26 : 12) + scale * 3,
       hunger: 0,
       cleanliness: ((isSign ? 16 : 10) + scale) * 10,
       mood: ((isSign ? 10 : 6) + Math.floor(scale / 2)) * 10,
@@ -232,7 +232,7 @@ export function getTaskGiftReward(kind: TaskGiftKind, slot: TaskGiftSlot): TaskG
 
   return {
     experience: (isSign ? 16 : 10) + scale * 2,
-    coins: (isSign ? 18 : 8) + scale * 2,
+    yuanbao: (isSign ? 18 : 8) + scale * 2,
     hunger: 0,
     cleanliness: 0,
     mood: ((isSign ? 12 : 8) + Math.floor(scale / 2)) * 10,

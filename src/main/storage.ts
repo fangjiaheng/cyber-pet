@@ -14,7 +14,7 @@ export interface PetStateData {
   energy: number;
   level: number;
   experience: number;
-  coins: number;
+  yuanbao: number;
   lastCheckIn: number | null;
   checkInStreak: number;
   onlineDataTime: number;
@@ -109,7 +109,7 @@ const defaultPetState: PetStateData = {
   energy: 100,
   level: 1,
   experience: 0,
-  coins: 0,
+  yuanbao: 0,
   lastCheckIn: null,
   checkInStreak: 0,
   onlineDataTime: 0,

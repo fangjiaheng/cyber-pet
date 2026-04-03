@@ -16,9 +16,9 @@ export function WorkPanel({ onClose, onNotice, onWorkComplete }: WorkPanelProps)
   const headerRef = useRef<HTMLDivElement | null>(null)
   useWindowDrag(headerRef)
 
-  const { level, coins } = usePetStore(useShallow((s) => ({
+  const { level, yuanbao } = usePetStore(useShallow((s) => ({
     level: s.level,
-    coins: s.coins,
+    yuanbao: s.yuanbao,
   })))
 
   const { active, startWork, completeActivity, cancelActivity, meetsEducation, isActive } = useActivityStore()
@@ -64,7 +64,7 @@ export function WorkPanel({ onClose, onNotice, onWorkComplete }: WorkPanelProps)
     if (completed) {
       // 发放奖励
       const store = usePetStore.getState()
-      store.earnCoins(completed.rewards.yb || 0)
+      store.earnYuanbao(completed.rewards.yb || 0)
       store.updateProfile({
         charm: store.profile.charm + (completed.rewards.charm || 0),
         intelligence: store.profile.intelligence + (completed.rewards.intel || 0),
@@ -93,7 +93,7 @@ export function WorkPanel({ onClose, onNotice, onWorkComplete }: WorkPanelProps)
         <div>
           <p className="work-eyebrow">打工</p>
           <h2>工作列表</h2>
-          <p className="work-coins">元宝: {coins} | 等级: {level}</p>
+          <p className="work-yuanbao">元宝: {yuanbao} | 等级: {level}</p>
         </div>
         <button className="work-close-btn" onClick={onClose}>✕</button>
       </div>

@@ -16,7 +16,7 @@ import { useInventoryStore } from './stores/inventoryStore'
 import { useActivityStore } from './stores/activitySystem'
 import { getItemById, UNIVERSAL_MEDICINES } from '../shared/itemCatalog'
 import { getCurrentDiseaseInfo, applyMedicine } from './stores/diseaseSystem'
-import { getHungerMax, getCleanlinessMax, MOOD_MAX } from './stores/growthConfig'
+import { getHungerMax, getCleanlinessMax, MOOD_MAX, HEALTH_MAX } from './stores/growthConfig'
 import { useShallow } from 'zustand/react/shallow'
 import { usePetDecay } from './hooks/usePetDecay'
 import { usePetDialogue } from './hooks/usePetDialogue'
@@ -74,7 +74,7 @@ type PenguinAction =
   | 'happy' | 'sad' | 'angry'
 
 type ActivePanel = 'chat' | 'settings' | 'probe' | 'shop' | 'work' | 'study' | 'info' | 'state' | 'inventory' | null
-type SettingsSection = 'ai' | 'profile' | 'game' | 'about'
+type SettingsSection = 'ai' | 'profile' | 'about'
 type WindowMode = 'pet' | 'chat' | 'settings' | 'probe' | 'shop' | 'work' | 'study' | 'info' | 'state' | 'inventory' | 'context-menu' | 'action-dropdown' | 'bubble'
 type PlayerCommand = {
   playlist: string
@@ -353,7 +353,7 @@ function App() {
     mood,
     level,
     profile,
-    coins,
+    yuanbao,
     currentEmotion,
     onlineDataTime,
     taskGifts,
@@ -374,7 +374,7 @@ function App() {
     health: state.health,
     level: state.level,
     profile: state.profile,
-    coins: state.coins,
+    yuanbao: state.yuanbao,
     currentEmotion: state.currentEmotion,
     onlineDataTime: state.onlineDataTime,
     taskGifts: state.taskGifts,
@@ -817,7 +817,7 @@ function App() {
   const formatTaskReward = useCallback((reward: TaskGiftReward) => {
     const parts = [
       reward.experience > 0 ? '经验 +' + reward.experience : null,
-      reward.coins > 0 ? '元宝 +' + reward.coins : null,
+      reward.yuanbao > 0 ? '元宝 +' + reward.yuanbao : null,
       reward.hunger > 0 ? '饥饿 +' + reward.hunger : null,
       reward.cleanliness > 0 ? '清洁 +' + reward.cleanliness : null,
       reward.mood > 0 ? '心情 +' + reward.mood : null,
@@ -1566,12 +1566,8 @@ function App() {
       ],
     },
     {
-      label: '选项',
-      onClick: () => { },
-      children: [
-        { label: '设置', onClick: () => openSettingsSection('game') },
-        { label: '停止动画', onClick: handleStopSwf },
-      ],
+      label: '设置',
+      onClick: () => openSettingsSection('profile'),
     },
     { divider: true, label: '', onClick: () => { } },
     {
@@ -1902,7 +1898,6 @@ function App() {
             label: '饥饿值',
             value: hunger,
             max: getHungerMax(level),
-            hint: '食物会提升饥饿值。',
           }}
         />
       )}
@@ -1918,7 +1913,6 @@ function App() {
             label: '清洁值',
             value: cleanliness,
             max: getCleanlinessMax(level),
-            hint: '清洁会提升清洁值。',
           }}
         />
       )}
@@ -1931,9 +1925,9 @@ function App() {
           className="feed-strip-positioned"
           style={stripPosition ?? undefined}
           meter={{
-            label: '体力值',
-            value: energy,
-            hint: '治疗会帮助恢复体力值。',
+            label: '健康值',
+            value: health,
+            max: HEALTH_MAX,
           }}
         />
       )}
@@ -1948,7 +1942,6 @@ function App() {
           meter={{
             label: '智力值',
             value: profile.intelligence,
-            hint: '学习会提升智力值。',
           }}
         />
       )}
@@ -1962,8 +1955,7 @@ function App() {
           style={stripPosition ?? undefined}
           meter={{
             label: '元宝',
-            value: coins,
-            hint: '打工可以赚取元宝。',
+            value: yuanbao,
           }}
         />
       )}
@@ -1978,7 +1970,6 @@ function App() {
           meter={{
             label: '心情值',
             value: mood,
-            hint: '旅行会提升心情值。',
           }}
         />
       )}
@@ -1994,12 +1985,10 @@ function App() {
             ? {
               label: '领取进度',
               value: Math.round((countClaimedTaskGifts(taskGifts.sign) / Math.max(1, taskGifts.sign.slots.length)) * 100),
-              hint: '点击礼物即可尝试领取当前奖励。',
             }
             : {
               label: '在线进度',
               value: Math.min(100, Math.round((onlineDataTime / 220) * 100)),
-              hint: '在线时长达到对应分钟后即可领取。',
             }}
         />
       )}
@@ -2065,9 +2054,6 @@ function App() {
             setToastMessage('AI 设置已保存并立即生效')
           }}
           onNotice={(message) => setToastMessage(message)}
-          onGameSettingsSaved={(settings) => {
-            setAnimationIntervalMs(settings.animationIntervalMs)
-          }}
         />
       )}
 

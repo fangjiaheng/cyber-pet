@@ -25,7 +25,6 @@ export interface HorizontalScrollStripProps {
     label: string
     value: number
     max?: number
-    hint?: string
   }
 }
 
@@ -144,7 +143,6 @@ export default function HorizontalScrollStrip({ items, title, onClose, className
               style={{ width: `${Math.max(0, Math.min(100, (meter.value / Math.max(1, meter.max ?? 100)) * 100))}%` }}
             />
           </div>
-          {meter.hint ? <p className="scroll-strip__meter-hint">{meter.hint}</p> : null}
         </div>
       ) : null}
     </div>

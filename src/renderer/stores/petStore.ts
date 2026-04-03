@@ -69,7 +69,7 @@ export interface PetState {
   health: number
   level: number
   experience: number
-  coins: number
+  yuanbao: number
   lastCheckIn: number | null
   checkInStreak: number
   onlineDataTime: number
@@ -96,7 +96,7 @@ interface PetActions {
   setEmotion: (emotion: Emotion) => void
   setPosition: (x: number, y: number) => void
   gainExperience: (amount: number) => { levelUps: number; level: number; experience: number }
-  earnCoins: (amount: number) => void
+  earnYuanbao: (amount: number) => void
   updateProfile: (patch: Partial<PetProfile>) => void
   /** 使用物品喂食。传入物品效果值，库存扣减由调用方负责 */
   feedWithItem: (effects: { starve: number; charm?: number; intel?: number; strong?: number }) => void
@@ -157,7 +157,7 @@ const INITIAL_STATE: PetState = {
   health: HEALTH_MAX,                // 5 = 健康
   level: 1,
   experience: 0,
-  coins: 0,
+  yuanbao: 0,
   lastCheckIn: null,
   checkInStreak: 0,
   onlineDataTime: 0,
@@ -244,7 +244,7 @@ function buildPersistedState(state: PetState) {
     health: state.health,
     level: state.level,
     experience: state.experience,
-    coins: state.coins,
+    yuanbao: state.yuanbao,
     lastCheckIn: state.lastCheckIn,
     checkInStreak: state.checkInStreak,
     onlineDataTime: state.onlineDataTime,
@@ -289,7 +289,7 @@ function normalizeLoadedState(savedState: Partial<PetState> | null | undefined):
     health: clampHealth(migrated.health ?? HEALTH_MAX),
     level,
     experience: Math.max(0, migrated.experience ?? INITIAL_STATE.experience),
-    coins: Math.max(0, migrated.coins ?? 0),
+    yuanbao: Math.max(0, migrated.yuanbao ?? 0),
     lastCheckIn: migrated.lastCheckIn ?? null,
     checkInStreak: Math.max(0, migrated.checkInStreak ?? 0),
     onlineDataTime,
@@ -324,8 +324,8 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
     return progress
   },
 
-  earnCoins: (amount) => set((state) => ({
-    coins: Math.max(0, state.coins + amount),
+  earnYuanbao: (amount) => set((state) => ({
+    yuanbao: Math.max(0, state.yuanbao + amount),
   })),
 
   updateProfile: (patch) => set((state) => {
@@ -473,7 +473,7 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
       currentEmotion: 'neutral',
       experience: progress.experience,
       level: progress.level,
-      coins: state.coins + 12,
+      yuanbao: state.yuanbao + 12,
       profile: {
         ...state.profile,
         intelligence,
@@ -492,7 +492,7 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
       currentEmotion: 'neutral',
       experience: progress.experience,
       level: progress.level,
-      coins: state.coins + 28,
+      yuanbao: state.yuanbao + 28,
       profile: {
         ...state.profile,
         strength: state.profile.strength + 1,
@@ -559,7 +559,7 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
       energy: clampEnergy(state.energy + reward.energy),
       experience: progress.experience,
       level: progress.level,
-      coins: Math.max(0, state.coins + reward.coins),
+      yuanbao: Math.max(0, state.yuanbao + reward.yuanbao),
       currentEmotion: 'happy',
       lastCheckIn: kind === 'sign' ? now : state.lastCheckIn,
       checkInStreak: countClaimedTaskGifts(result.state.sign),
@@ -635,7 +635,7 @@ export const usePetStore = create<PetState & PetActions>((set, get) => ({
       currentEmotion: state.energy < 30 ? 'tired' : 'neutral',
       experience: progress.experience,
       level: progress.level,
-      coins: state.coins + Math.max(10, workTimeMinutes * 3),
+      yuanbao: state.yuanbao + Math.max(10, workTimeMinutes * 3),
     }
   }),
 

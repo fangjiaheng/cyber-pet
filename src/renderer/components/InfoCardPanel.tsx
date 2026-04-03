@@ -26,11 +26,11 @@ export function InfoCardPanel({ onClose, onNotice }: InfoCardPanelProps) {
   const headerRef = useRef<HTMLDivElement | null>(null)
   useWindowDrag(headerRef)
 
-  const { profile, level, experience, coins, createdAt, onlineDataTime, updateProfile } = usePetStore(useShallow((s) => ({
+  const { profile, level, experience, yuanbao, createdAt, onlineDataTime, updateProfile } = usePetStore(useShallow((s) => ({
     profile: s.profile,
     level: s.level,
     experience: s.experience,
-    coins: s.coins,
+    yuanbao: s.yuanbao,
     createdAt: s.createdAt,
     onlineDataTime: s.onlineDataTime,
     updateProfile: s.updateProfile,
@@ -112,7 +112,7 @@ export function InfoCardPanel({ onClose, onNotice }: InfoCardPanelProps) {
           </div>
           <div className="infocard-row">
             <span className="infocard-label">元宝</span>
-            <span className="infocard-value gold">{coins}</span>
+            <span className="infocard-value gold">{yuanbao}</span>
           </div>
           <div className="infocard-row">
             <span className="infocard-label">在线时长</span>
