@@ -290,6 +290,11 @@
   height: 22px;
 }
 
+.action-btn__icon--chat {
+  width: 24px;
+  height: 24px;
+}
+
 .action-btn__icon--task {
   width: 24px;
   height: 24px;

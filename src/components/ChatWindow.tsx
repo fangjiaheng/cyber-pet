@@ -11,6 +11,8 @@ import type { AIProvider, TokenUsage } from '../ai/types';
 import { AIConfigForm } from '../renderer/components/AIConfigForm';
 import './ChatWindow.css';
 
+const ROBOT_ICON_SRC = '/assets/robot.png';
+
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -251,6 +253,9 @@ export function ChatWindow() {
     setIsConfigured(true)
   }
 
+  const robotIcon = <img className="robot-icon" src={ROBOT_ICON_SRC} alt="机器人" />;
+  const robotAvatar = <img className="robot-avatar" src={ROBOT_ICON_SRC} alt="机器人" />;
+
   return (
     <div className="chat-window">
       {/* 未配置时显示配置引导 */}
@@ -272,7 +277,7 @@ export function ChatWindow() {
       {/* 标题栏 */}
       <div className="chat-header">
         <div className="chat-title">
-          <span className="pet-icon">🦞</span>
+          <span className="pet-icon">{robotIcon}</span>
           <span>AI 助手</span>
         </div>
         <div className="chat-actions">
@@ -337,7 +342,7 @@ export function ChatWindow() {
       <div className="chat-messages">
         {messages.length === 0 && (
           <div className="empty-state">
-            <div className="empty-icon">🦞</div>
+            <div className="empty-icon">{robotIcon}</div>
             <p className="empty-text">你好！我是你的 AI 助手</p>
             <p className="empty-hint">
               选择任务类型开始对话，或直接输入你的问题
@@ -348,7 +353,7 @@ export function ChatWindow() {
         {messages.map((message) => (
           <div key={message.id} className={`message message-${message.role}`}>
             <div className="message-avatar">
-              {message.role === 'user' ? '👤' : message.role === 'assistant' ? '🦞' : 'ℹ️'}
+              {message.role === 'user' ? '👤' : message.role === 'assistant' ? robotAvatar : 'ℹ️'}
             </div>
             <div className="message-content">
               {message.role === 'assistant' && loading && message.content === '' ? (
@@ -374,7 +379,7 @@ export function ChatWindow() {
 
         {loading && messages[messages.length - 1]?.role !== 'assistant' && (
           <div className="message message-assistant">
-            <div className="message-avatar">🦞</div>
+            <div className="message-avatar">{robotAvatar}</div>
             <div className="message-content">
               <div className="typing-indicator">
                 <span></span>

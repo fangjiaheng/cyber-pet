@@ -9,6 +9,8 @@ import type { AIProvider } from '../../ai/types'
 import { initializeAI } from '../aiInit'
 import './AIConfigForm.css'
 
+const ROBOT_ICON_SRC = '/assets/robot.png'
+
 export interface AIConfig {
   provider: AIProvider
   apiKey: string
@@ -115,7 +117,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
     <div className={`ai-config-form ${embedded ? 'embedded' : 'standalone'}`}>
       {!embedded && (
         <div className="config-header">
-          <div className="config-icon">🦞</div>
+          <img className="config-icon-image" src={ROBOT_ICON_SRC} alt="机器人" />
           <h3>配置 AI 助手</h3>
           <p>请填写 API 信息以开始使用</p>
         </div>
