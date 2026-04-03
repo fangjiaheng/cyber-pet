@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AIProvider } from '../../ai/types'
 import { useShallow } from 'zustand/react/shallow'
-import { getModelsForProvider } from '../../ai/providerCatalog'
+import { getModelsForProvider, getProviderDefinition } from '../../ai/providerCatalog'
 import { useWindowDrag } from '../hooks/useWindowDrag'
 import { usePetStore } from '../stores/petStore'
 import {
@@ -40,16 +40,16 @@ interface SettingsPanelProps {
 }
 
 function maskApiKey(apiKey?: string) {
-  if (!apiKey) return 'Not set'
+  if (!apiKey) return '未设置'
   if (apiKey.length <= 10) return `${apiKey.slice(0, 3)}***`
   return `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}`
 }
 
 const SECTION_COPY: Record<SettingsSection, { eyebrow: string; title: string; subtitle: string }> = {
   ai: {
-    eyebrow: 'AI CONFIG',
-    title: 'Models and Connections',
-    subtitle: 'Choose a provider, save credentials, and switch models without restarting the pet window.',
+    eyebrow: 'AI 设置',
+    title: '模型与连接',
+    subtitle: '在这里选择服务商、保存密钥并切换模型，保存后会立即生效，无需重启宠物窗口。',
   },
   profile: {
     eyebrow: '宠物资料',
@@ -57,18 +57,16 @@ const SECTION_COPY: Record<SettingsSection, { eyebrow: string; title: string; su
     subtitle: '查看宠物的成长状态、属性和基本信息。',
   },
   game: {
-    eyebrow: 'GAME',
-    title: 'Interaction Settings',
-    subtitle: 'Tune animation timing and keep future roaming settings ready for later gameplay updates.',
+    eyebrow: '交互设置',
+    title: '动画与交互',
+    subtitle: '调整动画间隔，并预留后续漫游类玩法的开关设置。',
   },
   about: {
-    eyebrow: 'ABOUT',
-    title: 'Project Status',
-    subtitle: 'See what is implemented now and where the desktop pet is still intentionally limited.',
+    eyebrow: '关于项目',
+    title: '当前状态',
+    subtitle: '查看当前已经实现的能力，以及这个桌面宠物原型暂时保留的限制。',
   },
 }
-
-const EDUCATION_OPTIONS = ['Kindergarten', 'Primary School', 'Middle School', 'High School', 'University', 'Graduate']
 
 export function SettingsPanel({
   onClose,
@@ -148,9 +146,18 @@ export function SettingsPanel({
     if (!settings?.defaultModel) return null
     return getModelsForProvider(settings.provider).find((item) => item.id === settings.defaultModel) ?? null
   }, [settings?.defaultModel, settings?.provider])
+  const currentProviderLabel = settings?.provider ? getProviderDefinition(settings.provider).label : '未设置'
 
   const configured = Boolean(settings?.apiKey && settings?.baseUrl)
   const currentSectionCopy = SECTION_COPY[section]
+  const navItems: Array<[SettingsSection, string, string]> = initialSection === 'ai'
+    ? [['ai', 'AI 设置', '模型与连接']]
+    : [
+      ['ai', 'AI 设置', '模型与连接'],
+      ['profile', '资料', '成长与属性'],
+      ['game', '设置', '动画与交互'],
+      ['about', '关于', '项目状态'],
+    ]
 
   // 正确的经验进度计算
   const tableIndex = Math.min(level - 1, EXPERIENCE_TABLE.length - 1)
@@ -202,7 +209,7 @@ export function SettingsPanel({
       animationIntervalMs: gameSettings.animationIntervalMs,
       roamingEnabled: gameSettings.roamingEnabled,
     })
-    onNotice?.('Interaction settings saved.')
+    onNotice?.('交互设置已保存')
   }
 
   return (
@@ -217,7 +224,7 @@ export function SettingsPanel({
           className="settings-close-btn"
           data-window-drag-ignore="true"
           onClick={onClose}
-          title="Close settings"
+          title="关闭设置"
         >
           x
         </button>
@@ -225,12 +232,7 @@ export function SettingsPanel({
 
       <div className="settings-panel-body settings-shell">
         <aside className="settings-sidebar">
-          {([
-            ['ai', 'AI Config', 'Provider and model'],
-            ['profile', '资料', '成长与属性'],
-            ['game', 'Game', 'Animation timing'],
-            ['about', 'About', 'Status and limits'],
-          ] as Array<[SettingsSection, string, string]>).map(([key, title, description]) => (
+          {navItems.map(([key, title, description]) => (
             <button
               key={key}
               type="button"
@@ -244,59 +246,64 @@ export function SettingsPanel({
         </aside>
 
         <div className="settings-content">
-          <section className="settings-card settings-card-hero">
-            <div className="settings-card-header">
-              <div>
-                <span className="settings-card-kicker">CURRENT STATUS</span>
-                <h3>Desktop Pet Overview</h3>
+          {section !== 'ai' && (
+            <section className="settings-card settings-card-hero">
+              <div className="settings-card-header">
+                <div>
+                  <span className="settings-card-kicker">当前概览</span>
+                  <h3>桌面宠物状态</h3>
+                </div>
+                <span className={`settings-badge ${configured ? 'ok' : 'warn'}`}>
+                  {loading ? '加载中...' : configured ? 'AI 已配置' : 'AI 未配置'}
+                </span>
               </div>
-              <span className={`settings-badge ${configured ? 'ok' : 'warn'}`}>
-                {loading ? 'Loading...' : configured ? 'AI configured' : 'AI not configured'}
-              </span>
-            </div>
 
-            <div className="settings-status-grid">
-              <div className="settings-status-item">
-                <span>宠物昵称</span>
-                <strong>{profile.petName}</strong>
+              <div className="settings-status-grid">
+                <div className="settings-status-item">
+                  <span>宠物昵称</span>
+                  <strong>{profile.petName}</strong>
+                </div>
+                <div className="settings-status-item">
+                  <span>主人昵称</span>
+                  <strong>{profile.ownerName}</strong>
+                </div>
+                <div className="settings-status-item">
+                  <span>等级 / 经验</span>
+                  <strong>Lv.{level} / {levelProgress} / {levelTotal}</strong>
+                </div>
+                <div className="settings-status-item">
+                  <span>金币 / 签到</span>
+                  <strong>{coins} / {checkInStreak} 天</strong>
+                </div>
               </div>
-              <div className="settings-status-item">
-                <span>主人昵称</span>
-                <strong>{profile.ownerName}</strong>
-              </div>
-              <div className="settings-status-item">
-                <span>等级 / 经验</span>
-                <strong>Lv.{level} / {levelProgress} / {levelTotal}</strong>
-              </div>
-              <div className="settings-status-item">
-                <span>金币 / 签到</span>
-                <strong>{coins} / {checkInStreak} 天</strong>
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {section === 'ai' && (
             <>
               <section className="settings-card">
                 <div className="settings-card-header">
                   <div>
-                    <span className="settings-card-kicker">CONNECTION</span>
-                    <h3>Saved AI Settings</h3>
+                    <span className="settings-card-kicker">已保存配置</span>
+                    <h3>当前 AI 连接信息</h3>
                   </div>
+                  <span className={`settings-badge ${configured ? 'ok' : 'warn'}`}>
+                    {loading ? '加载中...' : configured ? '可用' : '未完成配置'}
+                  </span>
                 </div>
 
                 <div className="settings-status-grid">
                   <div className="settings-status-item">
-                    <span>Provider</span>
-                    <strong>{settings?.provider ?? 'Not set'}</strong>
+                    <span>服务商</span>
+                    <strong>{currentProviderLabel}</strong>
                   </div>
                   <div className="settings-status-item">
-                    <span>Default Model</span>
-                    <strong>{currentModel?.name ?? settings?.defaultModel ?? 'Not set'}</strong>
+                    <span>默认模型</span>
+                    <strong>{currentModel?.name ?? settings?.defaultModel ?? '未设置'}</strong>
                   </div>
                   <div className="settings-status-item">
-                    <span>Base URL</span>
-                    <strong>{settings?.baseUrl ?? 'Not set'}</strong>
+                    <span>接口地址</span>
+                    <strong>{settings?.baseUrl ?? '未设置'}</strong>
                   </div>
                   <div className="settings-status-item">
                     <span>API Key</span>
@@ -308,8 +315,8 @@ export function SettingsPanel({
               <section className="settings-card">
                 <div className="settings-card-header">
                   <div>
-                    <span className="settings-card-kicker">EDIT</span>
-                    <h3>Provider and Model</h3>
+                    <span className="settings-card-kicker">编辑配置</span>
+                    <h3>服务商与模型</h3>
                   </div>
                 </div>
                 <AIConfigForm embedded onSaved={handleSaved} />
@@ -318,21 +325,21 @@ export function SettingsPanel({
               <section className="settings-card settings-card-tips">
                 <div className="settings-card-header">
                   <div>
-                    <span className="settings-card-kicker">NOTES</span>
-                    <h3>How it Works</h3>
+                    <span className="settings-card-kicker">使用说明</span>
+                    <h3>配置说明</h3>
                   </div>
                 </div>
                 <div className="settings-tip-list">
-                  <div className="settings-tip-item">Saving applies the new provider immediately. You do not need to restart the pet app.</div>
-                  <div className="settings-tip-item">Use the test button before saving when switching between Claude, OpenAI, Bailian, or GLM.</div>
-                  <div className="settings-tip-item">All AI credentials are stored locally through electron-store on this machine.</div>
+                  <div className="settings-tip-item">保存后会立即切换到新的 AI 配置，不需要重启宠物程序。</div>
+                  <div className="settings-tip-item">切换 Claude、ChatGPT、百炼或 GLM 时，建议先点“测试连接”确认配置可用。</div>
+                  <div className="settings-tip-item">所有 AI 密钥和地址都只保存在当前电脑本地的 electron-store 中。</div>
                 </div>
                 <div className="settings-tip-actions">
                   <button className="settings-secondary-btn" onClick={onClose}>
-                    Close
+                    关闭
                   </button>
                   <button className="settings-primary-btn" onClick={onOpenChat}>
-                    Open Chat
+                    打开聊天
                   </button>
                 </div>
               </section>

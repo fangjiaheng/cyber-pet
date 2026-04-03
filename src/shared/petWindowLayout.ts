@@ -1,4 +1,6 @@
-export type PetWindowLayoutMode = 'pet' | 'bubble' | 'action-dropdown' | 'context-menu'
+import { CHAT_WINDOW_HEIGHT, CHAT_WINDOW_WIDTH, PET_WINDOW_HEIGHT, PET_WINDOW_WIDTH } from './windowSizes'
+
+export type PetWindowLayoutMode = 'pet' | 'bubble' | 'action-dropdown' | 'context-menu' | 'chat'
 
 const PET_CONTAINER_TOP_PADDING = 148
 const PET_CONTAINER_LEFT_PADDING = 20
@@ -11,12 +13,23 @@ type AnchorPoint = {
   y: number
 }
 
-export function getPetAnchorPoint(_mode: PetWindowLayoutMode): AnchorPoint {
-  const halfPenguinHeight = PENGUIN_WRAPPER_HEIGHT / 2
-  return {
-    x: PET_CONTAINER_LEFT_PADDING + PET_HOME_STAGE_WIDTH / 2,
-    y: PET_CONTAINER_TOP_PADDING + PENGUIN_WRAPPER_TOP + halfPenguinHeight,
+const PET_ANCHOR_POINT: AnchorPoint = {
+  x: PET_CONTAINER_LEFT_PADDING + PET_HOME_STAGE_WIDTH / 2,
+  y: PET_CONTAINER_TOP_PADDING + PENGUIN_WRAPPER_TOP + PENGUIN_WRAPPER_HEIGHT / 2,
+}
+
+const PET_ANCHOR_RIGHT_OFFSET = PET_WINDOW_WIDTH - PET_ANCHOR_POINT.x
+const PET_ANCHOR_BOTTOM_OFFSET = PET_WINDOW_HEIGHT - PET_ANCHOR_POINT.y
+
+export function getPetAnchorPoint(mode: PetWindowLayoutMode): AnchorPoint {
+  if (mode === 'chat') {
+    return {
+      x: CHAT_WINDOW_WIDTH - PET_ANCHOR_RIGHT_OFFSET,
+      y: CHAT_WINDOW_HEIGHT - PET_ANCHOR_BOTTOM_OFFSET,
+    }
   }
+
+  return PET_ANCHOR_POINT
 }
 
 export function getPetAnchorOffset(from: PetWindowLayoutMode, to: PetWindowLayoutMode) {

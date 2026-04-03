@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './ContextMenu.css'
 
 export interface MenuItem {
@@ -18,16 +18,20 @@ interface ContextMenuProps {
 }
 
 export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuProps) {
+  const menuRootRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [activeItemLabel, setActiveItemLabel] = useState<string | null>(null)
+  const [submenuPosition, setSubmenuPosition] = useState<{ left: number; top: number } | null>(null)
 
   useEffect(() => {
     setActiveItemLabel(null)
+    setSubmenuPosition(null)
   }, [items])
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRootRef.current && !menuRootRef.current.contains(event.target as Node)) {
         onClose()
       }
     }
@@ -55,6 +59,29 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
 
   const activeItem = items.find((item) => item.label === activeItemLabel && item.children?.length)
 
+  useLayoutEffect(() => {
+    if (!activeItemLabel || !activeItem?.children?.length || !menuRef.current) {
+      setSubmenuPosition(null)
+      return
+    }
+
+    const menuRect = menuRef.current.getBoundingClientRect()
+    const activeItemRect = itemRefs.current[activeItemLabel]?.getBoundingClientRect()
+
+    if (!activeItemRect) {
+      setSubmenuPosition({
+        left: Math.round(menuRect.right),
+        top: Math.round(menuRect.top),
+      })
+      return
+    }
+
+    setSubmenuPosition({
+      left: Math.round(menuRect.right),
+      top: Math.round(activeItemRect.top),
+    })
+  }, [activeItem, activeItemLabel, items, x, y])
+
   const handleItemClick = (item: MenuItem) => {
     if (item.disabled) return
 
@@ -73,14 +100,14 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
       onContextMenu={(event) => event.preventDefault()}
       onPointerDown={() => onClose()}
     >
-      <div
-        ref={menuRef}
-        className={`context-menu ${ready ? '' : 'context-menu--hidden'}`}
-        style={{ left: x, top: y }}
-        onPointerDown={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="context-menu__rail">
+      <div ref={menuRootRef}>
+        <div
+          ref={menuRef}
+          className={`context-menu ${ready ? '' : 'context-menu--hidden'}`}
+          style={{ left: x, top: y }}
+          onPointerDown={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
           <div className="context-menu__column">
             {items.map((item, index) => (
               item.divider ? (
@@ -88,12 +115,12 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
               ) : (
                 <div
                   key={index}
+                  ref={(node) => { itemRefs.current[item.label] = node }}
                   className={`context-menu-item ${item.disabled ? 'disabled' : ''} ${activeItemLabel === item.label ? 'active' : ''}`}
                   onClick={() => handleItemClick(item)}
                   onMouseEnter={() => {
-                    if (item.children?.length && !item.disabled) {
-                      setActiveItemLabel(item.label)
-                    }
+                    if (item.disabled) return
+                    setActiveItemLabel(item.children?.length ? item.label : null)
                   }}
                 >
                   <span className="context-menu-label">{item.label}</span>
@@ -102,9 +129,16 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
               )
             ))}
           </div>
+        </div>
 
-          {activeItem?.children?.length ? (
-            <div className="context-menu__column context-menu__column--submenu">
+        {activeItem?.children?.length && submenuPosition ? (
+          <div
+            className={`context-menu context-menu--submenu-popout ${ready ? '' : 'context-menu--hidden'}`}
+            style={{ left: submenuPosition.left, top: submenuPosition.top }}
+            onPointerDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="context-menu__column">
               {activeItem.children.map((item, index) => (
                 item.divider ? (
                   <div key={index} className="context-menu-divider" />
@@ -119,8 +153,8 @@ export function ContextMenu({ x, y, ready = true, items, onClose }: ContextMenuP
                 )
               ))}
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

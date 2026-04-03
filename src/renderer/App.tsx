@@ -49,6 +49,7 @@ import {
   SETTINGS_WINDOW_HEIGHT,
   SETTINGS_WINDOW_WIDTH,
 } from '@shared/windowSizes'
+import { getPetAnchorOffset, type PetWindowLayoutMode } from '@shared/petWindowLayout'
 import { swfCategories } from './swfData'
 import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist, getStageHidePath } from './utils/swfPlaylist'
 import { getGrowthStage, getMoodAppearance, type GrowthStage } from './stores/growthConfig'
@@ -78,6 +79,10 @@ type WindowMode = 'pet' | 'chat' | 'settings' | 'probe' | 'shop' | 'work' | 'stu
 type PlayerCommand = {
   playlist: string
   token: number
+}
+type WindowPosition = {
+  x: number
+  y: number
 }
 type PlaySwfOptions = {
   appendIdle?: boolean
@@ -352,8 +357,6 @@ function App() {
     currentEmotion,
     onlineDataTime,
     taskGifts,
-    play,
-    rest,
     travel,
     feedWithItem,
     cleanWithItem,
@@ -375,8 +378,6 @@ function App() {
     currentEmotion: state.currentEmotion,
     onlineDataTime: state.onlineDataTime,
     taskGifts: state.taskGifts,
-    play: state.play,
-    rest: state.rest,
     travel: state.travel,
     feedWithItem: state.feedWithItem,
     cleanWithItem: state.cleanWithItem,
@@ -426,6 +427,7 @@ function App() {
   const lifeButtonRef = useRef<HTMLButtonElement | null>(null)
   const taskButtonRef = useRef<HTMLButtonElement | null>(null)
   const windowLayoutModeRef = useRef<WindowMode>('pet')
+  const petWindowPositionBeforeChatRef = useRef<WindowPosition | null>(null)
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showActions, setShowActions] = useState(false)
@@ -697,11 +699,46 @@ function App() {
     }
   }, [activePanel, isActionDropdownOpen, isBubbleOpen, isContextMenuOpen])
 
-  const resizeWindowForMode = useCallback((mode: WindowMode) => {
+  const isAnchoredPetMode = useCallback((mode: WindowMode): mode is PetWindowLayoutMode => {
+    return mode === 'pet' || mode === 'bubble' || mode === 'action-dropdown' || mode === 'context-menu' || mode === 'chat'
+  }, [])
+
+  const resolvePetWindowPosition = useCallback((mode: WindowMode, position: WindowPosition) => {
+    if (!isAnchoredPetMode(mode)) return null
+
+    const toPetOffset = getPetAnchorOffset(mode, 'pet')
+    return {
+      x: position.x + toPetOffset.x,
+      y: position.y + toPetOffset.y,
+    }
+  }, [isAnchoredPetMode])
+
+  const resizeWindowForMode = useCallback(async (mode: WindowMode) => {
     if (!window.electronAPI?.resizeWindow) return
+    const currentMode = windowLayoutModeRef.current
 
     if (mode === 'chat') {
-      window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
+      const [currentX, currentY] = await window.electronAPI.getWindowPosition()
+      const currentPosition = { x: currentX, y: currentY }
+      const petPosition = resolvePetWindowPosition(currentMode, currentPosition)
+
+      if (petPosition) {
+        petWindowPositionBeforeChatRef.current = petPosition
+      }
+
+      const openFromPetOffset = getPetAnchorOffset('pet', 'chat')
+      const offsetX = petPosition
+        ? petPosition.x + openFromPetOffset.x - currentX
+        : openFromPetOffset.x
+      const offsetY = petPosition
+        ? petPosition.y + openFromPetOffset.y - currentY
+        : openFromPetOffset.y
+
+      window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, {
+        fitToScreen: true,
+        offsetX,
+        offsetY,
+      })
       windowLayoutModeRef.current = mode
       return
     }
@@ -737,9 +774,23 @@ function App() {
     }
 
     // 宠物模式 - 恢复默认大小
+    if (currentMode === 'chat' && petWindowPositionBeforeChatRef.current) {
+      const [currentX, currentY] = await window.electronAPI.getWindowPosition()
+      const { x, y } = petWindowPositionBeforeChatRef.current
+
+      window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT, {
+        offsetX: x - currentX,
+        offsetY: y - currentY,
+      })
+      petWindowPositionBeforeChatRef.current = null
+      windowLayoutModeRef.current = mode
+      return
+    }
+
     window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT)
+    petWindowPositionBeforeChatRef.current = null
     windowLayoutModeRef.current = mode
-  }, [])
+  }, [isAnchoredPetMode, resolvePetWindowPosition])
 
   const getActionDropdownPosition = useCallback((button: HTMLElement) => {
     const rect = button.getBoundingClientRect()
@@ -930,6 +981,22 @@ function App() {
     setShowCleanStrip((current) => !current)
   }, [closeAnimDropdown, closeFeedStrip, closeDailyDropdown, closeHealStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, pinActionButtons])
 
+  const handleHeal = useCallback((event?: React.MouseEvent) => {
+    event?.stopPropagation()
+    closeAnimDropdown()
+    closeDailyDropdown()
+    closeLifeDropdown()
+    closeTaskDropdown()
+    closeTaskStrip()
+    closeFeedStrip()
+    closeCleanStrip()
+    closeStudyStrip()
+    closeWorkStrip()
+    closeTravelStrip()
+    pinActionButtons()
+    setShowHealStrip((current) => !current)
+  }, [closeAnimDropdown, closeCleanStrip, closeDailyDropdown, closeFeedStrip, closeLifeDropdown, closeStudyStrip, closeTaskDropdown, closeTaskStrip, closeTravelStrip, closeWorkStrip, pinActionButtons])
+
   const handleToggleAnimDropdown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     animDropdownAnchorRef.current = event.currentTarget
@@ -1089,29 +1156,6 @@ function App() {
     setBubbleText((kind === 'sign' ? '登录送礼领取成功，' : '在线送礼领取成功，') + formatTaskReward(result.reward) + '。')
     scheduleReturnToIdle(1600)
   }, [claimTaskGift, formatTaskReward, playSwfPath, scheduleReturnToIdle])
-
-
-  const handlePlay = useCallback((event?: React.MouseEvent) => {
-    event?.stopPropagation()
-    runTimedInteraction({
-      perform: play,
-      swfPath: '/assets/swf_original/102/1022070141.swf',
-      animationId: '316',
-      penguinAction: 'play',
-      baseDuration: 1400,
-    })
-  }, [play, runTimedInteraction])
-
-  const handleRest = useCallback(() => {
-    runTimedInteraction({
-      perform: rest,
-      swfPath: '/assets/swf_original/102/1020030141.swf',
-      animationId: '10',
-      penguinAction: 'sleep',
-      baseDuration: 2800,
-    })
-  }, [rest, runTimedInteraction])
-
   const handlePetHover = useCallback(() => {
     if (isContextMenuOpen || isActionDropdownOpen) return
     setShowActions(true)
@@ -1505,22 +1549,7 @@ function App() {
       children: [
         { label: '食物', onClick: () => handleFeed() },
         { label: '清洁', onClick: () => handleClean() },
-        { label: '玩耍', onClick: () => handlePlay() },
-        { label: '休息', onClick: handleRest },
-        {
-          label: '任务',
-          onClick: () => { },
-          children: [
-            {
-              label: '登录送礼' + (countReadyTaskGifts(taskGifts.sign) > 0 ? ' 可领' : ''),
-              onClick: () => openTaskStrip('sign'),
-            },
-            {
-              label: '在线送礼' + (countReadyTaskGifts(taskGifts.online) > 0 ? ' 可领' : ''),
-              onClick: () => openTaskStrip('online'),
-            },
-          ],
-        },
+        { label: '治疗', onClick: () => handleHeal() },
       ],
     },
     {
@@ -1542,7 +1571,6 @@ function App() {
       children: [
         { label: '设置', onClick: () => openSettingsSection('game') },
         { label: '停止动画', onClick: handleStopSwf },
-        { label: '关于', onClick: () => openSettingsSection('about') },
       ],
     },
     { divider: true, label: '', onClick: () => { } },
@@ -1554,7 +1582,7 @@ function App() {
       label: '退出宠物',
       onClick: handleQuit,
     },
-  ]), [handleClean, handleFeed, handleHideToTray, handleOpenChat, handlePlay, handleQuit, handleRest, handleStopSwf, openPanel, openSettingsSection, openTaskStrip, taskGifts])
+  ]), [handleClean, handleFeed, handleHeal, handleHideToTray, handleOpenChat, handleQuit, handleStopSwf, openPanel, openSettingsSection])
 
   useEffect(() => {
     if (['eat', 'bathe', 'play', 'sleep', 'happy', 'work'].includes(penguinAction)) {

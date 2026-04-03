@@ -23,18 +23,12 @@
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-.context-menu__rail {
-  display: flex;
-  align-items: flex-start;
-}
-
 .context-menu__column {
   min-width: 124px;
 }
 
-.context-menu__column--submenu {
-  border-left: 1px solid rgba(164, 203, 220, 0.75);
-  background: rgba(255, 255, 255, 0.52);
+.context-menu--submenu-popout {
+  z-index: 10001;
 }
 
 .context-menu--hidden {

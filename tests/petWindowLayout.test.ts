@@ -67,3 +67,37 @@ runTest('bubble mode keeps the same anchor as the pet window', () => {
   assert.equal(offset.x, 0)
   assert.equal(offset.y, 0)
 })
+
+runTest('chat resize compensation keeps the pet anchor fixed on screen', () => {
+  const petAnchor = getPetAnchorPoint('pet')
+  const chatAnchor = getPetAnchorPoint('chat')
+  const offset = getPetAnchorOffset('pet', 'chat')
+
+  assert.deepEqual(
+    {
+      x: chatAnchor.x + offset.x,
+      y: chatAnchor.y + offset.y,
+    },
+    petAnchor,
+  )
+})
+
+runTest('chat round-trip compensation returns to the original anchor', () => {
+  const petAnchor = getPetAnchorPoint('pet')
+  const chatAnchor = getPetAnchorPoint('chat')
+  const toChat = getPetAnchorOffset('pet', 'chat')
+  const backToPet = getPetAnchorOffset('chat', 'pet')
+
+  const chatScreenAnchor = {
+    x: chatAnchor.x + toChat.x,
+    y: chatAnchor.y + toChat.y,
+  }
+
+  const petScreenAnchor = {
+    x: petAnchor.x + backToPet.x,
+    y: petAnchor.y + backToPet.y,
+  }
+
+  assert.deepEqual(chatScreenAnchor, petAnchor)
+  assert.deepEqual(petScreenAnchor, chatAnchor)
+})

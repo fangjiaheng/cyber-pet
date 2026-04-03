@@ -35,6 +35,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
   const providerOptions = useMemo(() => getProviderOptions(), [])
   const providerDefinition = useMemo(() => getProviderDefinition(provider), [provider])
   const modelOptions = useMemo(() => getModelsForProvider(provider), [provider])
+  const providerRegionLabel = providerDefinition.region === 'global' ? '国际服务商' : '国内可用服务商'
 
   // 加载已保存的配置
   useEffect(() => {
@@ -122,7 +123,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
 
       <div className="config-fields">
         <div className="field-group">
-          <label>Provider</label>
+          <label>服务商</label>
           <select
             value={provider}
             onChange={e => handleProviderChange(e.target.value as AIProvider)}
@@ -130,17 +131,17 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
           >
             {providerOptions.map(option => (
               <option key={option.id} value={option.id}>
-                {option.label} - {option.description}
+                {option.label}
               </option>
             ))}
           </select>
           <small className="field-hint">
-            {providerDefinition.region === 'global' ? 'Global provider' : 'Mainland-friendly provider'}
+            {providerRegionLabel}
           </small>
         </div>
 
         <div className="field-group">
-          <label>Base URL</label>
+          <label>接口地址</label>
           <input
             type="text"
             value={baseUrl}
@@ -157,7 +158,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
               type={showKey ? 'text' : 'password'}
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
-              placeholder="sk-ant-... 或 cr_..."
+              placeholder={providerDefinition.apiKeyPlaceholder}
               className="config-input"
             />
             <button
@@ -179,7 +180,7 @@ export const AIConfigForm: React.FC<AIConfigFormProps> = ({ onSaved, embedded = 
           >
             {modelOptions.map(m => (
               <option key={m.id} value={m.id}>
-                {m.name} — {m.description}
+                {m.name}
               </option>
             ))}
           </select>

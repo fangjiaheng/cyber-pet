@@ -189,6 +189,15 @@ app.whenReady().then(() => {
       if (options?.fitToScreen) {
         nextX = Math.round(currentX - (width - currentWidth) / 2)
         nextY = Math.round(currentY - (height - currentHeight) / 2)
+
+        if (options?.offsetX !== undefined) {
+          nextX = Math.round(nextX + options.offsetX)
+        }
+
+        if (options?.offsetY !== undefined) {
+          nextY = Math.round(nextY + options.offsetY)
+        }
+
         const fittedBounds = fitWindowToWorkArea(nextX, nextY, width, height)
 
         mainWindow.setBounds({
