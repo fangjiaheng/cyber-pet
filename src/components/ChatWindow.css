@@ -30,7 +30,23 @@
 }
 
 .pet-icon {
-  font-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.robot-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+.robot-avatar {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
 }
 
 .chat-actions {
@@ -187,9 +203,18 @@
 }
 
 .empty-icon {
-  font-size: 64px;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
   animation: float 3s ease-in-out infinite;
+}
+
+.empty-icon .robot-icon {
+  width: 72px;
+  height: 72px;
 }
 
 @keyframes float {
@@ -459,4 +484,3 @@
   align-items: center;
   justify-content: center;
 }
-

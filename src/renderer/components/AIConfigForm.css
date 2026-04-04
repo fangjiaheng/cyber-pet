@@ -29,6 +29,13 @@
   line-height: 1;
 }
 
+.config-icon-image {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+}
+
 .config-header h3 {
   margin: 0;
   font-size: 18px;

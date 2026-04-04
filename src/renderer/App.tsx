@@ -67,6 +67,7 @@ import {
 
 const BADGE_CLAIMED = 'assets/1.2.4source/tip/gift/60.svg'
 const BADGE_CLAIMABLE = 'assets/1.2.4source/tip/gift/61.svg'
+const CHAT_FUNCTION_ICON = '/assets/chat.png'
 
 type PenguinAction =
   | 'idle' | 'walk' | 'run' | 'sit' | 'sleep'
@@ -1833,7 +1834,7 @@ function App() {
               <>
                 <div ref={actionBarRef} className={`pet-actions ${showActions ? 'show' : ''}`}>
                   <button className="action-btn action-btn--qq" onClick={handleOpenChat} title="AI 助手">
-                    <span className="action-btn__ai-icon" aria-hidden="true">AI</span>
+                    <img className="action-btn__icon action-btn__icon--chat" src={CHAT_FUNCTION_ICON} alt="" aria-hidden="true" />
                   </button>
                   <button
                     className="action-btn action-btn--qq action-btn--image"
