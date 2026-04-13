@@ -17,7 +17,8 @@
       "Read(//tmp/**)",
       "Bash(node -e ':*)",
       "Bash(git checkout:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/shop/store/Store_img/*.png /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/shop/store/Store_img/*.gif)"
     ]
   }
 }

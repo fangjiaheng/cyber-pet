@@ -21,6 +21,7 @@ interface ElectronAPI {
 
   // 托盘相关
   hideToTray: () => void;
+  closeBubble?: () => void;
   showFromTray: () => void;
   onNearEdge: (callback: (edge: string) => void) => () => void;
   onOpenChat: (callback: () => void) => () => void;

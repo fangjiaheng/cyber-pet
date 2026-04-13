@@ -3,6 +3,8 @@
  * 使用 electron-store 保存数据到本地
  */
 
+import { app } from 'electron';
+import path from 'path';
 import Store from 'electron-store';
 import { createInitialTaskGiftState, type TaskGiftState } from '../shared/taskGift';
 
@@ -149,18 +151,94 @@ const defaultSettings: SettingsData = {
   },
 };
 
+const STORE_ENCRYPTION_KEY = 'cyber-mate-pet-2026';
+const STABLE_STORE_CWD = path.join(app.getPath('appData'), 'desktop-pet');
+const LEGACY_STORE_CWDS = [
+  path.join(app.getPath('appData'), 'Electron'),
+].filter((cwd, index, list) => list.indexOf(cwd) === index && cwd !== STABLE_STORE_CWD);
+
+function createAppStore(cwd: string) {
+  return new Store<StoreSchema>({
+    cwd,
+    defaults: {
+      petState: defaultPetState,
+      settings: defaultSettings,
+      tokenRecords: [],
+      chatHistory: [],
+      firstRunTime: Date.now(),
+    },
+    encryptionKey: STORE_ENCRYPTION_KEY,
+  });
+}
+
+function hasCompletePetState(value: unknown): value is PetStateData {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Record<string, unknown>;
+  return [
+    'hunger',
+    'cleanliness',
+    'mood',
+    'energy',
+    'level',
+    'experience',
+    'yuanbao',
+    'profile',
+  ].every((key) => key in record);
+}
+
+function migrateLegacyStoreIfNeeded(targetStore: Store<StoreSchema>) {
+  const targetPetState = targetStore.get('petState');
+  const targetNeedsMigration = !targetStore.has('petState') || !hasCompletePetState(targetPetState);
+
+  if (!targetNeedsMigration) {
+    return;
+  }
+
+  for (const legacyCwd of LEGACY_STORE_CWDS) {
+    const legacyStore = createAppStore(legacyCwd);
+    if (!legacyStore.has('petState')) {
+      continue;
+    }
+
+    const legacyPetState = legacyStore.get('petState');
+    if (!hasCompletePetState(legacyPetState)) {
+      continue;
+    }
+
+    const mergedPetState: PetStateData = {
+      ...legacyPetState,
+      ...(targetPetState ?? {}),
+      yuanbao: typeof targetPetState?.yuanbao === 'number' ? targetPetState.yuanbao : legacyPetState.yuanbao,
+      lastUpdateTime: Math.max(
+        Number(legacyPetState.lastUpdateTime ?? 0),
+        Number(targetPetState?.lastUpdateTime ?? 0),
+        Date.now(),
+      ),
+    };
+
+    targetStore.set('petState', mergedPetState);
+
+    if (!targetStore.has('settings') && legacyStore.has('settings')) {
+      targetStore.set('settings', legacyStore.get('settings'));
+    }
+    if (!targetStore.has('tokenRecords') && legacyStore.has('tokenRecords')) {
+      targetStore.set('tokenRecords', legacyStore.get('tokenRecords'));
+    }
+    if (!targetStore.has('chatHistory') && legacyStore.has('chatHistory')) {
+      targetStore.set('chatHistory', legacyStore.get('chatHistory'));
+    }
+    if (!targetStore.has('firstRunTime') && legacyStore.has('firstRunTime')) {
+      targetStore.set('firstRunTime', legacyStore.get('firstRunTime'));
+    }
+
+    console.log(`📦 已将旧存档迁移到固定目录: ${legacyCwd} -> ${STABLE_STORE_CWD}`);
+    return;
+  }
+}
+
 // 创建 Store 实例
-const store = new Store<StoreSchema>({
-  defaults: {
-    petState: defaultPetState,
-    settings: defaultSettings,
-    tokenRecords: [],
-    chatHistory: [],
-    firstRunTime: Date.now(),
-  },
-  // 加密敏感数据
-  encryptionKey: 'cyber-mate-pet-2026',
-});
+const store = createAppStore(STABLE_STORE_CWD);
+migrateLegacyStoreIfNeeded(store);
 
 // Storage 管理类
 export class StorageManager {

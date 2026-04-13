@@ -14,9 +14,14 @@ import menuIconTask from '/assets/1.2.4source/control/icons/renwu.png'
 import { usePetStore } from './stores/petStore'
 import { useInventoryStore } from './stores/inventoryStore'
 import { useActivityStore } from './stores/activitySystem'
-import { getItemById, UNIVERSAL_MEDICINES } from '../shared/itemCatalog'
+import { getItemById, getAllItems, type ShopItem, UNIVERSAL_MEDICINES } from '../shared/itemCatalog'
+import {
+  resolveCommodityInteractionProfile,
+  resolveFoodInteractionProfile,
+  resolveMedicineInteractionProfile,
+} from '../shared/itemActionConfig'
 import { getCurrentDiseaseInfo, applyMedicine } from './stores/diseaseSystem'
-import { getHungerMax, getCleanlinessMax, MOOD_MAX, HEALTH_MAX } from './stores/growthConfig'
+import { getHungerMax, getCleanlinessMax, HEALTH_MAX } from './stores/growthConfig'
 import { useShallow } from 'zustand/react/shallow'
 import { usePetDecay } from './hooks/usePetDecay'
 import { usePetDialogue } from './hooks/usePetDialogue'
@@ -48,22 +53,30 @@ import {
   PET_WINDOW_WIDTH,
   SETTINGS_WINDOW_HEIGHT,
   SETTINGS_WINDOW_WIDTH,
+  SHOP_WINDOW_HEIGHT,
+  SHOP_WINDOW_WIDTH,
 } from '@shared/windowSizes'
 import { getPetAnchorOffset, type PetWindowLayoutMode } from '@shared/petWindowLayout'
 import { swfCategories } from './swfData'
-import { buildLoadlistsPlaylist, ENTER_PLAYLIST, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist, getStageHidePath } from './utils/swfPlaylist'
+import { buildLoadlistsPlaylist, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist, getStageHidePath } from './utils/swfPlaylist'
 import { getGrowthStage, getMoodAppearance, type GrowthStage } from './stores/growthConfig'
-import { getTransitionSwfPath, getRandomPlaySwfPath } from './utils/stageSwfResolver'
+import { getActionSwfPath, getTransitionSwfPath, getRandomPlaySwfPath } from './utils/stageSwfResolver'
 // stageSwfResolver 的直接引用将在后续 Phase 中启用
 // import { getActionSwfPath, toPlaylistPath } from './utils/stageSwfResolver'
 import {
   countClaimedTaskGifts,
-  countReadyTaskGifts,
   getTaskGiftReward,
   typeKeyToIconPath,
   type TaskGiftKind,
   type TaskGiftReward,
 } from '../shared/taskGift'
+import {
+  completePetAction,
+  createPetActionMachineState,
+  requestPetAction,
+  type ActivePetAction,
+  type PetActionRequest,
+} from '../shared/petActionScheduler'
 
 const BADGE_CLAIMED = 'assets/1.2.4source/tip/gift/60.svg'
 const BADGE_CLAIMABLE = 'assets/1.2.4source/tip/gift/61.svg'
@@ -88,27 +101,17 @@ type WindowPosition = {
 type PlaySwfOptions = {
   appendIdle?: boolean
   animationId?: string
+  idlePath?: string
 }
-type TimedInteractionOptions = {
-  perform: () => void
-  swfPath: string
+type ManagedActionRequest = PetActionRequest & {
+  perform?: () => void
+  swfPath?: string
   animationId?: string
-  penguinAction: PenguinAction
+  penguinAction?: PenguinAction
   bubbleText?: string
-  baseDuration: number
 }
-type OriginalStoreItem = {
-  id: string
-  name: string
-  swfPath: string
-  iconPath: string
-  starve?: number
-  clean?: number
-  charm?: number
-  intel?: number
-  strong?: number
-  desc?: string
-}
+
+type DescribedItem = Pick<ShopItem, 'name' | 'starve' | 'clean' | 'charm' | 'intel' | 'strong' | 'desc'>
 
 const dropdownAccentColors = [
   '#69dcff',
@@ -134,203 +137,7 @@ function resolveRendererAssetUrl(assetPath: string) {
   return new URL(normalized, window.location.href).toString()
 }
 
-// 新版素材路径
-const NEW_SWF_BASE = '/assets/1.2.4source/Action/GG/Adult/'
-
-const ORIGINAL_FOOD_ITEMS: OriginalStoreItem[] = [
-  {
-    id: '100010031',
-    name: '雪泥爽',
-    swfPath: NEW_SWF_BASE + 'Eat1.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010031.gif',
-    starve: 720,
-    intel: 8,
-  },
-  {
-    id: '100010032',
-    name: '小笼包',
-    swfPath: NEW_SWF_BASE + 'Eat2.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010032.gif',
-    starve: 500,
-    charm: 100,
-    intel: 100,
-    strong: 100,
-    desc: '一颗小笼包，原地爆炸三千里~',
-  },
-  {
-    id: '100010033',
-    name: '黑森林蛋糕',
-    swfPath: NEW_SWF_BASE + 'Eat1.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010033.gif',
-    starve: 720,
-    charm: 8,
-  },
-  {
-    id: '100010034',
-    name: '鱼肉香肠',
-    swfPath: NEW_SWF_BASE + 'Eat2.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010034.gif',
-    starve: 1080,
-    strong: 15,
-  },
-  {
-    id: '100010035',
-    name: '葡萄香槟',
-    swfPath: NEW_SWF_BASE + 'Eat1.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010035.gif',
-    starve: 900,
-    intel: 12,
-  },
-  {
-    id: '100010036',
-    name: '八宝饭',
-    swfPath: NEW_SWF_BASE + 'Eat2.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010036.gif',
-    starve: 540,
-    intel: 5,
-  },
-  {
-    id: '100010037',
-    name: '长寿面',
-    swfPath: NEW_SWF_BASE + 'Eat1.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010037.gif',
-    starve: 720,
-    strong: 8,
-  },
-  {
-    id: '100010038',
-    name: '火腿汉堡',
-    swfPath: NEW_SWF_BASE + 'Eat2.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010038.gif',
-    starve: 720,
-    charm: 8,
-  },
-  {
-    id: '100010039',
-    name: '饺子',
-    swfPath: NEW_SWF_BASE + 'Eat1.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010039.gif',
-    starve: 900,
-    intel: 12,
-  },
-  {
-    id: '100010040',
-    name: '年糕',
-    swfPath: NEW_SWF_BASE + 'Eat2.swf',
-    iconPath: 'assets/1.2.4source/img_res/food/100010040.gif',
-    starve: 900,
-    strong: 12,
-  },
-]
-
-const ORIGINAL_CLEAN_ITEMS: OriginalStoreItem[] = [
-  {
-    id: '102020011',
-    name: '宝宝爽身粉',
-    swfPath: NEW_SWF_BASE + 'Clean1.swf',
-    iconPath: 'assets/1.2.4source/img_res/commodity/102020011.gif',
-    clean: 1080,
-  },
-  {
-    id: '102020012',
-    name: '宝宝金水',
-    swfPath: NEW_SWF_BASE + 'Clean2.swf',
-    iconPath: 'assets/1.2.4source/img_res/commodity/102020012.gif',
-    clean: 540,
-  },
-  {
-    id: '102020013',
-    name: '含香凝露',
-    swfPath: NEW_SWF_BASE + 'Clean1.swf',
-    iconPath: 'assets/1.2.4source/img_res/commodity/102020013.gif',
-    clean: 720,
-  },
-  {
-    id: '102020014',
-    name: '啤酒香波',
-    swfPath: NEW_SWF_BASE + 'Clean2.swf',
-    iconPath: 'assets/1.2.4source/img_res/commodity/102020014.gif',
-    clean: 2340,
-  },
-  {
-    id: '102020015',
-    name: '飘飘护发素',
-    swfPath: NEW_SWF_BASE + 'Clean1.swf',
-    iconPath: 'assets/1.2.4source/img_res/commodity/102020015.gif',
-    clean: 1080,
-  },
-  {
-    id: '102020016',
-    name: '保湿啫喱',
-    swfPath: NEW_SWF_BASE + 'Clean2.swf',
-    iconPath: 'assets/1.2.4source/img_res/commodity/102020016.gif',
-    clean: 2700,
-  },
-]
-
-const ORIGINAL_HEAL_ITEMS: OriginalStoreItem[] = [
-  {
-    id: '10001',
-    name: '板蓝根',
-    swfPath: NEW_SWF_BASE + 'Cure1.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/10001.gif',
-    desc: '用于治疗感冒',
-  },
-  {
-    id: '10002',
-    name: '消食片',
-    swfPath: NEW_SWF_BASE + 'Cure1.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/10002.gif',
-    desc: '用于治疗消化不良',
-  },
-  {
-    id: '10003',
-    name: '枇杷糖浆',
-    swfPath: NEW_SWF_BASE + 'Cure1.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/10003.gif',
-    desc: '用于治疗咳嗽',
-  },
-  {
-    id: '10004',
-    name: '清凉油',
-    swfPath: NEW_SWF_BASE + 'Cure1.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/10004.gif',
-    desc: '用于治疗头晕',
-  },
-  {
-    id: '10005',
-    name: '润肤露',
-    swfPath: NEW_SWF_BASE + 'Cure1.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/10005.gif',
-    desc: '用于治疗皮肤瘙痒',
-  },
-  {
-    id: '20001',
-    name: '银翘丸',
-    swfPath: NEW_SWF_BASE + 'Cure2.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/20001.gif',
-    desc: '用于治疗重感冒',
-  },
-  {
-    id: '50001',
-    name: '百草丹',
-    swfPath: NEW_SWF_BASE + 'Cure2.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/50001.gif',
-    desc: '包治百病，一粒见效',
-  },
-  {
-    id: '60001',
-    name: '还魂丹',
-    swfPath: NEW_SWF_BASE + 'Revival.swf',
-    iconPath: 'assets/1.2.4source/img_res/medicine/60001.gif',
-    starve: 500,
-    clean: 500,
-    strong: 100,
-    desc: '用于复活宠物，也可治百病,吃一颗长生不老！',
-  },
-]
-
-function formatOriginalItemDescription(item: OriginalStoreItem) {
+function formatItemDescription(item: DescribedItem) {
   const attributes = [
     item.charm ? `魅力 +${item.charm}` : null,
     item.intel ? `智力 +${item.intel}` : null,
@@ -344,6 +151,18 @@ function formatOriginalItemDescription(item: OriginalStoreItem) {
     attributes.length ? `属性：${attributes.join('  ')}` : null,
     item.desc ? `说明：${item.desc}` : null,
   ].filter(Boolean).join('\n')
+}
+
+function resolveFoodSwfPath(item: ShopItem, stage: GrowthStage) {
+  return getActionSwfPath(stage, resolveFoodInteractionProfile(item).code)
+}
+
+function resolveCleanSwfPath(item: ShopItem, stage: GrowthStage) {
+  return getActionSwfPath(stage, resolveCommodityInteractionProfile(item).code)
+}
+
+function resolveHealSwfPath(item: ShopItem, stage: GrowthStage) {
+  return getActionSwfPath(stage, resolveMedicineInteractionProfile(item).code)
 }
 
 function App() {
@@ -389,7 +208,7 @@ function App() {
     cancelCurrentAction: state.cancelCurrentAction,
   })))
 
-  const { removeItem, getItemCount } = useInventoryStore()
+  const { removeItem, getItemsByCategory } = useInventoryStore()
 
   usePetDecay()
 
@@ -417,8 +236,9 @@ function App() {
   const isDragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
   const hideActionsTimer = useRef<number | null>(null)
-  const actionResetTimer = useRef<number | null>(null)
-  const actionSequence = useRef(0)
+  const managedActionTimer = useRef<number | null>(null)
+  const actionMachineRef = useRef(createPetActionMachineState<ManagedActionRequest>())
+  const applyManagedActionRef = useRef<(action: ActivePetAction<ManagedActionRequest>) => void>(() => {})
   const idlePlayTimer = useRef<number | null>(null)
   const chatHeaderRef = useRef<HTMLDivElement | null>(null)
   const penguinWrapperRef = useRef<HTMLDivElement | null>(null)
@@ -536,46 +356,80 @@ function App() {
     }, delay)
   }, [clearHideActionsTimer])
 
-  const clearActionResetTimer = useCallback(() => {
-    if (actionResetTimer.current) {
-      window.clearTimeout(actionResetTimer.current)
-      actionResetTimer.current = null
+  const clearManagedActionTimer = useCallback(() => {
+    if (managedActionTimer.current) {
+      window.clearTimeout(managedActionTimer.current)
+      managedActionTimer.current = null
     }
   }, [])
 
   const resetToIdle = useCallback((stopPlayback = false) => {
-    clearActionResetTimer()
-    actionSequence.current += 1
+    clearManagedActionTimer()
+    actionMachineRef.current = createPetActionMachineState<ManagedActionRequest>()
     cancelCurrentAction()
     setPenguinAction('idle')
     if (stopPlayback) {
       playPlaylist(currentIdlePath)
     }
-  }, [cancelCurrentAction, clearActionResetTimer, currentIdlePath, playPlaylist])
+  }, [cancelCurrentAction, clearManagedActionTimer, currentIdlePath, playPlaylist])
 
-  const scheduleReturnToIdle = useCallback((baseDuration: number) => {
-    clearActionResetTimer()
-    const currentSequence = actionSequence.current + 1
-    actionSequence.current = currentSequence
+  const finishManagedAction = useCallback((token?: number) => {
+    const current = actionMachineRef.current.current
+    if (token !== undefined && current?.token !== token) return
 
-    actionResetTimer.current = window.setTimeout(() => {
-      if (actionSequence.current !== currentSequence) return
+    clearManagedActionTimer()
+
+    const result = completePetAction(actionMachineRef.current, Date.now(), { force: true })
+    actionMachineRef.current = result.state
+
+    if (result.started) {
+      applyManagedActionRef.current(result.started)
+      return
+    }
+
+    if (result.shouldReturnToIdle) {
       cancelCurrentAction()
       setPenguinAction('idle')
-      actionResetTimer.current = null
-    }, Math.max(600, baseDuration + animationIntervalMs))
-  }, [animationIntervalMs, cancelCurrentAction, clearActionResetTimer])
-
-  const runTimedInteraction = useCallback((options: TimedInteractionOptions) => {
-    clearActionResetTimer()
-    options.perform()
-    playSwfPath(options.swfPath, options.animationId ? { animationId: options.animationId } : undefined)
-    setPenguinAction(options.penguinAction)
-    if (options.bubbleText) {
-      setBubbleText(options.bubbleText)
     }
-    scheduleReturnToIdle(options.baseDuration)
-  }, [clearActionResetTimer, playSwfPath, scheduleReturnToIdle])
+  }, [cancelCurrentAction, clearManagedActionTimer])
+
+  const applyManagedAction = useCallback((action: ActivePetAction<ManagedActionRequest>) => {
+    clearManagedActionTimer()
+
+    action.request.perform?.()
+
+    if (action.request.swfPath) {
+      playSwfPath(
+        action.request.swfPath,
+        action.request.animationId ? { animationId: action.request.animationId } : undefined,
+      )
+    }
+
+    if (action.request.penguinAction) {
+      setPenguinAction(action.request.penguinAction)
+    }
+
+    if (action.request.bubbleText) {
+      setBubbleText(action.request.bubbleText)
+    }
+
+    managedActionTimer.current = window.setTimeout(() => {
+      finishManagedAction(action.token)
+    }, Math.max(0, action.endsAt - Date.now()))
+  }, [clearManagedActionTimer, finishManagedAction, playSwfPath])
+
+  applyManagedActionRef.current = applyManagedAction
+
+  const requestManagedAction = useCallback((request: ManagedActionRequest) => {
+    const result = requestPetAction(actionMachineRef.current, request, Date.now())
+    actionMachineRef.current = result.state
+
+    if (result.started) {
+      applyManagedAction(result.started)
+    }
+
+    return result.status
+  }, [applyManagedAction])
 
   // 入场动画：数据加载后播放对应阶段的入场动画
   const hasPlayedEnter = useRef(false)
@@ -604,21 +458,29 @@ function App() {
     if (prevStage !== growthStage) {
       const transitionSwf = getTransitionSwfPath(prevStage, growthStage)
       if (transitionSwf) {
-        playSwfPath(transitionSwf, { animationId: `transition-${prevStage}-${growthStage}` })
-        // 过渡动画播完后切到新阶段的待机
-        window.setTimeout(() => {
-          playPlaylist(currentIdlePath)
-        }, 3000)
+        requestManagedAction({
+          kind: 'transition',
+          durationMs: Math.max(2800, animationIntervalMs + 400),
+          swfPath: transitionSwf,
+          animationId: `transition-${prevStage}-${growthStage}`,
+          penguinAction: 'play',
+        })
       }
       prevStageRef.current = growthStage
     }
-  }, [growthStage, currentIdlePath, playSwfPath, playPlaylist])
+  }, [animationIntervalMs, growthStage, requestManagedAction])
 
   useWindowDrag(chatHeaderRef, showChat)
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       const target = event.target as HTMLElement
+
+      // 拖拽中不要启用鼠标穿透，否则鼠标离开企鹅区域后事件丢失
+      if (isDragging.current) {
+        window.electronAPI?.setIgnoreMouseEvents(false)
+        return
+      }
 
       if (activePanel !== null || isContextMenuOpen || isActionDropdownOpen || isBubbleOpen) {
         window.electronAPI?.setIgnoreMouseEvents(false)
@@ -762,7 +624,13 @@ function App() {
       return
     }
 
-    if (mode === 'settings' || mode === 'shop' || mode === 'work' || mode === 'study' || mode === 'info' || mode === 'state' || mode === 'inventory') {
+    if (mode === 'shop') {
+      window.electronAPI.resizeWindow(SHOP_WINDOW_WIDTH, SHOP_WINDOW_HEIGHT, { fitToScreen: true })
+      windowLayoutModeRef.current = mode
+      return
+    }
+
+    if (mode === 'settings' || mode === 'work' || mode === 'study' || mode === 'info' || mode === 'state' || mode === 'inventory') {
       window.electronAPI.resizeWindow(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT, { fitToScreen: true })
       windowLayoutModeRef.current = mode
       return
@@ -1097,27 +965,42 @@ function App() {
   const handleHideToTray = useCallback(() => {
     // 播放对应阶段的隐藏动画，动画结束后再隐藏到托盘
     const hidePath = getStageHidePath(growthStage, moodAppearance)
-    playPlaylist(hidePath)
+    const status = requestManagedAction({
+      kind: 'hide',
+      durationMs: 2500,
+      swfPath: hidePath,
+      penguinAction: 'play',
+    })
+    if (status === 'ignored') return
     window.setTimeout(() => {
       window.electronAPI?.hideToTray?.()
     }, 2500)
-  }, [growthStage, moodAppearance, playPlaylist])
+  }, [growthStage, moodAppearance, requestManagedAction])
 
   const handleQuit = useCallback(() => {
     // 播放对应阶段的隐藏动画，动画结束后再关闭窗口
     const hidePath = getStageHidePath(growthStage, moodAppearance)
-    playPlaylist(hidePath)
+    const status = requestManagedAction({
+      kind: 'quit',
+      durationMs: 2500,
+      swfPath: hidePath,
+      penguinAction: 'play',
+    })
+    if (status === 'ignored') return
     window.setTimeout(() => {
       window.electronAPI?.closeWindow?.()
     }, 2500)
-  }, [growthStage, moodAppearance, playPlaylist])
+  }, [growthStage, moodAppearance, requestManagedAction])
 
   const handlePlaySwf = useCallback((swfUrl: string, animationId?: string) => {
-    clearActionResetTimer()
-    playSwfPath(swfUrl, animationId ? { animationId } : undefined)
-    setPenguinAction('play')
-    scheduleReturnToIdle(3000)
-  }, [clearActionResetTimer, playSwfPath, scheduleReturnToIdle])
+    requestManagedAction({
+      kind: 'play',
+      durationMs: Math.max(3000, animationIntervalMs),
+      swfPath: swfUrl,
+      animationId,
+      penguinAction: 'play',
+    })
+  }, [animationIntervalMs, requestManagedAction])
 
   const handleStopSwf = useCallback(() => {
     resetToIdle(true)
@@ -1147,16 +1030,17 @@ function App() {
       return
     }
 
-    playSwfPath(
-      kind === 'sign'
+    requestManagedAction({
+      kind: 'task-reward',
+      durationMs: 1600,
+      swfPath: kind === 'sign'
         ? '/assets/swf_original/102/1020060441.swf'
         : '/assets/swf_original/102/1022070141.swf',
-      { animationId: kind === 'sign' ? '38' : '316' },
-    )
-    setPenguinAction('happy')
-    setBubbleText((kind === 'sign' ? '登录送礼领取成功，' : '在线送礼领取成功，') + formatTaskReward(result.reward) + '。')
-    scheduleReturnToIdle(1600)
-  }, [claimTaskGift, formatTaskReward, playSwfPath, scheduleReturnToIdle])
+      animationId: kind === 'sign' ? '38' : '316',
+      penguinAction: 'happy',
+      bubbleText: (kind === 'sign' ? '登录送礼领取成功，' : '在线送礼领取成功，') + formatTaskReward(result.reward) + '。',
+    })
+  }, [claimTaskGift, formatTaskReward, requestManagedAction])
   const handlePetHover = useCallback(() => {
     if (isContextMenuOpen || isActionDropdownOpen) return
     setShowActions(true)
@@ -1166,99 +1050,103 @@ function App() {
   useEffect(() => {
     return () => {
       clearHideActionsTimer()
-      clearActionResetTimer()
+      clearManagedActionTimer()
     }
-  }, [clearActionResetTimer, clearHideActionsTimer])
+  }, [clearHideActionsTimer, clearManagedActionTimer])
 
 
-  const feedStripItems: ScrollStripItem[] = useMemo(() => (
-    ORIGINAL_FOOD_ITEMS.map((item, index) => {
-      const catalogItem = getItemById(item.id)
-      const count = getItemCount(item.id)
+  const feedStripItems: ScrollStripItem[] = useMemo(() => {
+    const order = new Map(getAllItems('food').map((item, index) => [item.id, index]))
+    return getItemsByCategory('food')
+      .sort((a, b) => (order.get(a.item.id) ?? 0) - (order.get(b.item.id) ?? 0))
+      .map(({ item, quantity }, index) => {
+      const interaction = resolveFoodInteractionProfile(item)
       return {
         id: item.id,
         imageSrc: resolveRendererAssetUrl(item.iconPath),
         imageAlt: item.name,
-        label: `${item.name}${count > 0 ? ` ×${count}` : ''}`,
-        description: formatOriginalItemDescription(item),
+        label: `${item.name} ×${quantity}`,
+        description: formatItemDescription(item),
         accent: dropdownAccentColors[index % dropdownAccentColors.length],
-        disabled: count <= 0,
         onSelect: () => {
           if (!removeItem(item.id)) {
             setBubbleText('没有这个物品了，去商店买吧~')
             return
           }
           closeFeedStrip()
-          const effects = catalogItem || item
-          runTimedInteraction({
+          requestManagedAction({
+            kind: 'feed',
+            durationMs: interaction.durationMs,
             perform: () => feedWithItem({
-              starve: effects.starve || 0,
-              charm: effects.charm,
-              intel: effects.intel,
-              strong: effects.strong,
+              starve: item.starve || 0,
+              charm: item.charm,
+              intel: item.intel,
+              strong: item.strong,
             }),
-            swfPath: item.swfPath,
+            swfPath: resolveFoodSwfPath(item, growthStage),
             animationId: item.id,
             penguinAction: 'eat',
-            baseDuration: 1400,
           })
           setTimeout(showFeedDialogue, 1800)
         },
       }
     })
-  ), [closeFeedStrip, feedWithItem, runTimedInteraction, removeItem, getItemCount, showFeedDialogue])
+  }, [closeFeedStrip, feedWithItem, getItemsByCategory, growthStage, removeItem, requestManagedAction, showFeedDialogue])
 
-  const cleanStripItems: ScrollStripItem[] = useMemo(() => (
-    ORIGINAL_CLEAN_ITEMS.map((item, index) => {
-      const catalogItem = getItemById(item.id)
-      const count = getItemCount(item.id)
+  const cleanStripItems: ScrollStripItem[] = useMemo(() => {
+    const order = new Map(getAllItems('commodity').map((item, index) => [item.id, index]))
+    return getItemsByCategory('commodity')
+      .sort((a, b) => (order.get(a.item.id) ?? 0) - (order.get(b.item.id) ?? 0))
+      .map(({ item, quantity }, index) => {
+      const interaction = resolveCommodityInteractionProfile(item)
       return {
         id: item.id,
         imageSrc: resolveRendererAssetUrl(item.iconPath),
         imageAlt: item.name,
-        label: `${item.name}${count > 0 ? ` ×${count}` : ''}`,
-        description: formatOriginalItemDescription(item),
+        label: `${item.name} ×${quantity}`,
+        description: formatItemDescription(item),
         accent: dropdownAccentColors[(index + 1) % dropdownAccentColors.length],
-        disabled: count <= 0,
         onSelect: () => {
           if (!removeItem(item.id)) {
             setBubbleText('没有这个物品了，去商店买吧~')
             return
           }
           closeCleanStrip()
-          const effects = catalogItem || item
-          runTimedInteraction({
+          requestManagedAction({
+            kind: 'clean',
+            durationMs: interaction.durationMs,
             perform: () => cleanWithItem({
-              clean: effects.clean || 0,
-              charm: effects.charm,
-              intel: effects.intel,
-              strong: effects.strong,
+              clean: item.clean || 0,
+              charm: item.charm,
+              intel: item.intel,
+              strong: item.strong,
             }),
-            swfPath: item.swfPath,
+            swfPath: resolveCleanSwfPath(item, growthStage),
             animationId: item.id,
             penguinAction: 'bathe',
-            baseDuration: 1600,
           })
           setTimeout(showCleanDialogue, 2000)
         },
       }
     })
-  ), [cleanWithItem, closeCleanStrip, runTimedInteraction, removeItem, getItemCount, showCleanDialogue])
+  }, [cleanWithItem, closeCleanStrip, getItemsByCategory, growthStage, removeItem, requestManagedAction, showCleanDialogue])
 
   const healStripItems: ScrollStripItem[] = useMemo(() => {
     const diseaseInfo = getCurrentDiseaseInfo(diseaseState)
     const neededMedicineId = diseaseInfo?.medicineId ?? null
+    const order = new Map(getAllItems('medicine').map((item, index) => [item.id, index]))
 
-    return ORIGINAL_HEAL_ITEMS.map((item, index) => {
-      const catalogItem = getItemById(item.id)
-      const count = getItemCount(item.id)
+    return getItemsByCategory('medicine')
+      .sort((a, b) => (order.get(a.item.id) ?? 0) - (order.get(b.item.id) ?? 0))
+      .map(({ item, quantity }, index) => {
+      const interaction = resolveMedicineInteractionProfile(item)
       const isNeeded = neededMedicineId === item.id
       const isUniversal = UNIVERSAL_MEDICINES.includes(item.id)
       const isUseful = !diseaseInfo || isNeeded || isUniversal
 
       // 生病时标注对症药品
       let label = item.name
-      if (count > 0) label += ` ×${count}`
+      label += ` ×${quantity}`
       if (isNeeded && diseaseInfo) label += ' ★对症'
 
       return {
@@ -1268,9 +1156,8 @@ function App() {
         label,
         description: diseaseInfo && !isUseful
           ? `当前需要：${getItemById(neededMedicineId!)?.name ?? '对症药品'}`
-          : formatOriginalItemDescription(item),
+          : formatItemDescription(item),
         accent: isNeeded ? '#ff9ab6' : dropdownAccentColors[(index + 2) % dropdownAccentColors.length],
-        disabled: count <= 0,
         onSelect: () => {
           if (!removeItem(item.id)) {
             setBubbleText('没有这个物品了，去商店买吧~')
@@ -1293,22 +1180,22 @@ function App() {
             }
           }
 
-          const effects = catalogItem || item
-          runTimedInteraction({
+          requestManagedAction({
+            kind: 'heal',
+            durationMs: interaction.durationMs,
             perform: () => healWithItem({
-              starve: effects.starve,
-              clean: effects.clean,
-              strong: effects.strong,
+              starve: item.starve,
+              clean: item.clean,
+              strong: item.strong,
             }),
-            swfPath: item.swfPath,
+            swfPath: resolveHealSwfPath(item, growthStage),
             animationId: item.id,
             penguinAction: 'happy',
-            baseDuration: item.swfPath.includes('0241') ? 1600 : 1400,
           })
         },
       }
     })
-  }, [closeHealStrip, healWithItem, runTimedInteraction, removeItem, getItemCount, diseaseState])
+  }, [closeHealStrip, diseaseState, getItemsByCategory, growthStage, healWithItem, requestManagedAction, removeItem])
 
   // 学习活动 strip 数据 — 现在打开学习面板
   const studyStripItems: ScrollStripItem[] = useMemo(() => ([
@@ -1378,16 +1265,17 @@ function App() {
         })
         setBubbleText(`出发去${dest.name}啦~`)
         // 播放离开动画
-        runTimedInteraction({
+        requestManagedAction({
+          kind: 'travel',
+          durationMs: 1800,
           perform: travel,
-          swfPath: NEW_SWF_BASE + 'peaceful/play/P5.swf',
+          swfPath: getRandomPlaySwfPath(growthStage, moodAppearance),
           animationId: dest.id,
           penguinAction: 'happy',
-          baseDuration: 1800,
         })
       },
     }))
-  }, [closeTravelStrip, runTimedInteraction, travel])
+  }, [closeTravelStrip, growthStage, moodAppearance, requestManagedAction, travel])
 
   const taskStripItems: ScrollStripItem[] = useMemo(() => {
     if (!taskStripKind) return []
@@ -1446,11 +1334,6 @@ function App() {
   ), [handlePlaySwf])
 
   const taskDropdownItems: ActionDropdownMenuItem[] = useMemo(() => {
-    const signReady = countReadyTaskGifts(taskGifts.sign)
-    const signClaimed = countClaimedTaskGifts(taskGifts.sign)
-    const onlineReady = countReadyTaskGifts(taskGifts.online)
-    const onlineClaimed = countClaimedTaskGifts(taskGifts.online)
-
     return [
       {
         id: 'task-sign',
@@ -1624,8 +1507,12 @@ function App() {
       // 再次确认仍在 idle 状态
       if (penguinAction !== 'idle') return
       const playPath = getRandomPlaySwfPath(growthStage, moodAppearance)
-      playSwfPath(playPath)
-      scheduleReturnToIdle(3000)
+      requestManagedAction({
+        kind: 'idle-random',
+        durationMs: Math.max(3000, animationIntervalMs),
+        swfPath: playPath,
+        penguinAction: 'play',
+      })
     }, delay)
 
     return () => {
@@ -1634,7 +1521,7 @@ function App() {
         idlePlayTimer.current = null
       }
     }
-  }, [penguinAction, growthStage, moodAppearance, playSwfPath, scheduleReturnToIdle])
+  }, [animationIntervalMs, growthStage, moodAppearance, penguinAction, requestManagedAction])
 
   useEffect(() => {
     if (!isActionDropdownOpen) return

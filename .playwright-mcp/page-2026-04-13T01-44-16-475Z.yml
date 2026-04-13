@@ -1,0 +1,83 @@
+- generic [ref=e6]:
+  - button "✕" [ref=e8] [cursor=pointer]
+  - generic [ref=e9]:
+    - generic [ref=e10]: "-- 热门推荐 --"
+    - generic [ref=e11]:
+      - generic [ref=e12] [cursor=pointer]:
+        - img "圈圈冰激凌" [ref=e14]
+        - generic [ref=e15]:
+          - generic [ref=e16]: 圈圈冰激凌
+          - generic [ref=e17]: 5 元宝
+        - generic:
+          - img "new"
+      - generic [ref=e18] [cursor=pointer]:
+        - img "跳跳玉米鱼" [ref=e20]
+        - generic [ref=e21]:
+          - generic [ref=e22]: 跳跳玉米鱼
+          - generic [ref=e23]: 40 元宝
+        - generic:
+          - img "new"
+  - generic [ref=e24]:
+    - button "食物" [ref=e25] [cursor=pointer]
+    - button "清洁" [ref=e26] [cursor=pointer]
+    - button "药品" [ref=e27] [cursor=pointer]
+    - button "背景" [ref=e28] [cursor=pointer]
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]:
+      - img "圈圈冰激凌" [ref=e32]
+      - generic [ref=e33]:
+        - generic [ref=e34]: 圈圈冰激凌
+        - generic [ref=e35]: 饥饿 +90
+        - generic [ref=e36]: 5 元宝
+      - generic:
+        - img "new"
+    - generic [ref=e37] [cursor=pointer]:
+      - img "跳跳玉米鱼" [ref=e39]
+      - generic [ref=e40]:
+        - generic [ref=e41]: 跳跳玉米鱼
+        - generic [ref=e42]: 饥饿 +720
+        - generic [ref=e43]: 40 元宝
+      - generic:
+        - img "new"
+    - generic [ref=e44] [cursor=pointer]:
+      - img "月光饼饼" [ref=e46]
+      - generic [ref=e47]:
+        - generic [ref=e48]: 月光饼饼
+        - generic [ref=e49]: 饥饿 +180
+        - generic [ref=e50]: 10 元宝
+      - generic:
+        - img "new"
+    - generic [ref=e51] [cursor=pointer]:
+      - img "果味米米花" [ref=e53]
+      - generic [ref=e54]:
+        - generic [ref=e55]: 果味米米花
+        - generic [ref=e56]: 饥饿 +360
+        - generic [ref=e57]: 20 元宝
+      - generic:
+        - img "new"
+    - generic [ref=e58] [cursor=pointer]:
+      - img "炸虾盖饭" [ref=e60]
+      - generic [ref=e61]:
+        - generic [ref=e62]: 炸虾盖饭
+        - generic [ref=e63]: 饥饿 +1800
+        - generic [ref=e64]: 100 元宝
+      - generic:
+        - img "recommand"
+    - generic [ref=e65] [cursor=pointer]:
+      - img "蹦豆豆卷" [ref=e67]
+      - generic [ref=e68]:
+        - generic [ref=e69]: 蹦豆豆卷
+        - generic [ref=e70]: 饥饿 +1080
+        - generic [ref=e71]: 60 元宝
+      - generic:
+        - img "new"
+  - generic [ref=e72]:
+    - button [disabled] [ref=e73]
+    - button [disabled] [ref=e74]
+    - generic [ref=e75]: 1 / 7
+    - button [ref=e76] [cursor=pointer]
+    - button [ref=e77] [cursor=pointer]
+  - generic [ref=e79]: 请选择商品查看详情
+  - generic [ref=e80]:
+    - generic [ref=e81]: "元宝:"
+    - generic [ref=e82]: "0"

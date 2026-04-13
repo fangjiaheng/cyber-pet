@@ -13,5 +13,8 @@ export const CONTEXT_MENU_WINDOW_HEIGHT = 760
 export const CHAT_WINDOW_WIDTH = 900
 export const CHAT_WINDOW_HEIGHT = 820
 
+export const SHOP_WINDOW_WIDTH = 1020
+export const SHOP_WINDOW_HEIGHT = 790
+
 export const SETTINGS_WINDOW_WIDTH = 760
 export const SETTINGS_WINDOW_HEIGHT = 780

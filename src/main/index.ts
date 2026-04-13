@@ -15,6 +15,9 @@ let tray: Tray | null = null
 let isWindowHidden = false
 const minVisiblePixels = 50
 
+// 企鹅在窗口中的垂直偏移量（上方有透明区域留给气泡/菜单）
+const PET_TOP_PADDING = 148
+
 function clampWindowPosition(x: number, y: number, windowWidth: number, windowHeight: number) {
   const display = screen.getDisplayNearestPoint({
     x: Math.round(x + windowWidth / 2),
@@ -25,7 +28,8 @@ function clampWindowPosition(x: number, y: number, windowWidth: number, windowHe
   const maxX = workArea.x + workArea.width - minVisiblePixels
   const maxY = workArea.y + workArea.height - minVisiblePixels
   const minX = workArea.x + minVisiblePixels - windowWidth
-  const minY = workArea.y + minVisiblePixels - windowHeight
+  // 允许窗口上方的透明区域超出 workArea，这样企鹅本身可以到达屏幕顶部
+  const minY = workArea.y - PET_TOP_PADDING
 
   return {
     x: Math.max(minX, Math.min(maxX, x)),
@@ -48,7 +52,7 @@ function fitWindowToWorkArea(x: number, y: number, windowWidth: number, windowHe
 
   return {
     x: Math.max(workArea.x, Math.min(maxX, x)),
-    y: Math.max(workArea.y, Math.min(maxY, y)),
+    y: Math.max(workArea.y - PET_TOP_PADDING, Math.min(maxY, y)),
     width: fittedWidth,
     height: fittedHeight,
     workArea,
@@ -75,6 +79,9 @@ function createWindow() {
       preload: path.join(__dirname, '../main/preload.js'),
     },
   })
+
+  // 使用 'floating' 级别确保在 macOS 上能稳定置顶
+  mainWindow.setAlwaysOnTop(true, 'floating')
 
   // 开发环境加载 Vite 服务器
   if (process.env.NODE_ENV === 'development') {
@@ -154,6 +161,8 @@ app.whenReady().then(() => {
   ipcMain.on('window:show-from-tray', () => {
     if (mainWindow) {
       mainWindow.show()
+      // 恢复后重新确保置顶状态
+      mainWindow.setAlwaysOnTop(true, 'floating')
       isWindowHidden = false
       console.log('👀 窗口已从托盘恢复')
     }
@@ -284,6 +293,9 @@ app.whenReady().then(() => {
         preload: path.join(__dirname, '../main/preload.js'),
       },
     })
+
+    // 气泡窗口也使用 floating 级别确保置顶
+    bubbleWindow.setAlwaysOnTop(true, 'floating')
 
     // 加载气泡页面，通过 hash 传递参数
     const encodedText = encodeURIComponent(text)

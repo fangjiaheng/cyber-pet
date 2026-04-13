@@ -13,6 +13,7 @@ export interface ElectronAPI {
   setIgnoreMouseEvents: (ignore: boolean) => void
   resizeWindow: (width: number, height: number, options?: ResizeWindowOptions) => void
   hideToTray: () => void
+  closeBubble?: () => void
   showFromTray: () => void
   updateTrayIcon: (state: string) => void
   onNearEdge: (callback: (edge: string) => void) => () => void

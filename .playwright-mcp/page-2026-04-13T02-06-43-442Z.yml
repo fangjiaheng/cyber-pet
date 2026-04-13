@@ -1,0 +1,16 @@
+- generic [ref=e2]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - button "AI 助手":
+              - img
+            - button "动画":
+              - generic: 素
+            - button "日常":
+              - img
+            - button "互动":
+              - img
+            - button "任务":
+              - img
