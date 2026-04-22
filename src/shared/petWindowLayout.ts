@@ -8,6 +8,10 @@ const PET_HOME_STAGE_WIDTH = 220
 const PENGUIN_WRAPPER_TOP = 6
 const PENGUIN_WRAPPER_HEIGHT = 180
 
+// 企鹅精灵顶端到 Electron 窗口顶端的像素距离
+// 用于主进程在拖拽时判断窗口最小 y，让精灵可以贴到工作区顶
+export const PET_SPRITE_TOP_OFFSET = PET_CONTAINER_TOP_PADDING + PENGUIN_WRAPPER_TOP
+
 type AnchorPoint = {
   x: number
   y: number

@@ -1,6 +1,6 @@
 ﻿# 待办事项
 
-更新时间：2026-04-04
+更新时间：2026-04-22
 
 ## 动画播放机制
 原版QQ宠物交互与动作播放机制
@@ -80,7 +80,6 @@
 ## P0
 - 宠物的交互功能, 动画的打断,队列,交互等逻辑问题
 - 刚开始的初始化设置, 比如选男企鹅还是选女企鹅, 设置名称什么的
-- 宠物又无法置顶了,上面像是被挡住了一样
 - 原版对话系统中显示关闭的按钮, 文字会变化的, 比如说我知道了, xxxx等
 - 学习打工旅行的模块不对, 他是打开那种dialog形式的, 原版是横向滚动菜单模式的
 - 商城修改了一版, 但是样式还是有问题
@@ -186,6 +185,9 @@
 
 ## 最近已完成
 
+- [x] **修复宠物无法移动到屏幕顶部**（2026-04-22）：
+  - 根因 1（JS 层）：`src/main/index.ts` 的 `clampWindowPosition` 顶边 `minY` 写成 `workArea.y - 148`，只算了 `.pet-container` 的 padding，漏了 `.penguin-wrapper` 的 `top: 6px`，且规则与其他三边不一致。改为 `workArea.y + minVisiblePixels - windowHeight`，四边对称。
+  - 根因 2（macOS 系统层）：默认 NSWindow 会把 frame 自动约束到 `visibleFrame` 内。需要 `enableLargerThanScreen: true` + `setAlwaysOnTop(true, 'screen-saver', 1)` + `setBounds` 代替 `setPosition` 三件套同时到位才能真正越过菜单栏。
 - [x] **P2 成长系统核心重构**：新增 growthConfig / growthEngine / migration / diseaseSystem / stageSwfResolver 五个模块
 - [x] 下拉菜单 item 样式改为原版风格：小圆点 + 原版图标（richang/qingjie/zhibing/xuexi/dagong/lvyou）
 - [x] 功能区菜单按钮改为 hover 触发下拉菜单

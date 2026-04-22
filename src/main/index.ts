@@ -7,6 +7,7 @@ import {
   PET_WINDOW_HEIGHT,
   PET_WINDOW_WIDTH,
 } from '../shared/windowSizes'
+import { PET_SPRITE_TOP_OFFSET } from '../shared/petWindowLayout'
 
 let mainWindow: BrowserWindow | null = null
 let chatWindow: BrowserWindow | null = null
@@ -14,9 +15,6 @@ let bubbleWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let isWindowHidden = false
 const minVisiblePixels = 50
-
-// 企鹅在窗口中的垂直偏移量（上方有透明区域留给气泡/菜单）
-const PET_TOP_PADDING = 148
 
 function clampWindowPosition(x: number, y: number, windowWidth: number, windowHeight: number) {
   const display = screen.getDisplayNearestPoint({
@@ -28,8 +26,8 @@ function clampWindowPosition(x: number, y: number, windowWidth: number, windowHe
   const maxX = workArea.x + workArea.width - minVisiblePixels
   const maxY = workArea.y + workArea.height - minVisiblePixels
   const minX = workArea.x + minVisiblePixels - windowWidth
-  // 允许窗口上方的透明区域超出 workArea，这样企鹅本身可以到达屏幕顶部
-  const minY = workArea.y - PET_TOP_PADDING
+  // 顶边与其他三边保持一致：允许窗口向上溢出，只要底部仍保留 minVisiblePixels 像素
+  const minY = workArea.y + minVisiblePixels - windowHeight
 
   return {
     x: Math.max(minX, Math.min(maxX, x)),
@@ -52,7 +50,7 @@ function fitWindowToWorkArea(x: number, y: number, windowWidth: number, windowHe
 
   return {
     x: Math.max(workArea.x, Math.min(maxX, x)),
-    y: Math.max(workArea.y - PET_TOP_PADDING, Math.min(maxY, y)),
+    y: Math.max(workArea.y - PET_SPRITE_TOP_OFFSET, Math.min(maxY, y)),
     width: fittedWidth,
     height: fittedHeight,
     workArea,
@@ -71,6 +69,10 @@ function createWindow() {
     backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: false,
+    hasShadow: false,
+    skipTaskbar: true,
+    // macOS 允许窗口被定位到工作区外（盖住菜单栏等）
+    enableLargerThanScreen: true,
     x: workAreaSize.width - PET_WINDOW_WIDTH - margin,
     y: workAreaSize.height - PET_WINDOW_HEIGHT - margin,
     webPreferences: {
@@ -80,8 +82,9 @@ function createWindow() {
     },
   })
 
-  // 使用 'floating' 级别确保在 macOS 上能稳定置顶
-  mainWindow.setAlwaysOnTop(true, 'floating')
+  // screen-saver 层级高于菜单栏；第三参 1 让其位于同层级窗口之上
+  mainWindow.setAlwaysOnTop(true, 'screen-saver', 1)
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
 
   // 开发环境加载 Vite 服务器
   if (process.env.NODE_ENV === 'development') {
@@ -108,7 +111,8 @@ app.whenReady().then(() => {
       const [windowWidth, windowHeight] = mainWindow.getSize()
       const { x: boundedX, y: boundedY, workArea } = clampWindowPosition(x, y, windowWidth, windowHeight)
 
-      mainWindow.setPosition(boundedX, boundedY)
+      // setBounds 比 setPosition 更直接地写 frame，能绕过 macOS 的 visibleFrame 自动约束
+      mainWindow.setBounds({ x: boundedX, y: boundedY, width: windowWidth, height: windowHeight })
 
       // 检测是否靠近屏幕边缘（30 像素以内）
       const edgeThreshold = 30
@@ -162,7 +166,7 @@ app.whenReady().then(() => {
     if (mainWindow) {
       mainWindow.show()
       // 恢复后重新确保置顶状态
-      mainWindow.setAlwaysOnTop(true, 'floating')
+      mainWindow.setAlwaysOnTop(true, 'screen-saver')
       isWindowHidden = false
       console.log('👀 窗口已从托盘恢复')
     }

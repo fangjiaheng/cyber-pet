@@ -18,7 +18,12 @@
       "Bash(node -e ':*)",
       "Bash(git checkout:*)",
       "Bash(git commit:*)",
-      "Bash(sips -g pixelWidth -g pixelHeight /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/shop/store/Store_img/*.png /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/shop/store/Store_img/*.gif)"
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/shop/store/Store_img/*.png /Users/erase/Desktop/react_Project/petV2/public/assets/1.2.4source/shop/store/Store_img/*.gif)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm type-check *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm run *)",
+      "Bash(awk '{print $2, $9, $10}')"
     ]
   }
 }
