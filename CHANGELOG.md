@@ -4,6 +4,33 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
+## [Unreleased] - 2026-04-23
+
+### 新增
+
+- **情绪态生病动画循环**（对齐原版 State.js 节奏）
+  - 新增 `getEmotionSwfPath(stage, emotion)`（`src/renderer/utils/stageSwfResolver.ts`）：
+    sad → Sick.swf（egg/kid）/ Sick1.swf（adult）；angry → Dying.swf（egg）/ Dirty.swf（kid）/ Sick2.swf（adult）
+  - `App.tsx` 新增 useEffect：`penguinAction === 'sad' | 'angry'` 时，每 30 秒循环播放对应 SWF；
+    交互动作占用时自动让位
+- **dev 调试工具**
+  - `window.__petDebug.{fillStats, drainStats, setEmotion, snapshot}`：DevTools 控制台调试入口
+  - `scripts/fillPetStats.cjs`：直接改写加密 electron-store 把状态加满 + 清除疾病
+  - `scripts/dumpPetState.cjs`：解密 dump 当前持久化状态
+  - `scripts/resetPetPosition.cjs`：清除持久化位置信息
+
+### 修复
+
+- **打开/关闭面板时宠物位置漂移**（`src/renderer/App.tsx` `resizeWindowForMode`）
+  - 抽出通用 `petWindowPositionBeforeExpandRef` 和 `captureExpandAnchor()`
+  - probe / shop / settings / state / info / inventory / work / study 进入扩展模式前先抓 anchor，
+    回到 'pet' 模式时按 offset 还原，避免窗口缩小后停留在大窗口左上角
+- **打开面板时内容闪烁/抖动**
+  - `openPanel` / `openSettingsSection` 用 `flushSync` 同步提交 React 更新，让 `.panel-expanded`
+    flex-center 在 `resizeWindow` IPC 之前生效，内容不会从窗口左上角跳到中心
+  - 共享 `panel-slide-down` keyframe（`App.css`），9 个面板（chat / state / info / inventory /
+    settings / work / study / shop / probe）统一渐入动画，掩盖 IPC 与渲染时序错位
+
 ## [0.9.0] - 2026-04-03
 
 ### 新增

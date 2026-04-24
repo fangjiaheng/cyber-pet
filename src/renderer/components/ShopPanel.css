@@ -10,6 +10,7 @@
   height: calc(600px * var(--shop-scale));
   pointer-events: auto;
   overflow: hidden;
+  animation: panel-slide-down 0.3s ease-out;
 }
 
 .shop-panel {

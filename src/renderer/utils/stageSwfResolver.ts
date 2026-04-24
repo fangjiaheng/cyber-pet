@@ -160,3 +160,24 @@ export function getRandomPlaySwfPath(stage: GrowthStage, moodAppearance: MoodApp
 export function toPlaylistPath(absolutePath: string): string {
   return absolutePath.startsWith('/') ? absolutePath.slice(1) : absolutePath
 }
+
+/**
+ * 获取情绪态对应的 SWF 路径（用于 sad/angry 等非交互状态的循环播放）
+ * 对应原版"生病每 30 秒循环播放"的节奏
+ */
+export function getEmotionSwfPath(
+  stage: GrowthStage,
+  emotion: 'sad' | 'angry',
+): string | null {
+  const base = BASE_PATHS[stage]
+  if (emotion === 'sad') {
+    if (stage === 'adult') return `${base}Sick1.swf`
+    return `${base}Sick.swf` // egg / kid
+  }
+  if (emotion === 'angry') {
+    if (stage === 'adult') return `${base}Sick2.swf`
+    if (stage === 'kid') return `${base}Dirty.swf`
+    return `${base}Dying.swf` // egg
+  }
+  return null
+}

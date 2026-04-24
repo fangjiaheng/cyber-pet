@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import './App.css'
 import './ChatPanel.css'
 import chongwuIcon from './assets/toolbar/qq-chongwu.png'
@@ -60,7 +61,7 @@ import { getPetAnchorOffset, type PetWindowLayoutMode } from '@shared/petWindowL
 import { swfCategories } from './swfData'
 import { buildLoadlistsPlaylist, IDLE_SWF_PATH, getStageIdlePath, getStageEnterPlaylist, getStageHidePath } from './utils/swfPlaylist'
 import { getGrowthStage, getMoodAppearance, type GrowthStage } from './stores/growthConfig'
-import { getActionSwfPath, getTransitionSwfPath, getRandomPlaySwfPath } from './utils/stageSwfResolver'
+import { getActionSwfPath, getTransitionSwfPath, getRandomPlaySwfPath, getEmotionSwfPath } from './utils/stageSwfResolver'
 // stageSwfResolver 的直接引用将在后续 Phase 中启用
 // import { getActionSwfPath, toPlaylistPath } from './utils/stageSwfResolver'
 import {
@@ -248,7 +249,7 @@ function App() {
   const lifeButtonRef = useRef<HTMLButtonElement | null>(null)
   const taskButtonRef = useRef<HTMLButtonElement | null>(null)
   const windowLayoutModeRef = useRef<WindowMode>('pet')
-  const petWindowPositionBeforeChatRef = useRef<WindowPosition | null>(null)
+  const petWindowPositionBeforeExpandRef = useRef<WindowPosition | null>(null)
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showActions, setShowActions] = useState(false)
@@ -308,6 +309,54 @@ function App() {
     }
 
     void loadPetState()
+  }, [])
+
+  // [DEV-ONLY 调试] 在 DevTools 控制台暴露宠物状态操作
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    const w = window as unknown as Record<string, unknown>
+    w.usePetStore = usePetStore
+    w.__petDebug = {
+      fillStats: () => {
+        const level = usePetStore.getState().level
+        usePetStore.setState({
+          hunger: getHungerMax(level),
+          cleanliness: getCleanlinessMax(level),
+          mood: 1000,
+          energy: 1000,
+          health: 5,
+          currentEmotion: 'happy',
+        })
+        console.log('[petDebug] 状态已加满', usePetStore.getState())
+      },
+      drainStats: () => {
+        usePetStore.setState({
+          hunger: 50,
+          cleanliness: 50,
+          mood: 50,
+          energy: 50,
+          currentEmotion: 'sad',
+        })
+        console.log('[petDebug] 状态已清空（触发 sad）')
+      },
+      setEmotion: (emotion: 'happy' | 'sad' | 'angry' | 'tired' | 'hungry' | 'neutral') => {
+        usePetStore.getState().setEmotion(emotion)
+        console.log('[petDebug] emotion ->', emotion)
+      },
+      snapshot: () => {
+        const s = usePetStore.getState()
+        console.table({
+          hunger: s.hunger,
+          cleanliness: s.cleanliness,
+          mood: s.mood,
+          energy: s.energy,
+          health: s.health,
+          emotion: s.currentEmotion,
+          level: s.level,
+        })
+      },
+    }
+    console.log('[petDebug] 调试接口已挂载: window.__petDebug.{fillStats,drainStats,setEmotion,snapshot}')
   }, [])
 
   useEffect(() => {
@@ -580,13 +629,27 @@ function App() {
     if (!window.electronAPI?.resizeWindow) return
     const currentMode = windowLayoutModeRef.current
 
+    // 进入"扩展面板"模式前，先记下当前宠物窗口位置，便于关闭后恢复。
+    // 不 await：avoid 让 IPC 往返延迟 resizeWindow，否则面板会先以小窗口尺寸渲染再扩大造成闪烁。
+    // IPC 在主进程串行处理：本调用紧跟其后的 resizeWindow 会排在 getPosition 之后，
+    // 因此返回的 (x,y) 仍是 resize 前的原始位置。
+    const captureExpandAnchor = () => {
+      if (petWindowPositionBeforeExpandRef.current) return
+      const posPromise = window.electronAPI.getWindowPosition()
+      void posPromise.then(([curX, curY]) => {
+        if (petWindowPositionBeforeExpandRef.current) return
+        const petPos = resolvePetWindowPosition(currentMode, { x: curX, y: curY })
+        petWindowPositionBeforeExpandRef.current = petPos ?? { x: curX, y: curY }
+      })
+    }
+
     if (mode === 'chat') {
       const [currentX, currentY] = await window.electronAPI.getWindowPosition()
       const currentPosition = { x: currentX, y: currentY }
       const petPosition = resolvePetWindowPosition(currentMode, currentPosition)
 
       if (petPosition) {
-        petWindowPositionBeforeChatRef.current = petPosition
+        petWindowPositionBeforeExpandRef.current = petPosition
       }
 
       const openFromPetOffset = getPetAnchorOffset('pet', 'chat')
@@ -613,6 +676,7 @@ function App() {
     }
 
     if (mode === 'probe') {
+      captureExpandAnchor()
       window.electronAPI.resizeWindow(CHAT_WINDOW_WIDTH, CHAT_WINDOW_HEIGHT, { fitToScreen: true })
       windowLayoutModeRef.current = mode
       return
@@ -625,12 +689,14 @@ function App() {
     }
 
     if (mode === 'shop') {
+      captureExpandAnchor()
       window.electronAPI.resizeWindow(SHOP_WINDOW_WIDTH, SHOP_WINDOW_HEIGHT, { fitToScreen: true })
       windowLayoutModeRef.current = mode
       return
     }
 
     if (mode === 'settings' || mode === 'work' || mode === 'study' || mode === 'info' || mode === 'state' || mode === 'inventory') {
+      captureExpandAnchor()
       window.electronAPI.resizeWindow(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT, { fitToScreen: true })
       windowLayoutModeRef.current = mode
       return
@@ -642,22 +708,21 @@ function App() {
       return
     }
 
-    // 宠物模式 - 恢复默认大小
-    if (currentMode === 'chat' && petWindowPositionBeforeChatRef.current) {
+    // 宠物模式 - 恢复默认大小，并把窗口拉回扩展前的位置
+    if (petWindowPositionBeforeExpandRef.current) {
       const [currentX, currentY] = await window.electronAPI.getWindowPosition()
-      const { x, y } = petWindowPositionBeforeChatRef.current
+      const { x, y } = petWindowPositionBeforeExpandRef.current
 
       window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT, {
         offsetX: x - currentX,
         offsetY: y - currentY,
       })
-      petWindowPositionBeforeChatRef.current = null
+      petWindowPositionBeforeExpandRef.current = null
       windowLayoutModeRef.current = mode
       return
     }
 
     window.electronAPI.resizeWindow(PET_WINDOW_WIDTH, PET_WINDOW_HEIGHT)
-    petWindowPositionBeforeChatRef.current = null
     windowLayoutModeRef.current = mode
   }, [isAnchoredPetMode, resolvePetWindowPosition])
 
@@ -799,14 +864,20 @@ function App() {
   const openPanel = useCallback((panel: Exclude<ActivePanel, null>) => {
     closeFloatingUi()
     const nextPanel = activePanel === panel ? null : panel
-    setActivePanel(nextPanel)
+    // 先同步提交 React 更新（让 panel-expanded class 立即生效，内容进入 flex-center），
+    // 再发送窗口扩展 IPC，避免窗口先扩大、class 后到导致内容从左上角跳到中心的抖动。
+    flushSync(() => {
+      setActivePanel(nextPanel)
+    })
     resizeWindowForMode(nextPanel ?? 'pet')
   }, [activePanel, closeFloatingUi, resizeWindowForMode])
 
   const openSettingsSection = useCallback((section: SettingsSection) => {
     closeFloatingUi()
-    setSettingsSection(section)
-    setActivePanel('settings')
+    flushSync(() => {
+      setSettingsSection(section)
+      setActivePanel('settings')
+    })
     resizeWindowForMode('settings')
   }, [closeFloatingUi, resizeWindowForMode])
 
@@ -1522,6 +1593,29 @@ function App() {
       }
     }
   }, [animationIntervalMs, growthStage, moodAppearance, penguinAction, requestManagedAction])
+
+  // 情绪态（sad/angry）每 30 秒循环播放一次对应的 SWF（对齐原版生病动画节奏）
+  useEffect(() => {
+    if (penguinAction !== 'sad' && penguinAction !== 'angry') return
+
+    const emotionSwf = getEmotionSwfPath(growthStage, penguinAction)
+    if (!emotionSwf) return
+
+    const playEmotion = () => {
+      // 让位给正在进行的交互动作
+      if (actionMachineRef.current.current) return
+      playSwfPath(emotionSwf)
+    }
+
+    // 首次稍微延迟，避免在 idle→sad 切换瞬间抢占其他播放
+    const firstPlayTimer = window.setTimeout(playEmotion, 500)
+    const interval = window.setInterval(playEmotion, 30_000)
+
+    return () => {
+      window.clearTimeout(firstPlayTimer)
+      window.clearInterval(interval)
+    }
+  }, [growthStage, penguinAction, playSwfPath])
 
   useEffect(() => {
     if (!isActionDropdownOpen) return

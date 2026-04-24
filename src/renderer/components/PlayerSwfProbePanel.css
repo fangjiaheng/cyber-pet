@@ -16,6 +16,7 @@
   border: 1px solid rgba(129, 171, 230, 0.32);
   box-sizing: border-box;
   pointer-events: auto;
+  animation: panel-slide-down 0.3s ease-out;
 }
 
 .player-swf-probe-header {

@@ -10,6 +10,18 @@
   pointer-events: none;
 }
 
+/* 共享面板入场动画：掩盖窗口 resize IPC 与 React 渲染之间几毫秒的时序错位 */
+@keyframes panel-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .app.panel-expanded,
 .app.chat-expanded {
   justify-content: center;
